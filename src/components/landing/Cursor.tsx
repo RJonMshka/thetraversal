@@ -15,6 +15,7 @@ interface CursorProps {
 
 export function Cursor({ onNavigate }: CursorProps) {
   const [input, setInput] = useState("");
+  const [cursorPos, setCursorPos] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isActive, setIsActive] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -29,6 +30,7 @@ export function Cursor({ onNavigate }: CursorProps) {
     if (trimmed === "clear") {
       setHistory([]);
       setInput("");
+      setCursorPos(0);
       return;
     }
 
@@ -38,6 +40,7 @@ export function Cursor({ onNavigate }: CursorProps) {
     if (easterEgg) {
       setHistory((prev) => [...prev, { input: trimmed, output: easterEgg }]);
       setInput("");
+      setCursorPos(0);
       return;
     }
 
@@ -46,6 +49,7 @@ export function Cursor({ onNavigate }: CursorProps) {
       setIsActive(false);
       setHistory((prev) => [...prev, { input: trimmed, output: null }]);
       setInput("");
+      setCursorPos(0);
       // Small delay before triggering navigation/animation
       setTimeout(() => {
         onNavigate();
@@ -138,7 +142,16 @@ export function Cursor({ onNavigate }: CursorProps) {
               ref={inputRef}
               type="text"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                setCursorPos(e.target.selectionStart ?? e.target.value.length);
+              }}
+              onKeyUp={(e) => {
+                setCursorPos(e.currentTarget.selectionStart ?? cursorPos);
+              }}
+              onSelect={(e) => {
+                setCursorPos(e.currentTarget.selectionStart ?? cursorPos);
+              }}
               className="absolute inset-0 w-full bg-transparent text-ctp-text outline-none caret-transparent font-mono text-sm"
               autoFocus
               autoComplete="off"
@@ -147,17 +160,20 @@ export function Cursor({ onNavigate }: CursorProps) {
               spellCheck={false}
               aria-label="Terminal input"
             />
-            {/* Visible text + cursor */}
+            {/* Visible text with cursor at correct position */}
             <span className="text-ctp-text pointer-events-none select-none">
-              {input}
+              {input.slice(0, cursorPos)}
             </span>
             <span
               className={cn(
-                "inline-block w-[0.6em] h-[1.1em] bg-ctp-text ml-px align-middle",
+                "inline-block w-[0.6em] h-[1.1em] bg-ctp-text align-middle",
                 "animate-cursor-blink"
               )}
               aria-hidden="true"
             />
+            <span className="text-ctp-text pointer-events-none select-none">
+              {input.slice(cursorPos)}
+            </span>
           </div>
         </div>
       )}
