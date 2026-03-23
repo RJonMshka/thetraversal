@@ -13,6 +13,7 @@ interface TraversalState {
   currentMode: TraversalMode;
   contextWindow: ContextWindowEntry[];
   expandedNodes: string[]; // Using array instead of Set for JSON serialization
+  hasHydrated: boolean; // True after sessionStorage rehydration completes
 
   // Actions
   visitNode: (slug: string, label: string, type: ContextWindowEntry["type"]) => void;
@@ -33,6 +34,7 @@ export const useTraversalState = create<TraversalState>()(
       currentMode: "parse",
       contextWindow: [],
       expandedNodes: [],
+      hasHydrated: false,
 
       // ── Actions ────────────────────────────────────────────────────
 
@@ -109,6 +111,18 @@ export const useTraversalState = create<TraversalState>()(
         contextWindow: state.contextWindow,
         expandedNodes: state.expandedNodes,
       }),
+      // Flip hasHydrated after sessionStorage rehydration completes.
+      // This prevents SSR hydration mismatches — components render with
+      // default (empty) state on first pass, then rehydrated state kicks in.
+      onRehydrateStorage: () => {
+        return () => {
+          // Defer to avoid circular reference — useTraversalState is still
+          // being assigned when this callback fires synchronously during create().
+          queueMicrotask(() => {
+            useTraversalState.setState({ hasHydrated: true });
+          });
+        };
+      },
     }
   )
 );

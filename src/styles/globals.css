@@ -100,10 +100,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Focus ring */
+/* Focus ring — exclude SVG group elements (handled visually within components) */
 *:focus-visible {
   outline: 2px solid var(--color-ctp-lavender);
   outline-offset: 2px;
+}
+
+svg [role="treeitem"]:focus-visible,
+svg [role="treeitem"]:focus,
+svg g:focus-visible,
+svg g:focus {
+  outline: none;
 }
 
 /* Reduced motion */

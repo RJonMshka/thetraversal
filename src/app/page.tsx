@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import { Cursor } from "@/components/landing/Cursor";
 import { ParseAnimation } from "@/components/landing/ParseAnimation";
 
@@ -29,6 +30,18 @@ export default function LandingPage() {
           <ParseAnimation isActive={showAnimation} />
         )}
       </div>
+
+      {/* Skip link — always visible for direct navigation */}
+      {!showAnimation && (
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+          <Link
+            href="/tree"
+            className="text-ctp-overlay0 hover:text-ctp-text text-xs font-mono transition-colors"
+          >
+            skip to traversal {"->"}
+          </Link>
+        </div>
+      )}
 
       {/* No-JS fallback */}
       <noscript>
