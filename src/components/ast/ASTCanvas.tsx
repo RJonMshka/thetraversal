@@ -121,7 +121,7 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
       };
 
       toggleExpand(slug);
-      visitNode(slug, node.label, node.type);
+      visitNode(slug, node.label, node.type, node.glowColor);
     },
     [nodes, toggleExpand, visitNode]
   );

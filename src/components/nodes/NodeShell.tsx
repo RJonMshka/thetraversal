@@ -18,8 +18,8 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
 
   // Mark node as visited on mount
   useEffect(() => {
-    visitNode(node.slug, node.label, node.type);
-  }, [node.slug, node.label, node.type, visitNode]);
+    visitNode(node.slug, node.label, node.type, node.glowColor);
+  }, [node.slug, node.label, node.type, node.glowColor, visitNode]);
 
   const glow = getGlowClasses(node.glowColor);
 

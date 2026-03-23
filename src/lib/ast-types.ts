@@ -75,6 +75,7 @@ export interface ContextWindowEntry {
   slug: string;
   label: string;
   type: ASTNodeType;
+  glowColor: string; // CSS custom property name (e.g. "--ctp-peach")
   visitedAt: number; // timestamp
 }
 

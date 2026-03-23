@@ -148,3 +148,12 @@ svg g:focus {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-ctp-surface2);
 }
+
+/* Hidden scrollbar utility — for horizontal token stream etc. */
+.scrollbar-hidden {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
+}

@@ -16,7 +16,7 @@ interface TraversalState {
   hasHydrated: boolean; // True after sessionStorage rehydration completes
 
   // Actions
-  visitNode: (slug: string, label: string, type: ContextWindowEntry["type"]) => void;
+  visitNode: (slug: string, label: string, type: ContextWindowEntry["type"], glowColor: string) => void;
   setMode: (mode: TraversalMode) => void;
   toggleExpand: (slug: string) => void;
   resetTraversal: () => void;
@@ -38,7 +38,7 @@ export const useTraversalState = create<TraversalState>()(
 
       // ── Actions ────────────────────────────────────────────────────
 
-      visitNode: (slug, label, type) => {
+      visitNode: (slug, label, type, glowColor) => {
         const state = get();
         // Don't add duplicates to visitedNodes
         if (state.visitedNodes.includes(slug)) return;
@@ -51,6 +51,7 @@ export const useTraversalState = create<TraversalState>()(
               slug,
               label,
               type,
+              glowColor,
               visitedAt: Date.now(),
             },
           ],
