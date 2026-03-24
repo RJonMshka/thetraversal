@@ -4,10 +4,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useCallback, useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { ASTCanvas } from "@/components/ast/ASTCanvas";
+import { ASTMobileTree } from "@/components/ast/ASTMobileTree";
 import { TraversalModeSelector } from "@/components/ast/TraversalModeSelector";
 import { TokenStream } from "@/components/chrome/TokenStream";
 import { ContextWindow } from "@/components/chrome/ContextWindow";
 import { useTraversalState } from "@/hooks/useTraversalState";
+import { useIsDesktop } from "@/hooks/useMediaQuery";
 import { findNode } from "@/lib/traversal";
 import { PORTFOLIO_AST } from "@/data/ast";
 import { cn } from "@/lib/utils";
@@ -46,6 +48,9 @@ function TreePageInner() {
   const [contextOpen, setContextOpen] = useState(false);
   const toggleContext = useCallback(() => setContextOpen((o) => !o), []);
   const closeContext = useCallback(() => setContextOpen(false), []);
+
+  // ── Responsive breakpoint ────────────────────────────────────────
+  const isDesktop = useIsDesktop();
 
   // ── Active slug ────────────────────────────────────────────────────
   // The most recently visited node is highlighted in the token stream.
@@ -90,83 +95,113 @@ function TreePageInner() {
   return (
     <main className="flex flex-col h-screen overflow-hidden bg-ctp-base">
       {/* ── Top bar ─────────────────────────────────────────────────── */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-ctp-surface0 bg-ctp-mantle/50 backdrop-blur-sm z-10 shrink-0">
-        <Link
-          href="/"
-          className="text-ctp-overlay1 hover:text-ctp-text text-sm font-mono transition-colors"
-        >
-          {"<-"} root
-        </Link>
+      <header className="border-b border-ctp-surface0 bg-ctp-mantle/50 backdrop-blur-sm z-10 shrink-0">
+        {/* Row 1: Navigation + context toggle */}
+        <div className="flex items-center justify-between px-4 py-2.5 lg:py-3">
+          <Link
+            href="/"
+            className="text-ctp-overlay1 hover:text-ctp-text text-sm font-mono transition-colors"
+          >
+            {"<-"} root
+          </Link>
 
-        <TraversalModeSelector
-          currentMode={currentMode}
-          onModeChange={handleModeChange}
-        />
+          {/* Desktop: full mode selector inline */}
+          <div className="hidden lg:block">
+            <TraversalModeSelector
+              currentMode={currentMode}
+              onModeChange={handleModeChange}
+            />
+          </div>
 
-        {/* Context window toggle */}
-        <button
-          onClick={toggleContext}
-          className={cn(
-            "text-xs font-mono px-3 py-1.5 rounded border transition-colors",
-            contextOpen
-              ? "border-ctp-lavender text-ctp-lavender bg-ctp-lavender/10"
-              : "border-ctp-surface1 text-ctp-overlay1 hover:border-ctp-lavender hover:text-ctp-lavender"
-          )}
-          aria-pressed={contextOpen}
-          aria-label={contextOpen ? "Close context window" : "Open context window"}
-        >
-          ctx
-          {contextWindow.length > 0 && (
-            <span className="ml-1.5 text-ctp-lavender">
-              [{contextWindow.length}]
-            </span>
-          )}
-        </button>
+          {/* Context window toggle */}
+          <button
+            onClick={toggleContext}
+            className={cn(
+              "text-xs font-mono px-3 py-1.5 rounded border transition-colors",
+              contextOpen
+                ? "border-ctp-lavender text-ctp-lavender bg-ctp-lavender/10"
+                : "border-ctp-surface1 text-ctp-overlay1 hover:border-ctp-lavender hover:text-ctp-lavender"
+            )}
+            aria-pressed={contextOpen}
+            aria-label={contextOpen ? "Close context window" : "Open context window"}
+          >
+            ctx
+            {contextWindow.length > 0 && (
+              <span className="ml-1.5 text-ctp-lavender">
+                [{contextWindow.length}]
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Row 2 (mobile only): Compact mode selector, centered */}
+        <div className="flex items-center justify-center px-4 pb-2.5 lg:hidden">
+          <div className="flex items-center gap-1 bg-ctp-surface0/40 rounded-lg px-1 py-0.5">
+            <span className="text-ctp-green text-xs font-mono select-none mr-0.5">$</span>
+            <TraversalModeSelector
+              currentMode={currentMode}
+              onModeChange={handleModeChange}
+              compact
+            />
+          </div>
+        </div>
       </header>
 
       {/* ── Main area ───────────────────────────────────────────────── */}
       <div className="flex-1 relative overflow-hidden">
-        {/* AST Canvas — fills the space, shrinks when sidebar open */}
-        <div
-          className={cn(
-            "absolute inset-0 transition-all duration-300",
-            // On desktop, shrink canvas when sidebar is open
-            "lg:right-0",
-            contextOpen && "lg:right-72"
-          )}
-          // Reserve bottom space for token stream
-          style={{ bottom: "40px" }}
-        >
-          <ASTCanvas mode={currentMode} />
-        </div>
+        {isDesktop ? (
+          <>
+            {/* AST Canvas (desktop) — fills the space, shrinks when sidebar open */}
+            <div
+              className={cn(
+                "absolute inset-0 transition-all duration-300",
+                "lg:right-0",
+                contextOpen && "lg:right-72"
+              )}
+              style={{ bottom: "40px" }}
+            >
+              <ASTCanvas mode={currentMode} />
+            </div>
 
-        {/* Context Window — sidebar on desktop */}
-        <div
-          className={cn(
-            "hidden lg:block absolute right-0 top-0 bottom-10 z-30",
-            contextOpen ? "pointer-events-auto" : "pointer-events-none"
-          )}
-        >
-          <ContextWindow
-            isOpen={contextOpen}
-            onClose={closeContext}
-            variant="sidebar"
-          />
-        </div>
+            {/* Context Window — sidebar on desktop */}
+            <div
+              className={cn(
+                "absolute right-0 top-0 bottom-10 z-30",
+                contextOpen ? "pointer-events-auto" : "pointer-events-none"
+              )}
+            >
+              <ContextWindow
+                isOpen={contextOpen}
+                onClose={closeContext}
+                variant="sidebar"
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            {/* AST Mobile Tree — collapsible list, first-class mobile view */}
+            <div
+              className="absolute inset-0 overflow-y-auto"
+              style={{ bottom: "48px" }}
+            >
+              <ASTMobileTree ast={PORTFOLIO_AST} mode={currentMode} />
+            </div>
 
-        {/* Context Window — overlay on mobile/tablet */}
-        <div
-          className={cn(
-            "lg:hidden absolute inset-0 z-30",
-            contextOpen ? "pointer-events-auto" : "pointer-events-none"
-          )}
-        >
-          <ContextWindow
-            isOpen={contextOpen}
-            onClose={closeContext}
-            variant="overlay"
-          />
-        </div>
+            {/* Context Window — overlay on mobile/tablet */}
+            <div
+              className={cn(
+                "absolute inset-0 z-30",
+                contextOpen ? "pointer-events-auto" : "pointer-events-none"
+              )}
+            >
+              <ContextWindow
+                isOpen={contextOpen}
+                onClose={closeContext}
+                variant="overlay"
+              />
+            </div>
+          </>
+        )}
 
         {/* Token Stream — fixed at the bottom */}
         <TokenStream activeSlug={activeSlug} visible={true} />

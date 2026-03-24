@@ -169,7 +169,7 @@ export function Cursor({ onNavigate }: CursorProps) {
                 aria-label="Terminal input"
               />
               {/* Visible text with cursor at correct position */}
-              <span className="text-ctp-text pointer-events-none select-none">
+              <span className="text-ctp-text pointer-events-none select-none invisible">
                 {input.slice(0, cursorPos)}
               </span>
               <span
@@ -179,9 +179,6 @@ export function Cursor({ onNavigate }: CursorProps) {
                 )}
                 aria-hidden="true"
               />
-              <span className="text-ctp-text pointer-events-none select-none">
-                {input.slice(cursorPos)}
-              </span>
             </div>
           </div>
 

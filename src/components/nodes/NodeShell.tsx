@@ -26,7 +26,7 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
   return (
     <main className="min-h-screen bg-ctp-base">
       {/* Top navigation bar */}
-      <header className="sticky top-0 z-10 flex items-center gap-4 px-4 py-3 border-b border-ctp-surface0 bg-ctp-mantle/80 backdrop-blur-sm">
+      <header className="sticky top-0 z-10 px-4 py-3 border-b border-ctp-surface0 bg-ctp-mantle/80 backdrop-blur-sm">
         <Link
           href="/tree"
           className="text-ctp-overlay1 hover:text-ctp-text text-sm font-mono transition-colors shrink-0"
@@ -35,7 +35,7 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
         </Link>
 
         {/* Breadcrumb trail */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-xs font-mono overflow-x-auto">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1 pt-3 text-xs font-mono overflow-x-auto">
           {path.map((segment, i) => (
             <span key={segment.id} className="flex items-center gap-1 shrink-0">
               {i > 0 && <span className="text-ctp-overlay0">{">"}</span>}
