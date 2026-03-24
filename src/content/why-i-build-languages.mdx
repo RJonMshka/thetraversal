@@ -1,0 +1,69 @@
+## The Book That Changed Everything
+
+It started with Thorsten Ball's *Writing an Interpreter in Go*. I bought it expecting to learn a niche skill. I finished it with a new way of seeing.
+
+The book walks you through building a programming language from scratch — lexer, parser, evaluator. Nothing fancy. A tree-walking interpreter for a language called Monkey, with functions, closures, and first-class everything. The kind of project that sounds academic until you actually build it, and then it rewires how you think about every piece of software you touch.
+
+Before that book, I saw code as instructions. After it, I saw code as *language* — and languages as things that can be designed, not just used.
+
+## The Compiler as Understanding Machine
+
+Here is what a compiler forces you to do:
+
+**Lexing** forces you to define what counts as a word. Not a metaphorical word — a literal one. You must decide: is `>=` one token or two? Is `ifvar` a keyword or an identifier? Where does one unit of meaning end and the next begin? You cannot be vague. The lexer does not tolerate ambiguity.
+
+```typescript
+// The lexer asks: what are the atoms of this domain?
+function lex(source: string): Token[] {
+  // Every character must be classified.
+  // Nothing is allowed to be "whatever."
+  // This is the discipline of precise seeing.
+}
+```
+
+**Parsing** forces you to define what counts as a sentence. What can follow what? What nests inside what? What binds tighter — multiplication or addition? These are not arbitrary choices. They are choices about the *shape of thought* in your language. A grammar is a worldview made formal.
+
+**Evaluation** forces you to define what counts as meaning. When I write `2 + 3`, the evaluator must produce `5`. But when I write `add(x, y)`, the evaluator must resolve names, create environments, bind arguments, and recursively evaluate. The meaning of a program is not in its text. The meaning is in its execution.
+
+If you can compile something, you understand it. Not in the hand-wavy "I get the gist" sense. In the rigorous "I can mechanically transform it from one representation to another without losing information" sense. A compiler is a proof of understanding.
+
+## From Monkey to Clause
+
+After Thorsten's book, I built a Scala DSL at UIC — a domain-specific language for describing computation graphs. It was ugly and over-engineered and I learned more from it than from any course.
+
+Then came **Clause** — a logic programming language that compiles to readable TypeScript. Clause is not a toy. It has unification, backtracking, and a type system that maps Prolog-style logic to TypeScript's structural types. The tagline: "logic programming that compiles to code you'd actually read."
+
+```typescript
+// Clause: from logical rules to executable TypeScript
+// rule: ancestor(X, Y) :- parent(X, Y).
+// rule: ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y).
+
+// Compiles to:
+function ancestor(x: Person, y: Person): boolean {
+  if (parent(x, y)) return true;
+  for (const z of people) {
+    if (parent(x, z) && ancestor(z, y)) return true;
+  }
+  return false;
+}
+```
+
+Building Clause taught me that the gap between "elegant formal system" and "useful software" is where all the interesting engineering happens. The theory of unification is beautiful. Making it produce readable TypeScript output required hundreds of small, ugly, pragmatic decisions. That tension — between theoretical purity and practical utility — is where I live.
+
+## Everything Is Compilation
+
+Once you see it, you cannot unsee it. Every software system is a compiler in disguise.
+
+A web framework takes JSX and compiles it to DOM operations. A database takes SQL and compiles it to disk reads. A neural network takes training data and compiles it to weight matrices. React's reconciler is a compiler from virtual DOM to real DOM. Docker is a compiler from Dockerfiles to isolated processes.
+
+The pattern is always the same: take a high-level representation, analyze its structure, and transform it into a lower-level representation that a machine can execute. Lexer, parser, evaluator. Input, structure, output.
+
+This portfolio is a compiler too. It takes my career — a messy, nonlinear, human thing — and compiles it into an Abstract Syntax Tree you can traverse. The lexer tokenized my experiences into nodes. The parser organized them into a hierarchy. The evaluator renders them as interactive pages.
+
+## Why It Matters
+
+I do not think the world needs another programming language. What the world needs is more people who think precisely about the structure of the systems they build. Building a language forces that precision.
+
+When you define a grammar, you learn what your domain's primitives actually are. When you build a parser, you learn how those primitives compose. When you write an evaluator, you learn what execution means in your domain. These skills transfer everywhere — to API design, to data modeling, to system architecture, to communication itself.
+
+The compiler is the ultimate tool for understanding. And understanding, in the end, is the only tool that compounds.

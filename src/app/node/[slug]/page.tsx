@@ -51,7 +51,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 // ── Node content renderer ──────────────────────────────────────────────
 // Maps ASTNodeType to the appropriate component.
-function NodeContent({ node }: { node: ASTNode }) {
+// Async because PhilosophyNode loads MDX content server-side.
+async function NodeContent({ node }: { node: ASTNode }) {
   switch (node.type) {
     case "FunctionDeclaration":
       return <ProjectNode node={node} />;

@@ -45,7 +45,6 @@
   --animate-glow-pulse: glow-pulse 3s ease-in-out infinite;
   --animate-parse-in: parse-in 0.6s ease-out forwards;
   --animate-fade-in: fade-in 0.3s ease-out forwards;
-  --animate-marquee: marquee 20s linear infinite;
 }
 
 @keyframes cursor-blink {
@@ -85,15 +84,6 @@
   }
   to {
     opacity: 1;
-  }
-}
-
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
   }
 }
 
@@ -166,4 +156,65 @@ svg g:focus {
 }
 .scrollbar-hidden::-webkit-scrollbar {
   display: none; /* Chrome/Safari/Opera */
+}
+
+/* ── MDX essay styles ───────────────────────────────────────────────── */
+/* rehype-pretty-code injects <code data-theme> with inline styles.
+   We override backgrounds and add Catppuccin surface tones. */
+
+.mdx-essay pre {
+  background: var(--color-ctp-mantle) !important;
+  border: 1px solid var(--color-ctp-surface0);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  margin: 2rem 0;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.mdx-essay pre code {
+  background: transparent !important;
+  padding: 0;
+  font-family: var(--font-mono);
+}
+
+/* Line numbers from rehype-pretty-code */
+.mdx-essay code[data-line-numbers] {
+  counter-reset: line;
+}
+.mdx-essay code[data-line-numbers] > [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1rem;
+  margin-right: 1.25rem;
+  text-align: right;
+  color: var(--color-ctp-surface2);
+}
+
+/* Highlighted lines */
+.mdx-essay [data-highlighted-line] {
+  background: color-mix(in srgb, var(--color-ctp-surface0) 50%, transparent);
+  border-left: 2px solid var(--color-ctp-lavender);
+  margin-left: -1.25rem;
+  margin-right: -1.25rem;
+  padding-left: calc(1.25rem - 2px);
+  padding-right: 1.25rem;
+}
+
+/* Inline code highlight from rehype-pretty-code */
+.mdx-essay [data-rehype-pretty-code-figure] code {
+  font-family: var(--font-mono);
+}
+
+/* Smooth first-paragraph drop cap (optional nice touch) */
+.mdx-essay > p:first-of-type::first-letter {
+  font-size: 3.5em;
+  float: left;
+  line-height: 0.8;
+  margin-right: 0.1em;
+  margin-top: 0.05em;
+  font-family: var(--font-serif);
+  color: var(--color-ctp-lavender);
 }

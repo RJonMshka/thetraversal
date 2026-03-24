@@ -1,4 +1,10 @@
 import { cn } from "@/lib/utils";
+import { loadEssay } from "@/lib/mdx";
+import { MDXRemote } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
+import rehypePrettyCode from "rehype-pretty-code";
+import { mdxComponents } from "@/components/shared/mdx-components";
+import { ReadingProgress } from "@/components/shared/ReadingProgress";
 import type { ASTNode } from "@/lib/ast-types";
 
 interface PhilosophyNodeProps {
@@ -12,15 +18,40 @@ function estimateReadingTime(text: string): number {
   return Math.max(1, Math.ceil(words / wordsPerMinute));
 }
 
-export function PhilosophyNode({ node }: PhilosophyNodeProps) {
-  const bodyParagraphs = node.content?.body?.split("\n\n").filter(Boolean) ?? [];
-  const fullText = node.content?.body ?? "";
-  const readingTime = estimateReadingTime(fullText);
+// ── Fallback body renderer (when no MDX file exists) ───────────────────
+function FallbackBody({ body }: { body: string }) {
+  const paragraphs = body.split("\n\n").filter(Boolean);
+  return (
+    <div
+      className={cn(
+        "space-y-6 max-w-[65ch]",
+        "font-serif text-base leading-[1.8] text-ctp-text"
+      )}
+    >
+      {paragraphs.map((paragraph, i) => (
+        <p key={i}>{paragraph}</p>
+      ))}
+    </div>
+  );
+}
+
+export async function PhilosophyNode({ node }: PhilosophyNodeProps) {
   const tags = node.meta?.tags ?? [];
   const date = node.meta?.date;
+  const essaySlug = node.content?.deep;
+
+  // Try to load the MDX essay
+  const mdxSource = essaySlug ? await loadEssay(essaySlug) : null;
+
+  // Estimate reading time from MDX source or fallback body
+  const textForTime = mdxSource ?? node.content?.body ?? "";
+  const readingTime = estimateReadingTime(textForTime);
 
   return (
     <article className="space-y-8">
+      {/* Reading progress bar */}
+      <ReadingProgress />
+
       {/* Call expression header */}
       <header className="space-y-4">
         <div className="font-mono">
@@ -54,23 +85,30 @@ export function PhilosophyNode({ node }: PhilosophyNodeProps) {
       {/* Divider */}
       <div className="border-t border-ctp-surface0" />
 
-      {/* Essay body — serif typography */}
-      <div className={cn(
-        "space-y-6 max-w-[65ch]",
-        "font-serif text-base leading-[1.8] text-ctp-text",
-      )}>
-        {bodyParagraphs.map((paragraph, i) => (
-          <p key={i}>{paragraph}</p>
-        ))}
-      </div>
-
-      {/* MDX essay note — will be replaced in Phase 7 */}
-      {node.content?.deep && (
-        <div className="border-t border-ctp-surface0 pt-6">
-          <p className="text-xs font-mono text-ctp-overlay0">
-            {"// full essay available when MDX content is loaded (Phase 7)"}
-          </p>
+      {/* Essay content */}
+      {mdxSource ? (
+        <div className="max-w-[65ch] mdx-essay">
+          <MDXRemote
+            source={mdxSource}
+            components={mdxComponents}
+            options={{
+              mdxOptions: {
+                remarkPlugins: [remarkGfm],
+                rehypePlugins: [
+                  [
+                    rehypePrettyCode,
+                    {
+                      theme: "catppuccin-mocha",
+                      keepBackground: false,
+                    },
+                  ],
+                ],
+              },
+            }}
+          />
         </div>
+      ) : (
+        <FallbackBody body={node.content?.body ?? ""} />
       )}
     </article>
   );
