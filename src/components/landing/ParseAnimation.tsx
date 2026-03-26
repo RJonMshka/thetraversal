@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -57,6 +57,7 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
   const [lexTokens, setLexTokens] = useState<LexToken[]>([]);
   const [visibleParseNodes, setVisibleParseNodes] = useState(0);
   const [visibleEvalLines, setVisibleEvalLines] = useState(0);
+  const timersRef = useRef<NodeJS.Timeout[]>([]);
 
   const inputText = "traverse(portfolio)";
 
@@ -65,40 +66,53 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
     return inputText.split("").map((char, i) => ({
       char,
       color: char === " " ? "" : TOKEN_COLORS[i % TOKEN_COLORS.length],
-      delay: i * 0.04,
+      delay: i * 0.03, // Tightened from 0.04
     }));
   }, []);
 
-  // Phase sequencing
+  // Skip to done — callable via click/Enter during animation
+  const skipToEnd = useCallback(() => {
+    // Clear all pending timers
+    for (const t of timersRef.current) clearTimeout(t);
+    timersRef.current = [];
+
+    // Show everything immediately
+    setVisibleParseNodes(PARSE_NODES.length);
+    setVisibleEvalLines(EVAL_LINES.length);
+    setPhase("done");
+  }, []);
+
+  // Phase sequencing — tightened to ~2.5s total
   useEffect(() => {
     if (!isActive) return;
 
     setPhase("lex");
     setLexTokens(generateLexTokens());
 
-    // lex -> parse transition
+    // lex -> parse transition (was 1500, now 800)
     const parseTimer = setTimeout(() => {
       setPhase("parse");
-    }, 1500);
+    }, 800);
 
-    // parse -> eval transition
+    // parse -> eval transition (was 3500, now 1800)
     const evalTimer = setTimeout(() => {
       setPhase("eval");
-    }, 3500);
+    }, 1800);
 
-    // eval -> done transition
+    // eval -> done transition (was 5500, now 2800)
     const doneTimer = setTimeout(() => {
       setPhase("done");
-    }, 5500);
+    }, 2800);
+
+    timersRef.current = [parseTimer, evalTimer, doneTimer];
 
     return () => {
-      clearTimeout(parseTimer);
-      clearTimeout(evalTimer);
-      clearTimeout(doneTimer);
+      for (const t of timersRef.current) clearTimeout(t);
+      timersRef.current = [];
     };
   }, [isActive, generateLexTokens]);
 
-  // Animate parse nodes appearing one by one
+  // Animate parse nodes appearing one by one (faster)
   useEffect(() => {
     if (phase !== "parse") return;
 
@@ -108,14 +122,16 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
     PARSE_NODES.forEach((_, i) => {
       const timer = setTimeout(() => {
         setVisibleParseNodes((prev) => prev + 1);
-      }, i * 200);
+      }, i * 100); // Was 200, now 100
       intervals.push(timer);
     });
+
+    timersRef.current.push(...intervals);
 
     return () => intervals.forEach(clearTimeout);
   }, [phase]);
 
-  // Animate eval lines appearing one by one
+  // Animate eval lines appearing one by one (faster)
   useEffect(() => {
     if (phase !== "eval") return;
 
@@ -125,12 +141,34 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
     EVAL_LINES.forEach((_, i) => {
       const timer = setTimeout(() => {
         setVisibleEvalLines((prev) => prev + 1);
-      }, i * 300);
+      }, i * 150); // Was 300, now 150
       intervals.push(timer);
     });
 
+    timersRef.current.push(...intervals);
+
     return () => intervals.forEach(clearTimeout);
   }, [phase]);
+
+  // Listen for click/Enter to skip animation
+  useEffect(() => {
+    if (!isActive || phase === "done" || phase === "idle") return;
+
+    const handleSkip = (e: KeyboardEvent | MouseEvent) => {
+      if (e instanceof KeyboardEvent && e.key !== "Enter" && e.key !== " ") {
+        return;
+      }
+      skipToEnd();
+    };
+
+    window.addEventListener("keydown", handleSkip);
+    window.addEventListener("click", handleSkip);
+
+    return () => {
+      window.removeEventListener("keydown", handleSkip);
+      window.removeEventListener("click", handleSkip);
+    };
+  }, [isActive, phase, skipToEnd]);
 
   if (!isActive && phase === "idle") return null;
 
@@ -144,7 +182,7 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
             className="space-y-3"
           >
             <div className="text-ctp-overlay1 text-xs tracking-wider uppercase">
@@ -158,7 +196,7 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
                     delay: token.delay,
-                    duration: 0.15,
+                    duration: 0.12,
                     ease: "easeOut",
                   }}
                   className={cn(
@@ -174,7 +212,7 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
             <motion.div
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
-              transition={{ duration: 1.2, ease: "easeInOut" }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
               className="h-px bg-ctp-surface1 origin-left mt-2"
             />
           </motion.div>
@@ -187,7 +225,7 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
             className="space-y-1"
           >
             <div className="text-ctp-overlay1 text-xs tracking-wider uppercase mb-3">
@@ -198,7 +236,7 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
                 key={i}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
                 style={{ paddingLeft: `${node.indent * 1.5}rem` }}
                 className="text-ctp-mauve"
               >
@@ -218,7 +256,7 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
             key="eval"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
             className="space-y-2"
           >
             <div className="text-ctp-overlay1 text-xs tracking-wider uppercase mb-3">
@@ -229,7 +267,7 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
                 key={i}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
                 className={cn(
                   line.color,
                   line.text === "" ? "h-3" : "",
@@ -245,7 +283,7 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+                transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
                 className="pt-6"
               >
                 <Link
@@ -269,6 +307,18 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Skip hint — visible during animation phases */}
+      {phase !== "done" && phase !== "idle" && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.3 }}
+          className="text-center text-ctp-overlay2 text-[10px] mt-8 font-mono"
+        >
+          press Enter or click to skip
+        </motion.p>
+      )}
     </div>
   );
 }

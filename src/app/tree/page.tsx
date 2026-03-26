@@ -3,13 +3,13 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useCallback, useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
-import { ASTCanvas } from "@/components/ast/ASTCanvas";
+import { ASTCanvasLazy } from "@/components/ast/ASTCanvasLazy";
 import { ASTMobileTree } from "@/components/ast/ASTMobileTree";
 import { TraversalModeSelector } from "@/components/ast/TraversalModeSelector";
 import { TokenStream } from "@/components/chrome/TokenStream";
 import { ContextWindow } from "@/components/chrome/ContextWindow";
 import { useTraversalState } from "@/hooks/useTraversalState";
-import { useIsDesktop } from "@/hooks/useMediaQuery";
+
 import { findNode } from "@/lib/traversal";
 import { PORTFOLIO_AST } from "@/data/ast";
 import { cn } from "@/lib/utils";
@@ -30,11 +30,26 @@ function TreePageInner() {
   const setStoreMode = useTraversalState((s) => s.setMode);
   const visitNode = useTraversalState((s) => s.visitNode);
   const contextWindow = useTraversalState((s) => s.contextWindow);
+
+  // Resolve mode: URL param wins, then hydrated store, then fallback.
+  // Before hydration, use "parse" as the stable default (matches SSR).
+  const validUrlMode =
+    urlMode && ["lex", "parse", "eval"].includes(urlMode) ? urlMode : null;
   const effectiveStoreMode = hasHydrated ? storeMode : "parse";
-  const currentMode: TraversalMode =
-    urlMode && ["lex", "parse", "eval"].includes(urlMode)
-      ? urlMode
-      : effectiveStoreMode;
+  const currentMode: TraversalMode = validUrlMode ?? effectiveStoreMode;
+
+  // After hydration, if no URL mode was specified and the store has a
+  // different mode from the fallback, sync the URL to the store's mode.
+  // This prevents the flash where the selector briefly shows "parse"
+  // before switching to the hydrated "eval" (or vice versa).
+  const hasSyncedMode = useRef(false);
+  useEffect(() => {
+    if (!hasHydrated || hasSyncedMode.current) return;
+    hasSyncedMode.current = true;
+    if (!validUrlMode && storeMode !== "parse") {
+      router.replace(`/tree?mode=${storeMode}`, { scroll: false });
+    }
+  }, [hasHydrated, validUrlMode, storeMode, router]);
 
   const handleModeChange = useCallback(
     (mode: TraversalMode) => {
@@ -48,9 +63,6 @@ function TreePageInner() {
   const [contextOpen, setContextOpen] = useState(false);
   const toggleContext = useCallback(() => setContextOpen((o) => !o), []);
   const closeContext = useCallback(() => setContextOpen(false), []);
-
-  // ── Responsive breakpoint ────────────────────────────────────────
-  const isDesktop = useIsDesktop();
 
   // ── Active slug ────────────────────────────────────────────────────
   // The most recently visited node is highlighted in the token stream.
@@ -93,7 +105,7 @@ function TreePageInner() {
   }, [hasHydrated, searchParams, router, visitNode]);
 
   return (
-    <main className="flex flex-col h-screen overflow-hidden bg-ctp-base">
+    <main id="main-content" className="flex flex-col h-screen overflow-hidden bg-ctp-base">
       {/* ── Top bar ─────────────────────────────────────────────────── */}
       <header className="border-b border-ctp-surface0 bg-ctp-mantle/50 backdrop-blur-sm z-10 shrink-0">
         {/* Row 1: Navigation + context toggle */}
@@ -105,8 +117,9 @@ function TreePageInner() {
             {"<-"} root
           </Link>
 
-          {/* Desktop: full mode selector inline */}
-          <div className="hidden lg:block">
+          {/* Desktop: full mode selector inline — invisible until
+              hydration to prevent flash if stored mode differs from default */}
+          <div className={cn("hidden lg:block transition-opacity duration-150", hasHydrated ? "opacity-100" : "opacity-0")}>
             <TraversalModeSelector
               currentMode={currentMode}
               onModeChange={handleModeChange}
@@ -135,7 +148,7 @@ function TreePageInner() {
         </div>
 
         {/* Row 2 (mobile only): Compact mode selector, centered */}
-        <div className="flex items-center justify-center px-4 pb-2.5 lg:hidden">
+        <div className={cn("flex items-center justify-center px-4 pb-2.5 lg:hidden transition-opacity duration-150", hasHydrated ? "opacity-100" : "opacity-0")}>
           <div className="flex items-center gap-1 bg-ctp-surface0/40 rounded-lg px-1 py-0.5">
             <span className="text-ctp-green text-xs font-mono select-none mr-0.5">$</span>
             <TraversalModeSelector
@@ -148,60 +161,57 @@ function TreePageInner() {
       </header>
 
       {/* ── Main area ───────────────────────────────────────────────── */}
+      {/* Both desktop and mobile trees are always in the DOM.
+          CSS (hidden/block via Tailwind breakpoints) controls which is
+          visible. This eliminates the flash where useMediaQuery starts
+          as false → mobile tree renders for one frame on desktop. */}
       <div className="flex-1 relative overflow-hidden">
-        {isDesktop ? (
-          <>
-            {/* AST Canvas (desktop) — fills the space, shrinks when sidebar open */}
-            <div
-              className={cn(
-                "absolute inset-0 transition-all duration-300",
-                "lg:right-0",
-                contextOpen && "lg:right-72"
-              )}
-              style={{ bottom: "40px" }}
-            >
-              <ASTCanvas mode={currentMode} />
-            </div>
+        {/* ── Desktop: AST Canvas ─────────────────────────────────── */}
+        <div
+          className={cn(
+            "hidden lg:block absolute inset-0 transition-all duration-300",
+            contextOpen && "lg:right-72"
+          )}
+          style={{ bottom: "40px" }}
+        >
+          <ASTCanvasLazy mode={currentMode} />
+        </div>
 
-            {/* Context Window — sidebar on desktop */}
-            <div
-              className={cn(
-                "absolute right-0 top-0 bottom-10 z-30",
-                contextOpen ? "pointer-events-auto" : "pointer-events-none"
-              )}
-            >
-              <ContextWindow
-                isOpen={contextOpen}
-                onClose={closeContext}
-                variant="sidebar"
-              />
-            </div>
-          </>
-        ) : (
-          <>
-            {/* AST Mobile Tree — collapsible list, first-class mobile view */}
-            <div
-              className="absolute inset-0 overflow-y-auto"
-              style={{ bottom: "48px" }}
-            >
-              <ASTMobileTree ast={PORTFOLIO_AST} mode={currentMode} />
-            </div>
+        {/* ── Desktop: Context Window sidebar ─────────────────────── */}
+        <div
+          className={cn(
+            "hidden lg:block absolute right-0 top-0 bottom-10 z-30",
+            contextOpen ? "pointer-events-auto" : "pointer-events-none"
+          )}
+        >
+          <ContextWindow
+            isOpen={contextOpen}
+            onClose={closeContext}
+            variant="sidebar"
+          />
+        </div>
 
-            {/* Context Window — overlay on mobile/tablet */}
-            <div
-              className={cn(
-                "absolute inset-0 z-30",
-                contextOpen ? "pointer-events-auto" : "pointer-events-none"
-              )}
-            >
-              <ContextWindow
-                isOpen={contextOpen}
-                onClose={closeContext}
-                variant="overlay"
-              />
-            </div>
-          </>
-        )}
+        {/* ── Mobile: AST Mobile Tree ─────────────────────────────── */}
+        <div
+          className="lg:hidden absolute inset-0 overflow-y-auto"
+          style={{ bottom: "48px" }}
+        >
+          <ASTMobileTree ast={PORTFOLIO_AST} mode={currentMode} />
+        </div>
+
+        {/* ── Mobile: Context Window overlay ──────────────────────── */}
+        <div
+          className={cn(
+            "lg:hidden absolute inset-0 z-30",
+            contextOpen ? "pointer-events-auto" : "pointer-events-none"
+          )}
+        >
+          <ContextWindow
+            isOpen={contextOpen}
+            onClose={closeContext}
+            variant="overlay"
+          />
+        </div>
 
         {/* Token Stream — fixed at the bottom */}
         <TokenStream activeSlug={activeSlug} visible={true} />

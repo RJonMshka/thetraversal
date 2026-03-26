@@ -69,7 +69,7 @@ export async function PhilosophyNode({ node }: PhilosophyNodeProps) {
         </div>
 
         {/* Meta line: date + reading time */}
-        <div className="flex items-center gap-4 text-xs font-mono text-ctp-overlay0">
+        <div className="flex items-center gap-4 text-xs font-mono text-ctp-overlay2">
           {date && <span>{date}</span>}
           <span>{readingTime} min read</span>
         </div>

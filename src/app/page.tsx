@@ -13,7 +13,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen relative">
+    <main id="main-content" className="flex flex-col items-center justify-center min-h-screen relative">
       {/* Ambient glow — subtle background effect */}
       <div
         className="absolute inset-0 pointer-events-none overflow-hidden"
@@ -36,7 +36,7 @@ export default function LandingPage() {
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
           <Link
             href="/tree"
-            className="text-ctp-overlay0 hover:text-ctp-text text-xs font-mono transition-colors"
+            className="text-ctp-overlay2 hover:text-ctp-text text-xs font-mono transition-colors"
           >
             skip to traversal {"->"}
           </Link>

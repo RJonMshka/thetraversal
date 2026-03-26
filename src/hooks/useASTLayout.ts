@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { hierarchy, tree as d3Tree } from "d3-hierarchy";
-import type { ASTNode } from "@/lib/ast-types";
+import type { ASTNode, TraversalMode } from "@/lib/ast-types";
+import { NODE_WIDTH, getNodeHeight } from "@/lib/node-dimensions";
 
 // ── Layout Types ──────────────────────────────────────────────────────
 
@@ -37,8 +38,6 @@ export interface ASTLayoutResult {
 
 // ── Node dimensions ────────────────────────────────────────────────────
 
-const NODE_WIDTH = 180;
-const NODE_HEIGHT = 60;
 const HORIZONTAL_SPACING = 30;
 const VERTICAL_SPACING = 90;
 
@@ -95,7 +94,8 @@ function buildVisibleTree(
 
 export function useASTLayout(
   ast: ASTNode,
-  expandedNodes: string[]
+  expandedNodes: string[],
+  mode: TraversalMode = "parse"
 ): ASTLayoutResult {
   return useMemo(() => {
     const visibleTree = buildVisibleTree(ast, expandedNodes);
@@ -103,13 +103,18 @@ export function useASTLayout(
     // Create d3 hierarchy
     const root = hierarchy(visibleTree, (d) => d.children);
 
+    // Compute max node height for this mode to determine vertical spacing
+    const maxNodeHeight = Math.max(
+      ...root.descendants().map((d) => getNodeHeight(d.data, mode))
+    );
+
     // Count leaves to determine width
     const leafCount = root.leaves().length;
     const treeWidth = Math.max(
       leafCount * (NODE_WIDTH + HORIZONTAL_SPACING),
       NODE_WIDTH * 3
     );
-    const treeHeight = (root.height + 1) * (NODE_HEIGHT + VERTICAL_SPACING);
+    const treeHeight = (root.height + 1) * (maxNodeHeight + VERTICAL_SPACING);
 
     // Compute tree layout — d3.tree() gives us x, y coords
     const treeLayout = d3Tree<VisibleNode>()
@@ -168,5 +173,5 @@ export function useASTLayout(
     }
 
     return { nodes, edges, dimensions };
-  }, [ast, expandedNodes]);
+  }, [ast, expandedNodes, mode]);
 }

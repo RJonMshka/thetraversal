@@ -190,7 +190,7 @@ svg g:focus {
   width: 1rem;
   margin-right: 1.25rem;
   text-align: right;
-  color: var(--color-ctp-surface2);
+  color: var(--color-ctp-overlay0);
 }
 
 /* Highlighted lines */

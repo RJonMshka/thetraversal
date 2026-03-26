@@ -185,10 +185,10 @@ export function Cursor({ onNavigate }: CursorProps) {
           {/* Hint for non-devs — fades in after delay */}
           {showHint && history.length === 0 && (
             <div className="mt-6 animate-fade-in space-y-2">
-              <p className="text-ctp-overlay0 text-xs font-mono">
+              <p className="text-ctp-overlay2 text-xs font-mono">
                 type anything and press <span className="text-ctp-subtext0">Enter</span> to begin
               </p>
-              <p className="text-ctp-overlay0/60 text-xs font-mono">
+              <p className="text-ctp-overlay1 text-xs font-mono">
                 or try: <span className="text-ctp-subtext0">help</span>
                 {" \u00B7 "}
                 <span className="text-ctp-subtext0">ls</span>

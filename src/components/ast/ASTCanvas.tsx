@@ -1,21 +1,93 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useLayoutEffect, useState, useCallback } from "react";
 import { zoom as d3Zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom";
 import { select } from "d3-selection";
 import "d3-transition"; // Augments d3-selection with .transition()
 import { AnimatePresence } from "framer-motion";
 import { useASTLayout } from "@/hooks/useASTLayout";
 import { useTraversalState } from "@/hooks/useTraversalState";
+import { useStackOverflow } from "@/hooks/useStackOverflow";
 import { PORTFOLIO_AST } from "@/data/ast";
 import { ASTNode } from "@/components/ast/ASTNode";
 import { ASTEdge } from "@/components/ast/ASTEdge";
-import type { TraversalMode } from "@/lib/ast-types";
+import type { TraversalMode, ASTNode as ASTNodeType } from "@/lib/ast-types";
 
 // ── Props ──────────────────────────────────────────────────────────────
 
 interface ASTCanvasProps {
   mode: TraversalMode;
+}
+
+// ── Tree navigation helpers ────────────────────────────────────────────
+// Used by arrow key navigation to find parent, children, and siblings
+// within the visible tree.
+
+function findParentSlug(
+  ast: ASTNodeType,
+  targetSlug: string,
+  expandedNodes: string[]
+): string | null {
+  function search(
+    node: ASTNodeType,
+    parentSlug: string | null
+  ): string | null {
+    if (node.slug === targetSlug) return parentSlug;
+    if (!node.children || !expandedNodes.includes(node.slug)) return null;
+    for (const child of node.children) {
+      const result = search(child, node.slug);
+      if (result !== null) return result;
+    }
+    return null;
+  }
+  return search(ast, null);
+}
+
+function findSiblings(
+  ast: ASTNodeType,
+  targetSlug: string,
+  expandedNodes: string[]
+): string[] {
+  function search(node: ASTNodeType): string[] | null {
+    if (node.children && expandedNodes.includes(node.slug)) {
+      const childSlugs = node.children.map((c) => c.slug);
+      if (childSlugs.includes(targetSlug)) return childSlugs;
+      for (const child of node.children) {
+        const result = search(child);
+        if (result) return result;
+      }
+    }
+    return null;
+  }
+  // Root is a special case — it has no parent, so siblings is just [root]
+  if (ast.slug === targetSlug) return [ast.slug];
+  return search(ast) ?? [targetSlug];
+}
+
+function findFirstChildSlug(
+  ast: ASTNodeType,
+  targetSlug: string,
+  expandedNodes: string[]
+): string | null {
+  function search(node: ASTNodeType): string | null {
+    if (node.slug === targetSlug) {
+      if (
+        node.children &&
+        node.children.length > 0 &&
+        expandedNodes.includes(node.slug)
+      ) {
+        return node.children[0].slug;
+      }
+      return null;
+    }
+    if (!node.children || !expandedNodes.includes(node.slug)) return null;
+    for (const child of node.children) {
+      const result = search(child);
+      if (result !== null) return result;
+    }
+    return null;
+  }
+  return search(ast);
 }
 
 // ── Component ──────────────────────────────────────────────────────────
@@ -32,6 +104,7 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [focusedNodeSlug, setFocusedNodeSlug] = useState<string | null>(null);
   const [transform, setTransform] = useState({ x: 0, y: 0, k: 1 });
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -64,10 +137,16 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
     ? rawIsVisited
     : () => false;
 
-  // Compute layout
+  // Stack overflow easter egg — 7 rapid clicks on root node
+  // (Raised from 5 to 7 so casual expand/collapse clicking doesn't trigger it)
+  const { isOverflowing, registerClick: registerOverflowClick } =
+    useStackOverflow("root", 7, 2000);
+
+  // Compute layout — mode affects node heights, which affects spacing
   const { nodes, edges, dimensions } = useASTLayout(
     PORTFOLIO_AST,
-    expandedNodes
+    expandedNodes,
+    mode
   );
 
   // ── Smooth pan to center a node (for explicit navigation) ────────────
@@ -113,6 +192,9 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
       const node = nodes.find((n) => n.slug === slug);
       if (!node) return;
 
+      // Track rapid root clicks for easter egg
+      registerOverflowClick(slug);
+
       // Snapshot the node's position before layout changes
       pendingAnchorRef.current = {
         slug,
@@ -123,11 +205,69 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
       toggleExpand(slug);
       visitNode(slug, node.label, node.type, node.glowColor);
     },
-    [nodes, toggleExpand, visitNode]
+    [nodes, toggleExpand, visitNode, registerOverflowClick]
   );
 
   // Handle node hover
   const handleNodeHover = useCallback((slug: string | null) => {
+    setHoveredNode(slug);
+  }, []);
+
+  // ── Arrow key navigation ────────────────────────────────────────────
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!focusedNodeSlug) return;
+
+      let nextSlug: string | null = null;
+
+      switch (e.key) {
+        case "ArrowUp": {
+          // Move to parent
+          e.preventDefault();
+          nextSlug = findParentSlug(PORTFOLIO_AST, focusedNodeSlug, expandedNodes);
+          break;
+        }
+        case "ArrowDown": {
+          // Move to first child (if expanded)
+          e.preventDefault();
+          nextSlug = findFirstChildSlug(PORTFOLIO_AST, focusedNodeSlug, expandedNodes);
+          break;
+        }
+        case "ArrowLeft":
+        case "ArrowRight": {
+          // Move between siblings
+          e.preventDefault();
+          const siblings = findSiblings(PORTFOLIO_AST, focusedNodeSlug, expandedNodes);
+          const currentIndex = siblings.indexOf(focusedNodeSlug);
+          if (currentIndex === -1) break;
+          const direction = e.key === "ArrowLeft" ? -1 : 1;
+          const nextIndex = currentIndex + direction;
+          if (nextIndex >= 0 && nextIndex < siblings.length) {
+            nextSlug = siblings[nextIndex];
+          }
+          break;
+        }
+      }
+
+      if (nextSlug) {
+        setFocusedNodeSlug(nextSlug);
+        setHoveredNode(nextSlug);
+        // Focus the corresponding SVG element
+        const svg = svgRef.current;
+        if (svg) {
+          const nodeEl = svg.querySelector(
+            `[data-node-slug="${nextSlug}"]`
+          ) as HTMLElement | null;
+          nodeEl?.focus();
+        }
+      }
+    },
+    [focusedNodeSlug, expandedNodes]
+  );
+
+  // Track focused node from ASTNode focus events
+  const handleNodeFocus = useCallback((slug: string) => {
+    setFocusedNodeSlug(slug);
     setHoveredNode(slug);
   }, []);
 
@@ -200,7 +340,11 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
   // not state) to avoid circular dependencies. This effect only runs when
   // `nodes` changes (i.e., after layout recalculation), and only does
   // anything if pendingAnchorRef was set by a click.
-  useEffect(() => {
+  //
+  // We use useLayoutEffect (imported above) so the compensation happens
+  // synchronously before the browser paints. This prevents the single-frame
+  // glitch where the old viewport is painted before the new one kicks in.
+  useLayoutEffect(() => {
     const anchor = pendingAnchorRef.current;
     if (!anchor) return;
 
@@ -222,7 +366,7 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
     pendingAnchorRef.current = null;
 
     // If the node didn't move, no viewport adjustment needed
-    if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) return;
+    if (Math.abs(deltaX) < 0.1 && Math.abs(deltaY) < 0.1) return;
 
     // Read current transform from the ref (always fresh, no stale closure)
     const t = transformRef.current;
@@ -233,10 +377,9 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
     const newTranslateX = t.x - deltaX * t.k;
     const newTranslateY = t.y - deltaY * t.k;
 
-    // Apply INSTANTLY — no transition. Nodes now animate their own positions
+    // Apply INSTANTLY — no transition. Nodes animate their own positions
     // via Framer Motion springs, so the viewport must jump immediately to
-    // keep the clicked node pinned. A transitioning viewport + transitioning
-    // node positions = the glitchy double-motion we're eliminating.
+    // keep the clicked node pinned.
     const selection = select(svg);
     selection.call(
       zoomBehavior.transform,
@@ -259,6 +402,11 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
     }
   }
 
+  // Don't render tree content until hydration completes to prevent
+  // flash of incorrect state (e.g. showing Identity node briefly
+  // before sessionStorage expanded state kicks in).
+  const showTree = hasHydrated;
+
   return (
     <svg
       ref={svgRef}
@@ -266,34 +414,39 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
       role="tree"
       aria-label="AST Visualization"
       style={{ touchAction: "none" }}
+      onKeyDown={handleKeyDown}
     >
-      <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}>
-        {/* Render edges first (below nodes) */}
-        <AnimatePresence mode="sync">
-          {edges.map((edge) => (
-            <ASTEdge
-              key={edge.id}
-              edge={edge}
-              isHighlighted={highlightedEdges.has(edge.id)}
-            />
-          ))}
-        </AnimatePresence>
+      {showTree && (
+        <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}>
+          {/* Render edges first (below nodes) */}
+          <AnimatePresence mode="sync">
+            {edges.map((edge) => (
+              <ASTEdge
+                key={edge.id}
+                edge={edge}
+                isHighlighted={highlightedEdges.has(edge.id)}
+              />
+            ))}
+          </AnimatePresence>
 
-        {/* Render nodes */}
-        <AnimatePresence mode="sync">
-          {nodes.map((node) => (
-            <ASTNode
-              key={node.slug}
-              node={node}
-              isVisited={isVisited(node.slug)}
-              isFocused={hoveredNode === node.slug}
-              mode={mode}
-              onNodeClick={handleNodeClick}
-              onNodeHover={handleNodeHover}
-            />
-          ))}
-        </AnimatePresence>
-      </g>
+          {/* Render nodes */}
+          <AnimatePresence mode="sync">
+            {nodes.map((node) => (
+              <ASTNode
+                key={node.slug}
+                node={node}
+                isVisited={isVisited(node.slug)}
+                isFocused={hoveredNode === node.slug}
+                isOverflowing={isOverflowing}
+                mode={mode}
+                onNodeClick={handleNodeClick}
+                onNodeHover={handleNodeHover}
+                onNodeFocus={handleNodeFocus}
+              />
+            ))}
+          </AnimatePresence>
+        </g>
+      )}
 
       {/* Zoom controls hint */}
       <foreignObject

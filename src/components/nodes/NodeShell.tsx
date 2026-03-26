@@ -24,7 +24,7 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
   const glow = getGlowClasses(node.glowColor);
 
   return (
-    <main className="min-h-screen bg-ctp-base">
+    <main id="main-content" className="min-h-screen bg-ctp-base">
       {/* Top navigation bar */}
       <header className="sticky top-0 z-10 px-4 py-3 border-b border-ctp-surface0 bg-ctp-mantle/80 backdrop-blur-sm">
         <Link
@@ -58,7 +58,7 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
 
       {/* Node type badge */}
       <div className="px-4 pt-6 pb-2 max-w-4xl mx-auto">
-        <span className="text-xs font-mono text-ctp-overlay0">
+        <span className="text-xs font-mono text-ctp-overlay2">
           {node.type}
         </span>
       </div>
@@ -72,7 +72,7 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
       {node.children && node.children.length > 0 && (
         <div className="max-w-4xl mx-auto px-4 pb-16">
           <div className="border-t border-ctp-surface0 pt-8">
-            <h2 className="text-sm font-mono text-ctp-overlay0 mb-4">
+            <h2 className="text-sm font-mono text-ctp-overlay2 mb-4">
               // children ({node.children.length})
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -90,7 +90,7 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
                       childGlow.shadow,
                     )}
                   >
-                    <span className="text-[10px] font-mono text-ctp-overlay0 block mb-1">
+                    <span className="text-[10px] font-mono text-ctp-overlay1 block mb-1">
                       {child.type}
                     </span>
                     <span className={cn(

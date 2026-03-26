@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import type { LayoutEdge } from "@/hooks/useASTLayout";
+import { HEADER_SECTION_HEIGHT } from "@/lib/node-dimensions";
 
 // ── Props ──────────────────────────────────────────────────────────────
 
@@ -12,12 +13,15 @@ interface ASTEdgeProps {
 }
 
 // ── Constants ──────────────────────────────────────────────────────────
+// Edges connect at the header section boundaries — source exits from
+// the bottom of the parent header, target enters at the top of the child header.
 
-const NODE_HEIGHT = 60;
+const NODE_HEIGHT = HEADER_SECTION_HEIGHT;
 
 // Spring config matching the node position springs — edges and nodes
 // move in lockstep so the tree feels like a single connected organism.
-const springConfig = { stiffness: 170, damping: 26, mass: 1 };
+// Critically damped to match ASTNode's position transition.
+const springConfig = { stiffness: 170, damping: 28, mass: 1, restDelta: 0.01, restSpeed: 0.01 };
 
 // ── Component ──────────────────────────────────────────────────────────
 // Renders a curved bezier path between parent and child nodes.

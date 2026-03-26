@@ -1,25 +1,32 @@
-import { useState, useEffect } from "react";
+import { useSyncExternalStore, useCallback } from "react";
 
 // ── useMediaQuery ──────────────────────────────────────────────────────
-// Reactive media query hook. Returns true when the query matches.
-// SSR-safe: returns false on the server, hydrates on the client.
+// Reactive media query hook using useSyncExternalStore for tear-free,
+// flash-free reads. The browser evaluates the query synchronously during
+// the first client render, eliminating the false → true flash that caused
+// the mobile tree to appear briefly on desktop.
 
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
+  // Subscribe to media query changes
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      const mql = window.matchMedia(query);
+      mql.addEventListener("change", callback);
+      return () => mql.removeEventListener("change", callback);
+    },
+    [query]
+  );
 
-  useEffect(() => {
-    const mql = window.matchMedia(query);
-    setMatches(mql.matches);
-
-    function handleChange(e: MediaQueryListEvent) {
-      setMatches(e.matches);
-    }
-
-    mql.addEventListener("change", handleChange);
-    return () => mql.removeEventListener("change", handleChange);
+  // Read current value — called synchronously during render on the client
+  const getSnapshot = useCallback(() => {
+    return window.matchMedia(query).matches;
   }, [query]);
 
-  return matches;
+  // SSR fallback — always false (no window). The first client render
+  // will immediately get the correct value from getSnapshot.
+  const getServerSnapshot = useCallback(() => false, []);
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
 // ── Convenience hooks ──────────────────────────────────────────────────

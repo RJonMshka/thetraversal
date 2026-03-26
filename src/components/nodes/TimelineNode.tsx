@@ -45,7 +45,7 @@ function TimelineEntry({ entry, index, isLast }: TimelineEntryProps) {
       {/* Content */}
       <div className="pb-8 min-w-0 flex-1">
         {/* Array index + date */}
-        <div className="flex items-center gap-3 mb-1 font-mono text-xs text-ctp-overlay0">
+        <div className="flex items-center gap-3 mb-1 font-mono text-xs text-ctp-overlay2">
           <span>[{index}]</span>
           {date && <span>{date}</span>}
           {isCurrent && (

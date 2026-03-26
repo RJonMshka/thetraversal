@@ -126,7 +126,7 @@ function MobileTreeNode({ node, mode, depth }: MobileTreeNodeProps) {
             </motion.span>
           </button>
         ) : (
-          <span className="w-6 h-6 shrink-0 flex items-center justify-center text-ctp-surface1 text-xs">
+          <span className="w-6 h-6 shrink-0 flex items-center justify-center text-ctp-overlay0 text-xs">
             &#x2022;
           </span>
         )}
@@ -135,7 +135,7 @@ function MobileTreeNode({ node, mode, depth }: MobileTreeNodeProps) {
         <span
           className={cn(
             "shrink-0 text-[10px] font-mono leading-none px-1.5 py-0.5 rounded",
-            "bg-ctp-surface0 text-ctp-overlay0",
+            "bg-ctp-surface0 text-ctp-overlay2",
             "select-none"
           )}
         >

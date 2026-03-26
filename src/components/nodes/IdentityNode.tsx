@@ -65,7 +65,7 @@ export function IdentityNode({ node, siblings = [] }: IdentityNodeProps) {
       {/* Links to top-level AST branches */}
       {siblings.length > 0 && (
         <div className="border-t border-ctp-surface0 pt-8">
-          <h2 className="text-sm font-mono text-ctp-overlay0 mb-4">
+          <h2 className="text-sm font-mono text-ctp-overlay2 mb-4">
             {"// explore the tree"}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -85,7 +85,7 @@ export function IdentityNode({ node, siblings = [] }: IdentityNodeProps) {
                       glow.shadow,
                     )}
                   >
-                    <span className="text-[10px] font-mono text-ctp-overlay0 block mb-1">
+                    <span className="text-[10px] font-mono text-ctp-overlay1 block mb-1">
                       {sibling.type}
                     </span>
                     <span className={cn(
