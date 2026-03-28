@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { PORTFOLIO_AST } from "@/data/ast";
-import { findNode, flatten } from "@/lib/traversal";
+import { getAST, getFlatNodes, findNodeBySlug } from "@/data";
+import { loadNodeContent } from "@/lib/content";
 import { NodeShell } from "@/components/nodes/NodeShell";
 import { ProjectNode } from "@/components/nodes/ProjectNode";
 import { SkillNode } from "@/components/nodes/SkillNode";
@@ -10,11 +10,29 @@ import { TimelineNode } from "@/components/nodes/TimelineNode";
 import { IdentityNode } from "@/components/nodes/IdentityNode";
 import { ConnectNode } from "@/components/nodes/ConnectNode";
 import { GenericNode } from "@/components/nodes/GenericNode";
+import { ResumeNode } from "@/components/nodes/ResumeNode";
 import type { ASTNode } from "@/lib/ast-types";
+
+// ── Content enrichment ─────────────────────────────────────────────────
+// Merges MDX content into the node, preferring MDX over inline fallback.
+// Data files hold short fallback strings; MDX holds the canonical prose.
+async function enrichNodeContent(node: ASTNode): Promise<ASTNode> {
+  const mdx = await loadNodeContent(node.slug);
+  if (!mdx) return node;
+
+  return {
+    ...node,
+    content: {
+      summary: mdx.summary || node.content?.summary || "",
+      body: mdx.body || node.content?.body || "",
+      deep: mdx.deep ?? node.content?.deep ?? null,
+    },
+  };
+}
 
 // ── Static params for SSG ──────────────────────────────────────────────
 export function generateStaticParams() {
-  const allNodes = flatten(PORTFOLIO_AST);
+  const allNodes = getFlatNodes();
   return allNodes.map((node) => ({ slug: node.slug }));
 }
 
@@ -25,7 +43,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const result = findNode(PORTFOLIO_AST, slug);
+  const result = findNodeBySlug(slug);
 
   if (!result) {
     return { title: "Node Not Found — The Traversal" };
@@ -51,8 +69,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 // ── Node content renderer ──────────────────────────────────────────────
 // Maps ASTNodeType to the appropriate component.
-// Async because PhilosophyNode loads MDX content server-side.
-async function NodeContent({ node }: { node: ASTNode }) {
+// Receives an MDX-enriched node — content already merged from MDX loader.
+function NodeContent({ node }: { node: ASTNode }) {
   switch (node.type) {
     case "FunctionDeclaration":
       return <ProjectNode node={node} />;
@@ -71,15 +89,18 @@ async function NodeContent({ node }: { node: ASTNode }) {
       return (
         <IdentityNode
           node={node}
-          siblings={PORTFOLIO_AST.children ?? []}
+          siblings={getAST().children ?? []}
         />
       );
 
     case "ExportDeclaration":
       return <ConnectNode node={node} />;
 
+    case "ImportDeclaration":
+      return <ResumeNode node={node} />;
+
     // BlockStatement, StringLiteral, ExpressionStatement,
-    // ImportDeclaration, TypeAnnotation, RootNode
+    // TypeAnnotation, RootNode
     default:
       return <GenericNode node={node} />;
   }
@@ -88,7 +109,7 @@ async function NodeContent({ node }: { node: ASTNode }) {
 // ── Page component ─────────────────────────────────────────────────────
 export default async function NodePage({ params }: PageProps) {
   const { slug } = await params;
-  const result = findNode(PORTFOLIO_AST, slug);
+  const result = findNodeBySlug(slug);
 
   if (!result) {
     notFound();
@@ -96,9 +117,12 @@ export default async function NodePage({ params }: PageProps) {
 
   const { node, path } = result;
 
+  // Enrich node content from MDX (merges canonical prose over inline fallback)
+  const enrichedNode = await enrichNodeContent(node);
+
   return (
-    <NodeShell node={node} path={path}>
-      <NodeContent node={node} />
+    <NodeShell node={enrichedNode} path={path}>
+      <NodeContent node={enrichedNode} />
     </NodeShell>
   );
 }

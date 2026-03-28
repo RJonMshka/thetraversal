@@ -1,0 +1,9 @@
+---
+summary: "AI-powered resume tailoring tool that analyzes job descriptions and optimizes resumes for relevance."
+---
+
+RESUMIND parses job descriptions using NLP, extracts key requirements, and restructures your resume to maximize alignment. It doesn't fabricate — it reorganizes and emphasizes what's already true about you.
+
+Built with a Next.js frontend and Python backend, it uses Claude's API for intelligent content restructuring. The architecture separates analysis (what does this job need?) from generation (how do I present what I have?) — a compiler pipeline applied to career documents.
+
+Key decisions: chose streaming responses for real-time feedback, implemented diff-view so users see exactly what changed, and built a scoring heuristic that estimates ATS compatibility.

@@ -79,7 +79,7 @@ export const LANGUAGES_NODE = {
   glowColor: "--ctp-mauve",
   content: {
     summary: "TypeScript, JavaScript, Python, Java, Scala, SQL.",
-    body: "The languages I think in. TypeScript is home — strict types, discriminated unions, and the satisfaction of a compiler that catches mistakes before they become bugs. Python for ML and scripting. Java from the enterprise trenches. Scala from the academic frontier.",
+    body: "TypeScript, JavaScript, Python, Java, Scala, SQL, HTML/CSS.",
   },
   children: LANGUAGE_SKILLS.map((s) => skillToNode(s, "skills-languages")),
   meta: {
@@ -95,7 +95,7 @@ export const FRAMEWORKS_NODE = {
   glowColor: "--ctp-mauve",
   content: {
     summary: "React, Next.js, Node.js, Express, Tailwind, D3.js.",
-    body: "The frameworks I build with. React for UI composition, Next.js for the full-stack picture. Node.js because JavaScript everywhere is underrated. D3 for when data needs to become visual. Tailwind because life is too short for naming CSS classes.",
+    body: "React, Next.js, Node.js, Express, Tailwind CSS, Framer Motion, D3.js.",
   },
   children: FRAMEWORK_SKILLS.map((s) => skillToNode(s, "skills-frameworks")),
   meta: {
@@ -111,7 +111,7 @@ export const SYSTEMS_NODE = {
   glowColor: "--ctp-mauve",
   content: {
     summary: "REST, GraphQL, PostgreSQL, MongoDB, Docker, AWS.",
-    body: "The infrastructure I reason about. APIs as contracts, databases as truth stores, containers as portable environments. I think about systems as layered abstractions — each layer providing guarantees to the one above it.",
+    body: "REST, GraphQL, PostgreSQL, MongoDB, Redis, Docker, AWS.",
   },
   children: SYSTEMS_SKILLS.map((s) => skillToNode(s, "skills-systems")),
   meta: {
@@ -127,7 +127,7 @@ export const TOOLS_NODE = {
   glowColor: "--ctp-mauve",
   content: {
     summary: "Git, VS Code, Claude, Vercel, CI/CD, Linux.",
-    body: "The tools I rely on daily. Git as a time machine. Claude as a thinking partner. Vercel for deployment that just works. The terminal as a primary interface — because GUIs are compiled CLIs.",
+    body: "Git, VS Code, Claude, Vercel, CI/CD, Linux.",
   },
   children: TOOLS_SKILLS.map((s) => skillToNode(s, "skills-tools")),
   meta: {

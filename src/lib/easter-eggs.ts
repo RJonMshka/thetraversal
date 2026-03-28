@@ -1,6 +1,14 @@
+import { RESUME_TEXT_LINES } from "@/data/resume";
+
+export interface EasterEggAction {
+  kind: "download" | "navigate";
+  url: string;
+}
+
 export interface EasterEggResult {
-  type: "json" | "text" | "lines";
+  type: "json" | "text" | "lines" | "action";
   content: string | string[];
+  action?: EasterEggAction;
 }
 
 const RAJAT_PROFILE = {
@@ -34,6 +42,9 @@ const commands: Record<string, () => EasterEggResult> = {
       "  ls                      — list the contents",
       "  cat README              — read the readme",
       "  console.log(rajat)      — inspect the developer",
+      "  resume                  — download the resume",
+      "  cat resume              — view the resume inline",
+      "  open resume             — open the resume page",
       "  sudo hire rajat         — attempt privilege escalation",
       "  clear                   — clear the terminal",
       "",
@@ -50,6 +61,8 @@ const commands: Record<string, () => EasterEggResult> = {
       "drwxr-xr-x  timeline/",
       "-rw-r--r--  README.md",
       "-rw-r--r--  rajat.json",
+      "-rw-r--r--  resume.pdf",
+      "-rw-r--r--  resume.docx",
     ],
   }),
 
@@ -62,6 +75,7 @@ const commands: Record<string, () => EasterEggResult> = {
       "This isn't a portfolio — it's a program that describes a person.",
       "",
       "Type anything. Press Enter. The parsing begins.",
+      "Type `resume` to download, `cat resume` to view inline.",
       "",
       "— Rajat",
     ],
@@ -69,6 +83,29 @@ const commands: Record<string, () => EasterEggResult> = {
 
   "cat readme": () => commands["cat README"](),
   "cat README.md": () => commands["cat README"](),
+
+  resume: () => ({
+    type: "action",
+    content: [
+      "Downloading resume...",
+      "",
+      "→ rajat-kumar-resume.pdf",
+    ],
+    action: { kind: "download", url: "/resume/rajat-kumar-resume.pdf" },
+  }),
+
+  "cat resume": () => ({
+    type: "lines",
+    content: RESUME_TEXT_LINES,
+  }),
+
+  "open resume": () => ({
+    type: "action",
+    content: [
+      "Opening resume node...",
+    ],
+    action: { kind: "navigate", url: "/node/resume" },
+  }),
 
   "sudo hire rajat": () => ({
     type: "lines",

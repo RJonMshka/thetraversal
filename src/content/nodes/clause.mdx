@@ -1,0 +1,9 @@
+---
+summary: "A custom programming language with a tree-walking interpreter, built to understand compilation from first principles."
+---
+
+Clause is a dynamically-typed language with first-class functions, closures, and a clean syntax inspired by the intersection of JavaScript and Python. Built following Thorsten Ball's "Writing an Interpreter in Go" — but reimplemented in TypeScript to deeply internalize every stage.
+
+The pipeline: Lexer → Parser → AST → Evaluator. Each stage is a self-contained module. The parser produces a real AST (the same concept powering this portfolio). The evaluator walks the tree, maintaining environments for scope and closures.
+
+This project changed how I think about software. Every program is a tree. Every feature is a transformation. This portfolio is the logical conclusion of that realization.

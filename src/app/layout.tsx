@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { jetbrainsMono, ebGaramond } from "@/lib/fonts";
-import { FocusManager } from "@/components/shared/FocusManager";
-import { EasterEggOverlays } from "@/components/shared/EasterEggOverlays";
+import { FocusManager } from "@/components/chrome/FocusManager";
+import { EasterEggOverlays } from "@/components/chrome/EasterEggOverlays";
 import "@/styles/globals.css";
 
 const BASE_URL = "https://thetraversal.dev";

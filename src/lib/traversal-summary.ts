@@ -1,16 +1,9 @@
 import type { ContextWindowEntry, ASTNodeType } from "@/lib/ast-types";
-import { flatten } from "@/lib/traversal";
-import { PORTFOLIO_AST } from "@/data/ast";
+import { getSlugDepthMap } from "@/data";
 
 // ── Traversal Summary Generator ────────────────────────────────────────
 // Generates a natural-language summary based on which node types the
 // visitor has explored. Static logic — fast and predictable.
-
-// Pre-compute slug → depth map from the actual AST.
-// This is a module-level constant — computed once, never changes.
-const SLUG_DEPTH_MAP: ReadonlyMap<string, number> = new Map(
-  flatten(PORTFOLIO_AST).map((n) => [n.slug, n.depth])
-);
 
 // Map of node type → discovered-aspect phrase generator.
 // Returns null when there's nothing interesting to say for this type.
@@ -103,7 +96,7 @@ export function getTraversalDepth(entries: ContextWindowEntry[]): number {
   let maxDepth = 0;
 
   for (const entry of entries) {
-    const depth = SLUG_DEPTH_MAP.get(entry.slug) ?? 0;
+    const depth = getSlugDepthMap().get(entry.slug) ?? 0;
     maxDepth = Math.max(maxDepth, depth);
   }
 

@@ -6,12 +6,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getGlowClasses } from "@/lib/glow";
 import { useTraversalState } from "@/hooks/useTraversalState";
-import { countNodes } from "@/lib/traversal";
+import { getNodeCount } from "@/data";
 import {
   generateTraversalSummary,
   getTraversalDepth,
 } from "@/lib/traversal-summary";
-import { PORTFOLIO_AST } from "@/data/ast";
 import type { ContextWindowEntry, ASTNodeType } from "@/lib/ast-types";
 
 // ── Props ──────────────────────────────────────────────────────────────
@@ -144,7 +143,7 @@ export function ContextWindow({
   const contextWindow = useTraversalState((s) => s.contextWindow);
   const visitedNodes = useTraversalState((s) => s.visitedNodes);
   const resetTraversal = useTraversalState((s) => s.resetTraversal);
-  const totalNodes = useMemo(() => countNodes(PORTFOLIO_AST), []);
+  const totalNodes = useMemo(() => getNodeCount(), []);
 
   const summary = useMemo(
     () => generateTraversalSummary(contextWindow),

@@ -10,8 +10,7 @@ import { TokenStream } from "@/components/chrome/TokenStream";
 import { ContextWindow } from "@/components/chrome/ContextWindow";
 import { useTraversalState } from "@/hooks/useTraversalState";
 
-import { findNode } from "@/lib/traversal";
-import { PORTFOLIO_AST } from "@/data/ast";
+import { getAST, findNodeBySlug } from "@/data";
 import { cn } from "@/lib/utils";
 import type { TraversalMode } from "@/lib/ast-types";
 
@@ -96,7 +95,7 @@ function TreePageInner() {
     // Replay visits — resolve real labels, types, and colors from the AST
     const slugs = traversalParam.split(",").filter(Boolean);
     for (const slug of slugs) {
-      const result = findNode(PORTFOLIO_AST, slug);
+      const result = findNodeBySlug(slug);
       if (result) {
         const { node } = result;
         visitNode(node.slug, node.label, node.type, node.glowColor);
@@ -196,7 +195,7 @@ function TreePageInner() {
           className="lg:hidden absolute inset-0 overflow-y-auto"
           style={{ bottom: "48px" }}
         >
-          <ASTMobileTree ast={PORTFOLIO_AST} mode={currentMode} />
+          <ASTMobileTree ast={getAST()} mode={currentMode} />
         </div>
 
         {/* ── Mobile: Context Window overlay ──────────────────────── */}

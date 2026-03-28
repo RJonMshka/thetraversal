@@ -12,6 +12,7 @@ import {
   TOOLS_NODE,
 } from "@/data/skills";
 import { TIMELINE_NODE } from "@/data/timeline";
+import { RESUME_NODE } from "@/data/resume";
 import {
   CODE_AS_CONSCIOUSNESS_NODE,
   WHY_I_BUILD_LANGUAGES_NODE,
@@ -25,6 +26,7 @@ import {
 // Structure:
 //   RootNode
 //   ├── ProgramNode: Identity (who I am)
+//   │   └── ImportDeclaration: Resume
 //   ├── BlockStatement: Projects (what I build)
 //   │   ├── FunctionDeclaration: RESUMIND
 //   │   ├── FunctionDeclaration: Clause
@@ -55,7 +57,7 @@ export const PORTFOLIO_AST = {
   glowColor: "--ctp-text",
   content: {
     summary: "Software engineer. Systems thinker. Builder of languages.",
-    body: "The root node. Everything begins here — identity, projects, skills, philosophy, connection. This portfolio is an Abstract Syntax Tree because every program is a tree, and a career is a program still being written.",
+    body: "The root node. Everything begins here.",
   },
   children: [
     // ── Identity ───────────────────────────────────────────────────────
@@ -67,12 +69,9 @@ export const PORTFOLIO_AST = {
       glowColor: "--ctp-yellow",
       content: {
         summary: "import { Rajat } from 'chicago'",
-        body: `Software engineer based in Chicago. MS in Computer Science from UIC. Currently at Capital One, previously at Discover Financial Services.
-
-I build things that compile — literally and figuratively. From programming languages to AI tools to this AST-based portfolio, my work is driven by a single conviction: understanding is compilation. If you can break something down into its grammar, parse its structure, and evaluate its meaning, you truly understand it.
-
-When I'm not writing code, I'm reading philosophy (Advaita Vedanta, phenomenology), exploring AI consciousness, or finding new ways to make the medium match the message.`,
+        body: "Software engineer based in Chicago. Builder of compilers, AI tools, and this portfolio.",
       },
+      children: [RESUME_NODE],
       meta: {
         tags: ["identity", "about"],
         links: [
@@ -91,7 +90,7 @@ When I'm not writing code, I'm reading philosophy (Advaita Vedanta, phenomenolog
       glowColor: "--ctp-peach",
       content: {
         summary: "Four functions, each solving a different problem.",
-        body: "The things I've built. Each project is a FunctionDeclaration — a callable unit of work with defined inputs (tech stack) and outputs (impact). Expand to see the function signatures.",
+        body: "FunctionDeclarations — callable units of work with defined inputs and outputs.",
       },
       children: [RESUMIND_NODE, CLAUSE_NODE, AI_COMMIT_NODE, CRM_NODE],
       meta: {
@@ -108,7 +107,7 @@ When I'm not writing code, I'm reading philosophy (Advaita Vedanta, phenomenolog
       glowColor: "--ctp-mauve",
       content: {
         summary: "The object expression: what I know and how well I know it.",
-        body: "Skills as key-value pairs. Each category is an ObjectExpression containing individual entries. Proficiency is honest — no inflated percentages, no listing technologies I used once in a tutorial.",
+        body: "Skills as key-value pairs. Proficiency is honest.",
       },
       children: [LANGUAGES_NODE, FRAMEWORKS_NODE, SYSTEMS_NODE, TOOLS_NODE],
       meta: {
@@ -129,7 +128,7 @@ When I'm not writing code, I'm reading philosophy (Advaita Vedanta, phenomenolog
       content: {
         summary:
           "Three essays on consciousness, compilers, and the nature of understanding.",
-        body: "The ideas that shape how I build. These aren't blog posts — they're genuine inquiries into the connections between code, consciousness, and meaning. Each is a CallExpression: a function invoked with arguments, producing a return value that changes how you see the input.",
+        body: "Genuine inquiries into code, consciousness, and meaning.",
       },
       children: [
         CODE_AS_CONSCIOUSNESS_NODE,
@@ -150,7 +149,7 @@ When I'm not writing code, I'm reading philosophy (Advaita Vedanta, phenomenolog
       glowColor: "--ctp-green",
       content: {
         summary: "export { github, linkedin, email } from 'rajat'",
-        body: "The public API. These are the named exports — the interfaces through which you can reach me. No contact form, no CAPTCHA, no friction. Just direct links to where I exist online.",
+        body: "The public API — direct links to where I exist online.",
       },
       children: [
         {

@@ -494,6 +494,183 @@ The portfolio is live, indexed, and being discovered.
 
 ---
 
+## Phase 10: Resume Integration & Desktop Node Navigation
+
+**Goal:** Add a resume as a first-class AST node with PDF/DOCX view and download, a landing page `resume` command, and solve the desktop tree's missing node-page navigation.
+
+**Duration:** 6-8 hours
+
+**Dependencies:** Phases 2, 3, 4, 8
+
+### Problem Analysis
+
+Two distinct problems to solve:
+
+1. **Resume feature.** The portfolio has no resume. A portfolio without a resume is incomplete — recruiters and hiring managers expect a downloadable document. But simply linking a PDF undermines the AST metaphor. The resume must be *part of the tree*, viewable inline and downloadable in standard formats.
+
+2. **Desktop tree navigation gap.** Currently, clicking a node on the desktop SVG canvas toggles expand/collapse — there is no way to navigate to the node's detail page (`/node/[slug]`). The mobile tree already solves this by rendering the label as a `<Link>`. The desktop tree needs a parallel mechanism that doesn't conflict with expand/collapse.
+
+### Architecture Decisions
+
+#### Resume in the AST
+
+The resume belongs under the existing **Identity** node (`ProgramNode`), not as a new top-level branch. Reasoning:
+
+- The Identity node already represents "who Rajat is" — a resume is a formal projection of identity
+- Adding a 7th top-level branch would crowd the tree and break the current visual balance
+- The resume is a document *about* Rajat, not a category *of* Rajat's work
+- AST type: `ImportDeclaration` — this type is defined in `ASTNodeType` but currently unused. Semantically, importing a resume into the tree feels right: `import resume from "./rajat-kumar.pdf"` — the resume is an external artifact being brought into the AST
+
+Tree structure change:
+```
+ProgramNode: "Identity" (slug: "identity")
+├── ImportDeclaration: "Resume" (slug: "resume")    ← NEW
+```
+
+The Identity node becomes a parent (gains `children`) instead of a leaf. This has implications for the tree layout — `useASTLayout` will pick it up automatically since it respects `children` arrays.
+
+#### Resume file formats
+
+Two files in `public/resume/`:
+- `rajat-kumar-resume.pdf` — the canonical format for viewing and downloading
+- `rajat-kumar-resume.docx` — for ATS systems and recruiters who request Word format
+
+These are static files, not generated. When the resume content changes, both files are manually updated and committed. No server-side PDF generation needed — that adds complexity and fragility for no user benefit.
+
+#### ResumeNode component
+
+A new component in `src/components/nodes/ResumeNode.tsx` that renders:
+
+1. **Inline PDF viewer** — an `<iframe>` or `<object>` embedding the PDF with a themed wrapper. Falls back to a download link on browsers/devices that don't support inline PDF viewing (most mobile browsers).
+2. **Download bar** — two buttons: "Download PDF" and "Download DOCX", styled as export statements: `export { resume } from "pdf" | "docx"`
+3. **AST decoration** — `import resume from "./rajat-kumar.pdf"` header matching the `ImportDeclaration` type
+
+The viewer should be lazy-loaded. The PDF is not part of the JS bundle — it's fetched only when the resume node page is visited.
+
+#### Landing page `resume` command
+
+Add `resume` (and aliases `cat resume`, `open resume`) to the easter egg commands in `src/lib/easter-eggs.ts`. Instead of printing text output, this command should trigger a **direct download** of the PDF.
+
+This requires a new `EasterEggResult` type: `"action"`. When the result type is `"action"`, the `Cursor` component executes a side effect (like initiating a download or navigating to a URL) instead of rendering output text.
+
+```typescript
+type EasterEggResult = {
+  type: "json" | "text" | "lines" | "action";
+  content: string | string[];
+  action?: { kind: "download"; url: string } | { kind: "navigate"; url: string };
+};
+```
+
+The `resume` command outputs a few lines of feedback ("Downloading resume...") AND triggers the download action. The `cat resume` alias shows the resume content inline as text (a condensed plain-text version), while `open resume` navigates to `/node/resume`.
+
+#### Desktop tree node navigation
+
+The desktop SVG tree currently only supports click-to-expand. The mobile tree solves navigation by making the label a `<Link>` — but SVG doesn't support `<Link>` from Next.js.
+
+**Solution: double-click to navigate.**
+
+- **Single click** → expand/collapse (current behavior, unchanged)
+- **Double-click** → navigate to `/node/[slug]` detail page
+
+Why double-click and not a separate button:
+
+1. **Adding a visible button inside the SVG node** crowds the already-compact node layout, especially at zoom levels < 1x. The node header is 56px tall with a type badge, label, visited dot, and expand chevron already.
+2. **A tooltip with a link on hover** adds hover delay and an extra click — worse UX than double-click.
+3. **Double-click is discoverable** via the cursor change (`pointer` is already set) and can be hinted in the mode selector or a first-visit tooltip. It's a standard pattern for "open" in tree UIs (file explorers, IDE project trees).
+4. **Leaf nodes** (nodes without children, like individual skills or timeline entries) should navigate on single click since they have nothing to expand. This makes single-click = expand for parents, single-click = navigate for leaves — matching file explorer conventions exactly.
+
+Implementation:
+
+- In `ASTCanvas.tsx`, the `handleNodeClick` callback gets a double-click variant via a new `handleNodeDoubleClick` that calls `router.push(`/node/${slug}`)`.
+- In `ASTNode.tsx`, add an `onDoubleClick` prop and handler. For leaf nodes, the single `onClick` calls `onNodeNavigate` instead of `onNodeClick`.
+- The cursor changes to indicate the interaction: `cursor: pointer` for all nodes (already set), with a brief visual hint (the node border brightens or a small arrow icon appears) on hover to signal navigability.
+- Keyboard: Enter on a focused node with children = expand/collapse (unchanged). Ctrl+Enter or a dedicated key (e.g., `o` for "open") = navigate to node page. For leaf nodes, Enter = navigate.
+- ARIA: add `aria-description="Double-click to open detail page"` to parent nodes and update the label for leaf nodes.
+
+### Tasks
+
+1. **Resume files**
+   - Create `public/resume/` directory
+   - Add `rajat-kumar-resume.pdf` and `rajat-kumar-resume.docx` (placeholder or real files)
+   - Add `/resume/` to the `ls` command output in `src/lib/easter-eggs.ts`
+
+2. **AST data update**
+   - Create `src/data/resume.ts` — define the resume `ASTNode` with `ImportDeclaration` type, slug `"resume"`, glowColor `"--ctp-yellow"` (inherits from Identity)
+   - Content: summary = "Rajat Kumar — Software Engineer. View or download in PDF/DOCX.", body = a plain-text condensed version of the resume
+   - Meta: `links` to both PDF and DOCX download URLs
+   - Update `src/data/ast.ts` — make the Identity node's `children` array include the resume node
+   - Update Identity node content to reflect it now has a child
+
+3. **ResumeNode component (`src/components/nodes/ResumeNode.tsx`)**
+   - `import resume from "./rajat-kumar.pdf"` header decoration
+   - Inline PDF viewer: `<object>` tag with `type="application/pdf"` pointing to `/resume/rajat-kumar-resume.pdf`, with a sensible height (70vh) and themed border
+   - Fallback for unsupported browsers/mobile: "Your browser doesn't support inline PDF viewing" + prominent download link
+   - Download bar: two `<a download>` buttons styled as named exports
+   - Mobile-first: on small screens, skip the viewer entirely and show download buttons prominently with a preview thumbnail (first page of PDF rendered as an image, or just descriptive text)
+   - Wire into `NodeContent` switch in `src/app/node/[slug]/page.tsx`
+
+4. **Landing page resume commands**
+   - Extend `EasterEggResult` type with `"action"` variant in `src/lib/easter-eggs.ts`
+   - Add `resume` command: outputs "Downloading resume..." + triggers PDF download via `action: { kind: "download", url: "/resume/rajat-kumar-resume.pdf" }`
+   - Add `cat resume` alias: outputs a plain-text condensed resume (name, title, key skills, experience highlights — ~15 lines)
+   - Add `open resume` alias: navigates to `/node/resume` via `action: { kind: "navigate", url: "/node/resume" }`
+   - Update `help` command output to include `resume` in the available commands list
+   - Update `Cursor.tsx` to handle `"action"` result type — execute downloads via programmatic `<a>` click, navigation via `router.push()`
+
+5. **Desktop tree node navigation**
+   - **`ASTNode.tsx`:**
+     - Add `onNodeNavigate` prop: `(slug: string) => void`
+     - Add `onDoubleClick` handler that calls `onNodeNavigate`
+     - For leaf nodes (no children): single click calls `onNodeNavigate` instead of `onNodeClick`
+     - Update keyboard handler: Ctrl+Enter or `o` key = navigate. Enter on leaf = navigate.
+     - Add a subtle navigation affordance on hover: small arrow icon (→) appears in the header, or the border style changes to signal "you can open this"
+     - Update ARIA attributes to communicate the double-click / navigation behavior
+   - **`ASTCanvas.tsx`:**
+     - Add `handleNodeNavigate` callback that calls `router.push(`/node/${slug}`)`
+     - Pass it as `onNodeNavigate` to each `ASTNode`
+     - Import `useRouter` from `next/navigation`
+     - For leaf nodes: `handleNodeClick` should call `visitNode` (mark visited) but NOT `toggleExpand` (nothing to expand), then navigate
+
+6. **Update `ls` command and help text**
+   - `ls` output: add `"-rw-r--r--  resume.pdf"` and `"-rw-r--r--  resume.docx"`
+   - `help` output: add `"  resume                   — download the resume"`
+   - Update `cat README` to mention the resume
+
+7. **Tests**
+   - Unit test for `findNode(PORTFOLIO_AST, "resume")` returning the correct node
+   - Test that `flatten(PORTFOLIO_AST)` count increases by 1 (resume node added)
+   - Test resume command in easter eggs returns correct result type
+   - Test that Identity node now has children
+   - Verify `generateStaticParams` includes `"resume"` slug
+
+8. **Accessibility**
+   - Resume viewer: `<object>` has `aria-label="Resume PDF viewer"` and a text alternative
+   - Download buttons: clear accessible names ("Download resume as PDF", "Download resume as DOCX")
+   - Desktop tree navigation: announce the interaction model to screen readers
+   - Keyboard: ensure double-click equivalent is available (Ctrl+Enter)
+
+### Deliverable
+
+The resume is a first-class citizen of the AST — discoverable via the tree, accessible from the terminal, viewable inline, and downloadable in two formats. Desktop tree nodes are navigable to their detail pages via double-click (parents) or single click (leaves), closing the UX gap with mobile.
+
+### Exit Criteria
+
+- `/node/resume` renders the inline PDF viewer with download buttons
+- `resume` command at the landing cursor triggers a PDF download
+- `cat resume` prints a condensed text resume
+- `open resume` navigates to the resume node page
+- PDF and DOCX download buttons work correctly (correct MIME type, filename)
+- Double-clicking any node on the desktop tree navigates to its detail page
+- Single-clicking a leaf node navigates to its detail page
+- Single-clicking a parent node still expands/collapses (no regression)
+- Keyboard navigation: Ctrl+Enter opens node detail page from the tree
+- Identity node shows the resume as a child in both desktop and mobile tree views
+- All existing tests pass + new tests for resume node and navigation
+- `pnpm build` passes with zero errors
+- Mobile: resume page shows download buttons prominently (no broken inline viewer)
+
+---
+
 ## Phase Dependency Graph
 
 ```
@@ -502,13 +679,14 @@ Phase 1 (Foundation + Landing)
               ├──→ Phase 3 (AST Visualizer Desktop)
               │         └──→ Phase 5 (Token Stream + Context Window)
               │                   └──→ Phase 8 (Polish + Performance)
-              │                              └──→ Phase 9 (Deploy)
+              │                              ├──→ Phase 9 (Deploy)
+              │                              └──→ Phase 10 (Resume + Node Navigation)
               ├──→ Phase 4 (Node Detail Pages)
               │         └──→ Phase 7 (Philosophy MDX Essays)
               └──→ Phase 6 (Mobile AST)
 ```
 
-Phases 3, 4, and 6 can be worked in parallel after Phase 2 completes. Phase 7 (writing) can happen alongside any coding phase. Phase 8 is the integration/polish pass. Phase 9 is launch.
+Phases 3, 4, and 6 can be worked in parallel after Phase 2 completes. Phase 7 (writing) can happen alongside any coding phase. Phase 8 is the integration/polish pass. Phase 9 is launch. Phase 10 depends on Phases 2 (data layer), 3 (tree visualizer), 4 (node pages), and 8 (polish) being complete.
 
 ---
 
@@ -520,6 +698,8 @@ Phases 3, 4, and 6 can be worked in parallel after Phase 2 completes. Phase 7 (w
 | Project details | `src/data/projects.ts` | TypeScript objects |
 | Skill data | `src/data/skills.ts` | TypeScript objects |
 | Timeline entries | `src/data/timeline.ts` | TypeScript objects |
+| Resume data | `src/data/resume.ts` | TypeScript objects |
+| Resume files | `public/resume/` | PDF, DOCX |
 | Philosophy essays | `src/content/*.mdx` | MDX |
 | Component styles | Inline Tailwind classes | Utility-first |
 | Theme tokens | `src/styles/globals.css` | CSS custom properties |

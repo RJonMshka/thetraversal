@@ -1,10 +1,9 @@
 import type { MetadataRoute } from "next";
-import { PORTFOLIO_AST } from "@/data/ast";
-import { flatten } from "@/lib/traversal";
+import { getFlatNodes } from "@/data";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://thetraversal.dev";
-  const allNodes = flatten(PORTFOLIO_AST);
+  const allNodes = getFlatNodes();
 
   const nodePages: MetadataRoute.Sitemap = allNodes.map((node) => ({
     url: `${baseUrl}/node/${node.slug}`,

@@ -8,8 +8,11 @@ import {
   countNodes,
   getMaxDepth,
 } from "@/lib/traversal";
-import { PORTFOLIO_AST } from "@/data/ast";
+import { getAST } from "@/data";
 import type { ASTNode } from "@/lib/ast-types";
+
+// Use the data access layer instead of direct import
+const PORTFOLIO_AST = getAST();
 
 // ── findNode ───────────────────────────────────────────────────────────
 

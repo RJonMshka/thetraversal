@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useLayoutEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { zoom as d3Zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom";
 import { select } from "d3-selection";
 import "d3-transition"; // Augments d3-selection with .transition()
@@ -8,7 +9,7 @@ import { AnimatePresence } from "framer-motion";
 import { useASTLayout } from "@/hooks/useASTLayout";
 import { useTraversalState } from "@/hooks/useTraversalState";
 import { useStackOverflow } from "@/hooks/useStackOverflow";
-import { PORTFOLIO_AST } from "@/data/ast";
+import { getAST } from "@/data";
 import { ASTNode } from "@/components/ast/ASTNode";
 import { ASTEdge } from "@/components/ast/ASTEdge";
 import type { TraversalMode, ASTNode as ASTNodeType } from "@/lib/ast-types";
@@ -101,12 +102,15 @@ function findFirstChildSlug(
 // change it programmatically.
 
 export function ASTCanvas({ mode }: ASTCanvasProps) {
+  const ast = getAST();
+  const router = useRouter();
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [focusedNodeSlug, setFocusedNodeSlug] = useState<string | null>(null);
   const [transform, setTransform] = useState({ x: 0, y: 0, k: 1 });
   const [hasInitialized, setHasInitialized] = useState(false);
+
 
   // ── Refs for stable access without stale closures ────────────────────
   // transformRef always holds the latest transform value, accessible from
@@ -144,7 +148,7 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
 
   // Compute layout — mode affects node heights, which affects spacing
   const { nodes, edges, dimensions } = useASTLayout(
-    PORTFOLIO_AST,
+    ast,
     expandedNodes,
     mode
   );
@@ -208,6 +212,21 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
     [nodes, toggleExpand, visitNode, registerOverflowClick]
   );
 
+  // ── Handle node navigation (double-click or leaf click) ───────────────
+  // Navigates to the node's detail page at /node/[slug].
+  // For leaf nodes this is triggered by single click; for parent nodes
+  // by double-click or Ctrl+Enter.
+  const handleNodeNavigate = useCallback(
+    (slug: string) => {
+      const node = nodes.find((n) => n.slug === slug);
+      if (node) {
+        visitNode(slug, node.label, node.type, node.glowColor);
+      }
+      router.push(`/node/${slug}`);
+    },
+    [nodes, visitNode, router]
+  );
+
   // Handle node hover
   const handleNodeHover = useCallback((slug: string | null) => {
     setHoveredNode(slug);
@@ -224,20 +243,20 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
         case "ArrowUp": {
           // Move to parent
           e.preventDefault();
-          nextSlug = findParentSlug(PORTFOLIO_AST, focusedNodeSlug, expandedNodes);
+          nextSlug = findParentSlug(ast, focusedNodeSlug, expandedNodes);
           break;
         }
         case "ArrowDown": {
           // Move to first child (if expanded)
           e.preventDefault();
-          nextSlug = findFirstChildSlug(PORTFOLIO_AST, focusedNodeSlug, expandedNodes);
+          nextSlug = findFirstChildSlug(ast, focusedNodeSlug, expandedNodes);
           break;
         }
         case "ArrowLeft":
         case "ArrowRight": {
           // Move between siblings
           e.preventDefault();
-          const siblings = findSiblings(PORTFOLIO_AST, focusedNodeSlug, expandedNodes);
+          const siblings = findSiblings(ast, focusedNodeSlug, expandedNodes);
           const currentIndex = siblings.indexOf(focusedNodeSlug);
           if (currentIndex === -1) break;
           const direction = e.key === "ArrowLeft" ? -1 : 1;
@@ -262,7 +281,7 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
         }
       }
     },
-    [focusedNodeSlug, expandedNodes]
+    [ast, focusedNodeSlug, expandedNodes]
   );
 
   // Track focused node from ASTNode focus events
@@ -301,6 +320,8 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
       selection.on(".zoom", null);
     };
   }, []);
+
+
 
   // ── Initial zoom-to-fit ──────────────────────────────────────────────
   // Wait for both: nodes to exist AND Zustand hydration to complete.
@@ -440,6 +461,7 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
                 isOverflowing={isOverflowing}
                 mode={mode}
                 onNodeClick={handleNodeClick}
+                onNodeNavigate={handleNodeNavigate}
                 onNodeHover={handleNodeHover}
                 onNodeFocus={handleNodeFocus}
               />
@@ -467,7 +489,7 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
             opacity: 0.5,
           }}
         >
-          scroll to zoom / drag to pan
+          scroll to zoom · drag to pan · click to expand · hold to open
         </div>
       </foreignObject>
     </svg>

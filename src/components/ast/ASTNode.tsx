@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { LayoutNode } from "@/hooks/useASTLayout";
 import type { TraversalMode } from "@/lib/ast-types";
@@ -10,7 +11,6 @@ import {
   MAX_SUMMARY_CHARS,
   MAX_BODY_CHARS,
   MAX_SUMMARY_LINES,
-  MAX_BODY_LINES,
   SECTION_PADDING_Y,
   SECTION_GAP,
   getNodeHeight,
@@ -27,6 +27,7 @@ interface ASTNodeProps {
   isOverflowing?: boolean;
   mode: TraversalMode;
   onNodeClick: (slug: string) => void;
+  onNodeNavigate: (slug: string) => void;
   onNodeHover: (slug: string | null) => void;
   onNodeFocus?: (slug: string) => void;
 }
@@ -35,6 +36,16 @@ interface ASTNodeProps {
 
 const BORDER_RADIUS = 8;
 const SECTION_BORDER_RADIUS = 6;
+
+/** Duration (ms) of the long-press before navigation fires. */
+const LONG_PRESS_DURATION = 1500;
+
+/** Gradient feather width (px) on the leading edge of the wave fill. */
+const WAVE_FEATHER = 24;
+
+/** Expanded line counts on hover. */
+const HOVER_SUMMARY_LINES = 4;
+const HOVER_BODY_LINES = 3;
 
 // Short type abbreviations for the type badge
 const TYPE_ABBREV: Record<string, string> = {
@@ -108,10 +119,7 @@ function wrapText(text: string, maxChars: number, maxLines: number): string[] {
 }
 
 // ── Section animation config ───────────────────────────────────────────
-// Animate opacity only — scaleY on SVG <g> elements distorts stroke widths
-// and causes a width flash when entering/exiting because the rect's full
-// NODE_WIDTH is visible throughout the scaleY transition. Pure opacity
-// gives a clean fade with no layout artifacts.
+// Fade-in/out for sections entering/leaving the DOM (mode switches).
 
 const sectionVariants = {
   hidden: { opacity: 0 },
@@ -123,6 +131,33 @@ const sectionTransition = {
   opacity: { duration: 0.15, ease: "easeOut" as const },
 };
 
+
+
+// ── Expand height helpers ──────────────────────────────────────────────
+//
+// On hover we expand the summary and body section rects to reveal more
+// text. The clipPath rect inside <defs> is also a motion.rect so its
+// height animates in sync with the visible rect, keeping the clip tight.
+//
+// "Collapsed" height = what node-dimensions returns (the layout height).
+// "Expanded" height  = enough rows to show HOVER_SUMMARY_LINES / HOVER_BODY_LINES.
+
+function expandedSummaryHeight(lines: string[]): number {
+  return lines.length * SUMMARY_LINE_HEIGHT + SECTION_PADDING_Y * 2;
+}
+
+function expandedBodyHeight(lines: string[]): number {
+  return lines.length * SUMMARY_LINE_HEIGHT + SECTION_PADDING_Y * 2;
+}
+
+// Spring for height expansion — snappy but not jerky.
+const expandSpring = {
+  type: "spring" as const,
+  stiffness: 260,
+  damping: 28,
+  mass: 0.6,
+};
+
 // ── Component ──────────────────────────────────────────────────────────
 
 export function ASTNode({
@@ -132,9 +167,11 @@ export function ASTNode({
   isOverflowing = false,
   mode,
   onNodeClick,
+  onNodeNavigate,
   onNodeHover,
   onNodeFocus,
 }: ASTNodeProps) {
+  const isLeaf = !node.hasChildren;
   const glowHex = resolveGlowColor(node.glowColor);
   const typeAbbrev = TYPE_ABBREV[node.type] ?? node.type;
   const filterId = `glow-${node.slug}`;
@@ -144,31 +181,154 @@ export function ASTNode({
   const summaryH = getSummaryHeight(node, mode);
   const bodyH = getBodyHeight(node, mode);
 
-  // Truncate label if too long
+  // ── Long-press state ───────────────────────────────────────────────
+  const [pressProgress, setPressProgress] = useState(0); // 0–1
+  const pressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pressStartRef = useRef<number>(0);
+  const hasFiredRef = useRef(false);
+  const isPressingRef = useRef(false);
+
+  const cancelPress = useCallback(() => {
+    if (pressTimerRef.current) {
+      clearInterval(pressTimerRef.current);
+      pressTimerRef.current = null;
+    }
+    setPressProgress(0);
+    hasFiredRef.current = false;
+    isPressingRef.current = false;
+  }, []);
+
+  const startPress = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      if ("button" in e && e.button !== 0) return;
+      if ("ctrlKey" in e && (e.ctrlKey || e.metaKey)) return;
+
+      isPressingRef.current = true;
+      hasFiredRef.current = false;
+      pressStartRef.current = performance.now();
+      setPressProgress(0);
+
+      pressTimerRef.current = setInterval(() => {
+        const elapsed = performance.now() - pressStartRef.current;
+        const ratio = Math.min(elapsed / LONG_PRESS_DURATION, 1);
+        setPressProgress(ratio);
+        if (ratio >= 1 && !hasFiredRef.current) {
+          hasFiredRef.current = true;
+          cancelPress();
+          onNodeNavigate(node.slug);
+        }
+      }, 16);
+    },
+    [node.slug, onNodeNavigate, cancelPress]
+  );
+
+  const endPress = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      const wasActuallyPressing = isPressingRef.current;
+      const hasFired = hasFiredRef.current;
+      cancelPress();
+
+      if (wasActuallyPressing && !hasFired) {
+        e.stopPropagation();
+        if (isLeaf) {
+          onNodeNavigate(node.slug);
+        } else {
+          onNodeClick(node.slug);
+        }
+      }
+    },
+    [cancelPress, isLeaf, node.slug, onNodeClick, onNodeNavigate]
+  );
+
+  // ── Truncate label if too long ─────────────────────────────────────
   const displayLabel =
     node.label.length > 16 ? node.label.slice(0, 15) + "\u2026" : node.label;
 
-  // Content for parse/eval modes
-  const summaryLines =
+  // ── Text content ──────────────────────────────────────────────────
+  // Collapsed: limited lines shown in the layout.
+  // Expanded:  more lines revealed on hover by growing the section rect.
+
+  // Summary — collapsed (2 lines max, used for layout)
+  const summaryLinesCollapsed =
     mode !== "lex" && node.content?.summary
       ? wrapText(node.content.summary, MAX_SUMMARY_CHARS, MAX_SUMMARY_LINES)
       : [];
-  const bodyLine =
+
+  // Summary — expanded (4 lines max, revealed on hover)
+  // Always computed so we know the expanded height even in lex mode.
+  const summaryLinesExpanded = node.content?.summary
+    ? wrapText(node.content.summary, MAX_SUMMARY_CHARS, HOVER_SUMMARY_LINES)
+    : [];
+
+  // Body — collapsed (1 truncated line, used for layout)
+  const bodyLineCollapsed =
     mode === "eval" && node.content?.body
       ? truncate(node.content.body.replace(/\n/g, " "), MAX_BODY_CHARS)
       : null;
+
+  // Body — expanded (3 lines max, revealed on hover)
+  const bodyLinesExpanded = node.content?.body
+    ? wrapText(node.content.body.replace(/\n/g, " "), MAX_BODY_CHARS, HOVER_BODY_LINES)
+    : [];
+
+  // ── Hover expansion logic ─────────────────────────────────────────
+  //
+  // In lex mode:   hover reveals the summary section (hidden by default).
+  // In parse mode: hover expands the summary from 2 → 4 lines.
+  //                hover also reveals the body section (hidden by default in parse).
+  // In eval mode:  hover expands summary 2→4 and body 1→3 lines.
+  //
+  // The section rect height and its matching clipPath rect both animate
+  // via motion.rect so the reveal is a smooth spring-driven grow.
+
+  const hasSummaryContent = Boolean(node.content?.summary);
+  const hasBodyContent = Boolean(node.content?.body);
+
+  // Whether a summary section should be drawn at all (collapsed or expanded)
+  const showSummarySection =
+    (mode !== "lex" && hasSummaryContent) || (isFocused && hasSummaryContent);
+
+  // Whether a body section should be drawn at all
+  const showBodySection =
+    (mode === "eval" && hasBodyContent) || (isFocused && hasBodyContent && mode !== "lex");
+
+  // Collapsed heights (from layout math — what the tree uses for spacing)
+  const collapsedSummaryH = summaryH; // 0 in lex mode
+  const collapsedBodyH = bodyH; // 0 unless eval mode
+
+  // Expanded heights (driven by hover)
+  const expandedSummaryH =
+    summaryLinesExpanded.length > 0
+      ? expandedSummaryHeight(summaryLinesExpanded)
+      : collapsedSummaryH;
+  const expandedBodyH =
+    bodyLinesExpanded.length > 0
+      ? expandedBodyHeight(bodyLinesExpanded)
+      : collapsedBodyH;
+
+  // Actual animated heights — these are what the rects + clipPaths use
+  const activeSummaryH = isFocused
+    ? expandedSummaryH
+    : collapsedSummaryH > 0
+    ? collapsedSummaryH
+    : 0;
+
+  const activeBodyH = isFocused
+    ? expandedBodyH
+    : collapsedBodyH > 0
+    ? collapsedBodyH
+    : 0;
 
   // ── Layout positions (Y-origin = center of total node height) ────────
   const halfH = nodeHeight / 2;
   const headerTop = -halfH;
   const summaryTop = headerTop + HEADER_SECTION_HEIGHT + SECTION_GAP;
-  const bodyTop = summaryTop + (summaryH > 0 ? summaryH + SECTION_GAP : 0);
+  // Body top is always just below summary — but body section floats below
+  // the *collapsed* summary to avoid shifting the tree layout on hover.
+  // (The summary expands downward and overlaps; body Y is fixed.)
+  const bodyTop = summaryTop + (collapsedSummaryH > 0 ? collapsedSummaryH + SECTION_GAP : 0);
 
-  // Position springs — critically damped to eliminate overshoot.
-  // Overshoot caused visible jitter on expand/collapse because the node
-  // would spring past its target while the viewport was already pinned
-  // to the new position. Critical damping (damping ratio ~1) ensures the
-  // node lands precisely at its target without oscillation.
+  // Position springs
   const positionTransition = {
     type: "spring" as const,
     stiffness: 170,
@@ -187,6 +347,10 @@ export function ASTNode({
   const overflowRotate = isOverflowing
     ? Math.sin(overflowHash * 0.7) * 30
     : 0;
+
+  // Wave fill clip + gradient IDs (unique per node)
+  const waveClipId = `wave-clip-${node.slug}`;
+  const waveGradientId = `wave-grad-${node.slug}`;
 
   return (
     <motion.g
@@ -212,27 +376,52 @@ export function ASTNode({
       style={{ cursor: "pointer", outline: "none" }}
       role="treeitem"
       aria-expanded={node.hasChildren ? node.isExpanded : undefined}
-      aria-label={`${node.type}: ${node.label}${isVisited ? ", visited" : ""}`}
+      aria-label={`${node.type}: ${node.label}${isVisited ? ", visited" : ""}${isLeaf ? ". Click to open detail page" : ". Click to expand. Hold to open detail page"}`}
+      aria-description={
+        isLeaf
+          ? "Click to open detail page"
+          : "Click to expand or collapse. Hold for 1.5 seconds to open the detail page. Press Ctrl+Enter to navigate immediately."
+      }
       tabIndex={0}
       onKeyDown={(e) => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          e.stopPropagation();
+          onNodeNavigate(node.slug);
+          return;
+        }
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onNodeClick(node.slug);
+          if (isLeaf) {
+            onNodeNavigate(node.slug);
+          } else {
+            onNodeClick(node.slug);
+          }
         }
       }}
-      onClick={(e) => {
+      onMouseDown={startPress}
+      onMouseUp={endPress}
+      onMouseLeave={(e) => {
+        cancelPress();
+        onNodeHover(null);
         e.stopPropagation();
-        onNodeClick(node.slug);
       }}
+      onTouchStart={startPress}
+      onTouchEnd={endPress}
+      onTouchCancel={cancelPress}
       onMouseEnter={() => onNodeHover(node.slug)}
-      onMouseLeave={() => onNodeHover(null)}
       onFocus={() => {
         onNodeHover(node.slug);
         onNodeFocus?.(node.slug);
       }}
-      onBlur={() => onNodeHover(null)}
+      onBlur={() => {
+        cancelPress();
+        onNodeHover(null);
+      }}
     >
-      {/* ── Defs: glow filter + section clipPaths ────────────────────── */}
+      {/* ── Defs: glow filter + animated clipPaths ───────────────────── */}
+      {/* The clipPath rects are motion.rect so they animate in sync with */}
+      {/* the visible section rects, masking text to the growing height.  */}
       <defs>
         <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
           <feDropShadow
@@ -244,31 +433,53 @@ export function ASTNode({
           />
         </filter>
 
-        {/* ClipPath for summary section — text cannot escape this rect */}
-        {summaryH > 0 && (
+        {showSummarySection && activeSummaryH > 0 && (
           <clipPath id={clipSummaryId}>
-            <rect
+            <motion.rect
               x={-NODE_WIDTH / 2}
               y={summaryTop}
               width={NODE_WIDTH}
-              height={summaryH}
               rx={SECTION_BORDER_RADIUS}
+              animate={{ height: activeSummaryH }}
+              transition={expandSpring}
             />
           </clipPath>
         )}
 
-        {/* ClipPath for body section */}
-        {bodyH > 0 && (
+        {showBodySection && activeBodyH > 0 && (
           <clipPath id={clipBodyId}>
-            <rect
+            <motion.rect
               x={-NODE_WIDTH / 2}
               y={bodyTop}
               width={NODE_WIDTH}
-              height={bodyH}
               rx={SECTION_BORDER_RADIUS}
+              animate={{ height: activeBodyH }}
+              transition={expandSpring}
             />
           </clipPath>
         )}
+
+        {/* Wave fill: clip to rounded header shape, gradient for soft leading edge */}
+        <clipPath id={waveClipId}>
+          <rect
+            x={-NODE_WIDTH / 2}
+            y={headerTop}
+            width={NODE_WIDTH}
+            height={HEADER_SECTION_HEIGHT}
+            rx={BORDER_RADIUS}
+            ry={BORDER_RADIUS}
+          />
+        </clipPath>
+
+        <linearGradient id={waveGradientId} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={glowHex} stopOpacity="0.22" />
+          <stop
+            offset={`${Math.max(0, 100 - (WAVE_FEATHER / NODE_WIDTH) * 100)}%`}
+            stopColor={glowHex}
+            stopOpacity="0.22"
+          />
+          <stop offset="100%" stopColor={glowHex} stopOpacity="0.06" />
+        </linearGradient>
       </defs>
 
       {/* ── Header section ───────────────────────────────────────────── */}
@@ -323,8 +534,8 @@ export function ASTNode({
         />
       )}
 
-      {/* Expand/collapse indicator */}
-      {node.hasChildren && (
+      {/* Expand/collapse indicator (hidden while progress ring is active) */}
+      {node.hasChildren && pressProgress === 0 && (
         <text
           x={NODE_WIDTH / 2 - 16}
           y={headerTop + 38}
@@ -338,9 +549,54 @@ export function ASTNode({
         </text>
       )}
 
-      {/* ── Summary section (parse + eval modes) ─────────────────────── */}
+      {/* Navigation arrow for focused leaf nodes (hidden while pressing) */}
+      {isLeaf && isFocused && pressProgress === 0 && (
+        <text
+          x={NODE_WIDTH / 2 - 16}
+          y={headerTop + 38}
+          fill={glowHex}
+          fontSize="12"
+          fontFamily="var(--font-mono)"
+          dominantBaseline="middle"
+          textAnchor="middle"
+          opacity={0.7}
+        >
+          {"\u2192"}
+        </text>
+      )}
+
+      {/* ── Long-press wave fill ─────────────────────────────────────── */}
+      {/* A colored overlay sweeps left→right across the header rect.   */}
+      {/* Clipped to the header's rounded shape so it looks like the    */}
+      {/* node itself is filling up. A gradient on the leading edge     */}
+      {/* gives it a soft, wave-like feel.                              */}
       <AnimatePresence>
-        {summaryH > 0 && (
+        {pressProgress > 0 && (
+          <motion.g
+            key="wave-fill"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
+            clipPath={`url(#${waveClipId})`}
+          >
+            <rect
+              x={-NODE_WIDTH / 2}
+              y={headerTop}
+              width={NODE_WIDTH * pressProgress}
+              height={HEADER_SECTION_HEIGHT}
+              fill={`url(#${waveGradientId})`}
+            />
+          </motion.g>
+        )}
+      </AnimatePresence>
+
+      {/* ── Summary section ───────────────────────────────────────────── */}
+      {/* Visible in parse/eval mode always; also shown on hover in lex.  */}
+      {/* On hover the rect grows from collapsed → expanded height,       */}
+      {/* revealing additional wrapped lines via the animated clipPath.   */}
+      <AnimatePresence>
+        {showSummarySection && activeSummaryH > 0 && (
           <motion.g
             key="summary-section"
             initial="hidden"
@@ -349,24 +605,25 @@ export function ASTNode({
             variants={sectionVariants}
             transition={sectionTransition}
           >
-            {/* Summary background rect */}
-            <rect
+            {/* Section background — height springs to expanded/collapsed */}
+            <motion.rect
               x={-NODE_WIDTH / 2}
               y={summaryTop}
               width={NODE_WIDTH}
-              height={summaryH}
               rx={SECTION_BORDER_RADIUS}
               ry={SECTION_BORDER_RADIUS}
               fill="var(--color-ctp-mantle)"
               stroke={glowHex}
               strokeWidth={0.5}
               strokeOpacity={isFocused ? 0.4 : 0.15}
+              animate={{ height: activeSummaryH }}
+              transition={expandSpring}
             />
 
-            {/* Summary text — clipped to section bounds */}
+            {/* All expanded lines — clipPath hides rows beyond current height */}
             <g clipPath={`url(#${clipSummaryId})`}>
-              {summaryLines.map((line, i) => (
-                <text
+              {summaryLinesExpanded.map((line, i) => (
+                <motion.text
                   key={`summary-${i}`}
                   x={-NODE_WIDTH / 2 + 10}
                   y={
@@ -380,19 +637,25 @@ export function ASTNode({
                   fontSize="9"
                   fontFamily="var(--font-mono)"
                   dominantBaseline="middle"
-                  opacity={0.85}
+                  // Lines beyond the collapsed count fade in when expanded
+                  animate={{
+                    opacity: isFocused || i < summaryLinesCollapsed.length ? 0.85 : 0,
+                  }}
+                  transition={{ duration: 0.2, ease: "easeOut", delay: i * 0.03 }}
                 >
                   {line}
-                </text>
+                </motion.text>
               ))}
             </g>
           </motion.g>
         )}
       </AnimatePresence>
 
-      {/* ── Body section (eval mode only) ────────────────────────────── */}
+      {/* ── Body section ─────────────────────────────────────────────── */}
+      {/* Visible in eval mode always; also shown on hover in parse mode.  */}
+      {/* On hover expands from 1 truncated line → up to 3 full lines.   */}
       <AnimatePresence>
-        {bodyH > 0 && bodyLine && (
+        {showBodySection && activeBodyH > 0 && (
           <motion.g
             key="body-section"
             initial="hidden"
@@ -401,37 +664,47 @@ export function ASTNode({
             variants={sectionVariants}
             transition={{
               ...sectionTransition,
-              // Slightly delayed so it enters after summary
               opacity: { duration: 0.15, ease: "easeOut" as const, delay: 0.05 },
             }}
           >
-            {/* Body background rect */}
-            <rect
+            <motion.rect
               x={-NODE_WIDTH / 2}
               y={bodyTop}
               width={NODE_WIDTH}
-              height={bodyH}
               rx={SECTION_BORDER_RADIUS}
               ry={SECTION_BORDER_RADIUS}
               fill="var(--color-ctp-crust)"
               stroke={glowHex}
               strokeWidth={0.5}
               strokeOpacity={isFocused ? 0.3 : 0.1}
+              animate={{ height: activeBodyH }}
+              transition={expandSpring}
             />
 
-            {/* Body text — clipped to section bounds */}
             <g clipPath={`url(#${clipBodyId})`}>
-              <text
-                x={-NODE_WIDTH / 2 + 10}
-                y={bodyTop + SECTION_PADDING_Y + SUMMARY_LINE_HEIGHT / 2 + 1}
-                fill="var(--color-ctp-overlay1)"
-                fontSize="8"
-                fontFamily="var(--font-mono)"
-                dominantBaseline="middle"
-                opacity={0.65}
-              >
-                {bodyLine}
-              </text>
+              {bodyLinesExpanded.map((line, i) => (
+                <motion.text
+                  key={`body-${i}`}
+                  x={-NODE_WIDTH / 2 + 10}
+                  y={
+                    bodyTop +
+                    SECTION_PADDING_Y +
+                    i * SUMMARY_LINE_HEIGHT +
+                    SUMMARY_LINE_HEIGHT / 2 +
+                    1
+                  }
+                  fill="var(--color-ctp-overlay1)"
+                  fontSize="8"
+                  fontFamily="var(--font-mono)"
+                  dominantBaseline="middle"
+                  animate={{
+                    opacity: isFocused || i === 0 ? 0.65 : 0,
+                  }}
+                  transition={{ duration: 0.2, ease: "easeOut", delay: i * 0.04 }}
+                >
+                  {line}
+                </motion.text>
+              ))}
             </g>
           </motion.g>
         )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { getEasterEgg, isNavigationCommand, type EasterEggResult } from "@/lib/easter-eggs";
 
@@ -14,6 +15,7 @@ interface CursorProps {
 }
 
 export function Cursor({ onNavigate }: CursorProps) {
+  const router = useRouter();
   const [input, setInput] = useState("");
   const [cursorPos, setCursorPos] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -48,6 +50,23 @@ export function Cursor({ onNavigate }: CursorProps) {
       setHistory((prev) => [...prev, { input: trimmed, output: easterEgg }]);
       setInput("");
       setCursorPos(0);
+
+      // Handle action results (download, navigate)
+      if (easterEgg.type === "action" && easterEgg.action) {
+        const { action } = easterEgg;
+        setTimeout(() => {
+          if (action.kind === "download") {
+            const a = document.createElement("a");
+            a.href = action.url;
+            a.download = action.url.split("/").pop() ?? "download";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          } else if (action.kind === "navigate") {
+            router.push(action.url);
+          }
+        }, 300);
+      }
       return;
     }
 
@@ -129,6 +148,18 @@ export function Cursor({ onNavigate }: CursorProps) {
                 <div className="text-ctp-subtext0 text-sm font-mono">
                   {(entry.output.content as string[]).map((line, j) => (
                     <p key={j} className={cn(line === "" ? "h-3" : "")}>
+                      {line}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {entry.output.type === "action" && (
+                <div className="text-ctp-subtext0 text-sm font-mono">
+                  {(Array.isArray(entry.output.content)
+                    ? entry.output.content
+                    : [entry.output.content]
+                  ).map((line, j) => (
+                    <p key={j} className={cn(typeof line === "string" && line === "" ? "h-3" : "")}>
                       {line}
                     </p>
                   ))}

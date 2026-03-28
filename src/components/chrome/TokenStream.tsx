@@ -4,15 +4,13 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { getTokenStream } from "@/lib/traversal";
 import { useTraversalState } from "@/hooks/useTraversalState";
 import { useIsDesktop } from "@/hooks/useMediaQuery";
-import { PORTFOLIO_AST } from "@/data/ast";
+import { getTokens } from "@/data";
 import type { TokenStreamEntry } from "@/lib/ast-types";
 
-// Module-level constant — PORTFOLIO_AST is static, so the token stream
-// is computed once at import time and shared across all renders.
-const TOKENS = getTokenStream(PORTFOLIO_AST);
+// Lazy singleton — computed once on first access, cached for the process.
+const TOKENS = getTokens();
 
 // ── Props ──────────────────────────────────────────────────────────────
 
