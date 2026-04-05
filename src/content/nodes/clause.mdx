@@ -1,9 +1,13 @@
 ---
-summary: "A custom programming language with a tree-walking interpreter, built to understand compilation from first principles."
+summary: "An English-like programming language that compiles to JavaScript. Built from scratch: lexer, parser, IR, runtime libraries, code generation."
 ---
 
-Clause is a dynamically-typed language with first-class functions, closures, and a clean syntax inspired by the intersection of JavaScript and Python. Built following Thorsten Ball's "Writing an Interpreter in Go" — but reimplemented in TypeScript to deeply internalize every stage.
+Clause is a functional, English-like programming language that compiles to JavaScript. The entire toolchain is built from scratch in Go: lexer, parser, intermediate representation, runtime libraries, and code generator.
 
-The pipeline: Lexer → Parser → AST → Evaluator. Each stage is a self-contained module. The parser produces a real AST (the same concept powering this portfolio). The evaluator walks the tree, maintaining environments for scope and closures.
+The goal is a language with the clarity of English, the structure of a functional language, and JavaScript as its compile target. This is where compiler theory meets language design philosophy.
 
-This project changed how I think about software. Every program is a tree. Every feature is a transformation. This portfolio is the logical conclusion of that realization.
+The pipeline: source text → lexer (token stream) → parser (AST) → IR → code generation → JavaScript output. Each stage is a self-contained transformation. The parser produces a real AST — the same concept that powers this portfolio's structure.
+
+This project is the direct successor to a Scala DSL built during the MS CS program at UIC. The same questions about language design, evaluation order, and what "meaning" means in a formal system are still alive in the current work.
+
+*"If a language is how you think, Clause is an experiment in thinking differently."*

@@ -136,7 +136,7 @@ export function ConnectNode({ node }: ConnectNodeProps) {
             {"// interested in how this portfolio works?"}
           </p>
           <Link
-            href="https://github.com/rajatkumar"
+            href="https://github.com/RJonMshka/thetraversal"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm font-mono text-ctp-green hover:text-ctp-teal transition-colors underline underline-offset-4"

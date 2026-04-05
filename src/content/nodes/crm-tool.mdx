@@ -1,9 +1,11 @@
 ---
-summary: "Lightweight CRM application for managing client relationships with a clean, minimal interface."
+summary: "Full-stack CRM with AI-powered task generation using LLMs and MCP. Automated workflow creation and seamless sync between AI-driven and manual operations."
 ---
 
-A full-stack CRM designed for small teams and freelancers who don't need Salesforce but need more than a spreadsheet. Features contact management, interaction tracking, pipeline visualization, and basic reporting.
+A full-stack CRM where AI is a first-class citizen, not a bolt-on feature. Built with Next.js, TypeScript, GraphQL, PostgreSQL, and Bun on the backend — and the Anthropic Claude API plus MCP (Model Context Protocol) for AI-powered workflow generation.
 
-Built with a React frontend and Node.js backend. The data model is intentionally simple — contacts, interactions, and deals — because most CRM complexity is accidental, not essential.
+The core insight: most CRM tasks follow patterns. AI can recognize those patterns and generate workflow templates, task sequences, and follow-up reminders without manual configuration. The human stays in the loop for judgment calls; the AI handles the mechanical sequencing.
 
-Focused on the user experience: fast search, keyboard shortcuts, and a timeline view that shows the full history of any relationship at a glance.
+MCP is used as a first-class architectural primitive — not just for development tooling but as part of the production data access layer. This was one of the first projects to treat MCP this way, before it became a common pattern.
+
+The result is a system where AI-driven and manually-created operations are indistinguishable at the data layer. Seamless synchronization between both modes is the core invariant the architecture is built to protect.

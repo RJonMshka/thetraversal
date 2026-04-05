@@ -1,9 +1,11 @@
 ---
-summary: "AI-powered resume tailoring tool that analyzes job descriptions and optimizes resumes for relevance."
+summary: "AI-powered resume optimizer. Takes a resume and a target job description; produces structured, actionable suggestions via LLM output pipelines and MCP servers."
 ---
 
-RESUMIND parses job descriptions using NLP, extracts key requirements, and restructures your resume to maximize alignment. It doesn't fabricate — it reorganizes and emphasizes what's already true about you.
+RESUMIND takes a resume and a target job description and produces structured, actionable optimization suggestions. It doesn't fabricate — it reorganizes and emphasizes what's already true.
 
-Built with a Next.js frontend and Python backend, it uses Claude's API for intelligent content restructuring. The architecture separates analysis (what does this job need?) from generation (how do I present what I have?) — a compiler pipeline applied to career documents.
+Built with Next.js and TypeScript, the Anthropic Claude API for analysis, and MCP (Model Context Protocol) servers for development tooling. One of the earlier projects where MCP was used as a first-class architectural primitive rather than an afterthought.
 
-Key decisions: chose streaming responses for real-time feedback, implemented diff-view so users see exactly what changed, and built a scoring heuristic that estimates ATS compatibility.
+The pipeline separates two distinct concerns: analysis (what does this job require?) and generation (how do I present what I already have?). This mirrors a compiler's separation of parsing from code generation — same input, different output shapes depending on the target.
+
+Structured output pipelines ensure suggestions are always parseable and renderable. The result is a tool that treats career documents the way a compiler treats source code: as text with structure, meaning, and a target representation.

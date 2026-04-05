@@ -17,42 +17,42 @@ export interface TimelineEntry {
 const TIMELINE_ENTRIES: TimelineEntry[] = [
   {
     index: 0,
-    title: "MS Computer Science",
-    organization: "University of Illinois at Chicago",
-    date: "2019 – 2021",
+    title: "Associate → Senior Associate",
+    organization: "Publicis Sapient",
+    date: "Dec 2017 – Jul 2021",
     summary:
-      "Graduate studies in CS. Compilers, distributed systems, and the Scala DSL that started everything.",
-    body: "Graduate CS with compilers focus and Scala DSL coursework.",
+      "Four years across e-commerce and financial clients. GraphQL migrations, AWS Lambda, NLP search, WCAG compliance, and frontend architecture at scale.",
+    body: "E-commerce and financial web platforms. REST-to-GraphQL migration, AWS Lambda, NLP search, WCAG compliance.",
     isCurrent: false,
   },
   {
     index: 1,
-    title: "Software Engineer",
-    organization: "Discover Financial Services",
-    date: "2021 – 2023",
+    title: "MS Computer Science",
+    organization: "University of Illinois at Chicago",
+    date: "Aug 2021 – May 2023",
     summary:
-      "Enterprise-scale engineering. Microservices, APIs, and learning what 'production' really means.",
-    body: "Microservices and API platforms handling financial data at scale.",
+      "4.0 GPA. Reinforcement learning, distributed systems, cloud computing, and the Scala DSL that became the ancestor of Clause.",
+    body: "MS CS at UIC. 4.0 GPA. RL for financial trading, distributed log processing, Scala DSL from scratch.",
     isCurrent: false,
   },
   {
     index: 2,
-    title: "Software Engineer",
-    organization: "Capital One",
-    date: "2023 – Present",
+    title: "Software Engineer Intern",
+    organization: "Airblox",
+    date: "May 2022 – Aug 2022",
     summary:
-      "Building at the intersection of finance and technology. Cloud-native architecture and modern engineering practices.",
-    body: "Cloud-native applications and platform engineering at scale.",
-    isCurrent: true,
+      "Full-stack task management app, ETL pipeline on existing cloud infrastructure, and internationalization across 5 languages.",
+    body: "React + Node.js + PostgreSQL task management app. ETL flow. i18n across 5 languages.",
+    isCurrent: false,
   },
   {
     index: 3,
-    title: "Side Projects & Open Source",
-    organization: "Independent",
-    date: "2021 – Present",
+    title: "Senior Associate Application Engineer",
+    organization: "Capital One (formerly Discover)",
+    date: "Jul 2023 – Present",
     summary:
-      "RESUMIND, Clause, AI Commit Generator, and this portfolio. Where curiosity becomes code.",
-    body: "Side projects where curiosity becomes code: compilers, AI tools, and this portfolio.",
+      "Owns a production ecosystem of 15+ Spring Boot microservices and 2 Angular UIs. Merger integration affecting 5M+ customers. Datadog observability, Kubernetes tuning, Okta 2FA.",
+    body: "15+ microservices, Angular UIs, Kafka, Kubernetes, Datadog. Discover–Capital One merger integration at scale.",
     isCurrent: true,
   },
 ];
@@ -73,7 +73,7 @@ function timelineToNode(entry: TimelineEntry): ASTNode {
       date: entry.date,
       tags: entry.isCurrent ? ["current"] : [],
     },
-  };
+  } satisfies ASTNode;
 }
 
 // The array expression containing all timeline entries
@@ -84,8 +84,8 @@ export const TIMELINE_ARRAY_NODE = {
   slug: "timeline-entries",
   glowColor: "--ctp-teal",
   content: {
-    summary: "UIC → Discover → Capital One → and the projects in between.",
-    body: "A chronological traversal through education, industry, and independent exploration. Each entry is an element in an ever-growing array.",
+    summary: "Publicis Sapient → UIC → Airblox → Capital One.",
+    body: "A chronological traversal through industry, graduate school, and back to production. Each entry is an element in an ever-growing array.",
   },
   children: TIMELINE_ENTRIES.map(timelineToNode),
   meta: {

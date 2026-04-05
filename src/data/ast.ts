@@ -30,19 +30,19 @@ import {
 //   ├── BlockStatement: Projects (what I build)
 //   │   ├── FunctionDeclaration: RESUMIND
 //   │   ├── FunctionDeclaration: Clause
-//   │   ├── FunctionDeclaration: AI Commit Generator
-//   │   └── FunctionDeclaration: CRM Tool
+//   │   ├── FunctionDeclaration: dev-session
+//   │   └── FunctionDeclaration: AI-Powered CRM
 //   ├── BlockStatement: Skills (what I know)
 //   │   ├── ObjectExpression: Languages
 //   │   ├── ObjectExpression: Frameworks
 //   │   ├── ObjectExpression: Systems
-//   │   └── ObjectExpression: Tools
+//   │   └── ObjectExpression: Cloud & DevOps
 //   ├── VariableDeclaration: Timeline (where I've been)
 //   │   └── ArrayExpression: Journey
+//   │       ├── StringLiteral: Publicis Sapient
 //   │       ├── StringLiteral: UIC
-//   │       ├── StringLiteral: Discover
-//   │       ├── StringLiteral: Capital One
-//   │       └── StringLiteral: Side Projects
+//   │       ├── StringLiteral: Airblox
+//   │       └── StringLiteral: Capital One
 //   ├── ExpressionStatement: Philosophy (what I think)
 //   │   ├── CallExpression: Code as Consciousness
 //   │   ├── CallExpression: Why I Build Languages
@@ -56,7 +56,7 @@ export const PORTFOLIO_AST = {
   slug: "root",
   glowColor: "--ctp-text",
   content: {
-    summary: "Software engineer. Systems thinker. Builder of languages.",
+    summary: "Senior Software Engineer. Compiler nerd. Vedanta reader. Chicago.",
     body: "The root node. Everything begins here.",
   },
   children: [
@@ -69,14 +69,14 @@ export const PORTFOLIO_AST = {
       glowColor: "--ctp-yellow",
       content: {
         summary: "import { Rajat } from 'chicago'",
-        body: "Software engineer based in Chicago. Builder of compilers, AI tools, and this portfolio.",
+        body: "Senior Software Engineer based in Chicago. Six years in production engineering across financial services and e-commerce. Builder of compilers, AI tools, and this portfolio.",
       },
       children: [RESUME_NODE],
       meta: {
         tags: ["identity", "about"],
         links: [
-          { label: "GitHub", url: "https://github.com/rajatkumar" },
-          { label: "LinkedIn", url: "https://linkedin.com/in/rajatkumar" },
+          { label: "GitHub", url: "https://github.com/RJonMshka" },
+          { label: "LinkedIn", url: "https://linkedin.com/in/rajatkjon" },
         ],
       },
     },
@@ -89,8 +89,8 @@ export const PORTFOLIO_AST = {
       slug: "projects",
       glowColor: "--ctp-peach",
       content: {
-        summary: "Four functions, each solving a different problem.",
-        body: "FunctionDeclarations — callable units of work with defined inputs and outputs.",
+        summary: "Four functions. Each solving a different problem.",
+        body: "FunctionDeclarations — callable units of work with defined inputs and outputs. RESUMIND, Clause, dev-session, AI-Powered CRM.",
       },
       children: [RESUMIND_NODE, CLAUSE_NODE, AI_COMMIT_NODE, CRM_NODE],
       meta: {
@@ -107,7 +107,7 @@ export const PORTFOLIO_AST = {
       glowColor: "--ctp-mauve",
       content: {
         summary: "The object expression: what I know and how well I know it.",
-        body: "Skills as key-value pairs. Proficiency is honest.",
+        body: "Skills as key-value pairs. Proficiency is honest. Languages, frameworks, systems, cloud and DevOps.",
       },
       children: [LANGUAGES_NODE, FRAMEWORKS_NODE, SYSTEMS_NODE, TOOLS_NODE],
       meta: {
@@ -128,7 +128,7 @@ export const PORTFOLIO_AST = {
       content: {
         summary:
           "Three essays on consciousness, compilers, and the nature of understanding.",
-        body: "Genuine inquiries into code, consciousness, and meaning.",
+        body: "Genuine inquiries into code, consciousness, and meaning — informed by Advaita Vedanta and daily engineering practice.",
       },
       children: [
         CODE_AS_CONSCIOUSNESS_NODE,
@@ -164,7 +164,7 @@ export const PORTFOLIO_AST = {
           },
           meta: {
             links: [
-              { label: "GitHub", url: "https://github.com/rajatkumar" },
+              { label: "GitHub", url: "https://github.com/RJonMshka" },
             ],
           },
         },
@@ -182,7 +182,7 @@ export const PORTFOLIO_AST = {
             links: [
               {
                 label: "LinkedIn",
-                url: "https://linkedin.com/in/rajatkumar",
+                url: "https://linkedin.com/in/rajatkjon",
               },
             ],
           },
@@ -199,7 +199,7 @@ export const PORTFOLIO_AST = {
           },
           meta: {
             links: [
-              { label: "Email", url: "mailto:rajat@example.com" },
+              { label: "Email", url: "mailto:rajat1996kumar@gmail.com" },
             ],
           },
         },

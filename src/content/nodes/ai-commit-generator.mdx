@@ -1,9 +1,11 @@
 ---
-summary: "CLI tool that reads your staged git diff and generates meaningful commit messages using AI."
+summary: "Self-managing context architecture for AI-assisted coding. Gives an AI coding agent the right context at the right time — without flooding the context window."
 ---
 
-A developer tool that solves the "what do I write for this commit?" problem. It reads the staged diff, analyzes the semantic intent of the changes, and produces a conventional commit message.
+dev-session is a TypeScript npm package that solves a real problem in AI-assisted development: how do you give a coding agent the right context without overwhelming it?
 
-Supports multiple AI providers, respects .gitignore patterns for context, and can be configured with custom commit conventions. Integrates as a git hook or standalone CLI.
+The current approach — dumping entire codebases into a context window — is a blunt instrument. dev-session introduces selective file-layer loading via JSDoc-style annotations. Layers are declared, not dumped. The package manages its own context lifecycle.
 
-The interesting engineering challenge: diffs are noisy. The tool uses a preprocessing step to filter out formatting changes, lock file updates, and auto-generated code before sending to the model. This dramatically improves output quality.
+v2 introduces a more structured layer model: files annotate which context layer they belong to, and the agent loads only the layers relevant to the current task. This is context engineering applied as architecture rather than as prompt hacking.
+
+The project is a direct product of thinking seriously about how agentic coding tools work mechanically — the ReAct loop, subagent spawning, token budgets, and the semantics of a well-designed AGENTS.md file. Understanding the internals changes how you use the tool.

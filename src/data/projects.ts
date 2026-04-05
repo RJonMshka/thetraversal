@@ -12,15 +12,15 @@ export const RESUMIND_NODE = {
   glowColor: "--ctp-peach",
   content: {
     summary:
-      "AI-powered resume tailoring tool that analyzes job descriptions and optimizes resumes for relevance.",
-    body: "AI resume tailoring with NLP analysis and intelligent restructuring.",
+      "AI-powered resume optimizer. Takes a resume and a target job description; produces structured, actionable suggestions via LLM output pipelines and MCP servers.",
+    body: "Next.js + TypeScript + Claude API + MCP. Structured output pipelines for resume analysis.",
     deep: null,
   },
   meta: {
-    tags: ["ai", "nlp", "career-tools", "full-stack"],
-    params: ["Next.js", "Python", "Claude API", "NLP"],
+    tags: ["ai", "llm", "mcp", "career-tools", "full-stack"],
+    params: ["Next.js", "TypeScript", "Claude API", "MCP"],
     links: [
-      { label: "GitHub", url: "https://github.com/rajatkumar" },
+      { label: "GitHub", url: "https://github.com/RJonMshka" },
     ],
   },
 } satisfies ASTNode;
@@ -33,15 +33,15 @@ export const CLAUSE_NODE = {
   glowColor: "--ctp-peach",
   content: {
     summary:
-      "A custom programming language with a tree-walking interpreter, built to understand compilation from first principles.",
-    body: "Custom language with lexer, parser, AST, and tree-walking evaluator.",
+      "An English-like programming language that compiles to JavaScript. Built from scratch: lexer, parser, IR, runtime libraries, code generation.",
+    body: "Go → JavaScript compiler. Lexer, parser, IR, runtime, code generation — all from scratch.",
     deep: null,
   },
   meta: {
-    tags: ["compilers", "interpreters", "languages", "typescript"],
-    params: ["TypeScript", "Lexer", "Parser", "AST"],
+    tags: ["compilers", "languages", "go", "javascript"],
+    params: ["Go", "JavaScript", "Lexer", "Parser", "AST", "Code Generation"],
     links: [
-      { label: "GitHub", url: "https://github.com/rajatkumar" },
+      { label: "GitHub", url: "https://github.com/RJonMshka" },
     ],
   },
 } satisfies ASTNode;
@@ -49,20 +49,20 @@ export const CLAUSE_NODE = {
 export const AI_COMMIT_NODE = {
   id: "ai-commit-generator",
   type: "FunctionDeclaration",
-  label: "AI Commit Generator",
+  label: "dev-session",
   slug: "ai-commit-generator",
   glowColor: "--ctp-peach",
   content: {
     summary:
-      "CLI tool that reads your staged git diff and generates meaningful commit messages using AI.",
-    body: "Git diff analysis with AI-powered commit message generation.",
+      "Self-managing context architecture for AI-assisted coding. Solves how to give an AI coding agent the right context at the right time without flooding the context window.",
+    body: "TypeScript npm package. Selective file-layer loading via JSDoc-style annotations for AI context management.",
     deep: null,
   },
   meta: {
-    tags: ["developer-tools", "cli", "ai", "git"],
-    params: ["Node.js", "Git", "Claude API", "CLI"],
+    tags: ["developer-tools", "ai", "context-engineering", "typescript"],
+    params: ["TypeScript", "npm", "AI Agents", "Context Engineering"],
     links: [
-      { label: "GitHub", url: "https://github.com/rajatkumar" },
+      { label: "GitHub", url: "https://github.com/RJonMshka" },
     ],
   },
 } satisfies ASTNode;
@@ -70,20 +70,20 @@ export const AI_COMMIT_NODE = {
 export const CRM_NODE = {
   id: "crm-tool",
   type: "FunctionDeclaration",
-  label: "CRM Tool",
+  label: "AI-Powered CRM",
   slug: "crm-tool",
   glowColor: "--ctp-peach",
   content: {
     summary:
-      "Lightweight CRM application for managing client relationships with a clean, minimal interface.",
-    body: "Full-stack CRM with contact management, pipeline visualization, and reporting.",
+      "Full-stack CRM with AI-powered task generation using LLMs and MCP. Automated workflow creation and seamless sync between AI-driven and manual operations.",
+    body: "Next.js + GraphQL + PostgreSQL + Claude API + MCP. AI-native CRM with automated workflow generation.",
     deep: null,
   },
   meta: {
-    tags: ["full-stack", "react", "node", "database"],
-    params: ["React", "Node.js", "PostgreSQL", "REST"],
+    tags: ["full-stack", "ai", "mcp", "graphql", "crm"],
+    params: ["Next.js", "TypeScript", "GraphQL", "PostgreSQL", "Bun", "Claude API", "MCP"],
     links: [
-      { label: "GitHub", url: "https://github.com/rajatkumar" },
+      { label: "GitHub", url: "https://github.com/RJonMshka" },
     ],
   },
 } satisfies ASTNode;
