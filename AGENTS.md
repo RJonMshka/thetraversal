@@ -8,6 +8,8 @@ AST-based developer portfolio. Visitors traverse an Abstract Syntax Tree to disc
 
 - **NEVER** use `npm` or `yarn`. Only `pnpm`.
 - **NEVER** read or edit `src/content/*.mdx` files — those are essay content, not code.
+- **NEVER** read or edit `docs/CONTENT.md` file - this file is not needed now.
+- **NEVER** read or edit `public/resume/*` files - these are there to download only.
 - **NEVER** hardcode hex colors. Use `--ctp-*` CSS variables only.
 - **NEVER** use `any` or `@ts-ignore` without a comment explaining why.
 - **NEVER** add default exports to components (exception: Next.js pages/layouts).
