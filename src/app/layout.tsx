@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { jetbrainsMono, sourceSerif4 } from "@/lib/fonts";
 import { FocusManager } from "@/components/chrome/FocusManager";
 import { EasterEggOverlays } from "@/components/chrome/EasterEggOverlays";
@@ -117,6 +118,7 @@ export default function RootLayout({
         <FocusManager />
         <EasterEggOverlays />
         {children}
+        <Analytics />
       </body>
     </html>
   );

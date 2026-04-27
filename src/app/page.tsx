@@ -60,7 +60,7 @@ function TreeSneakPeek() {
           }}
         >
           <span style={{ width: 5, height: 5, borderRadius: 999, background: ACCENT, display: "inline-block" }} />
-          <span style={{ color: ACCENT }}>24 nodes</span>
+          <span style={{ color: ACCENT }}>57 nodes</span>
           <span>· depth 4</span>
         </span>
       </div>
@@ -260,7 +260,7 @@ export default function LandingPage() {
                 maxWidth: 520,
               }}
             >
-              Senior software engineer. Compilers, distributed systems,
+              Senior software engineer. AI, compilers, distributed systems,
               <br />
               and the parts of the frontend most engineers won&apos;t touch.
             </p>
