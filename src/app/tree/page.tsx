@@ -5,7 +5,10 @@ import { useCallback, useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { ASTCanvasLazy } from "@/components/ast/ASTCanvasLazy";
 import { ASTMobileTree } from "@/components/ast/ASTMobileTree";
+import { ASTLexView } from "@/components/ast/ASTLexView";
+import { ASTEvalView } from "@/components/ast/ASTEvalView";
 import { TraversalModeSelector } from "@/components/ast/TraversalModeSelector";
+import { NodeInspector } from "@/components/ast/NodeInspector";
 import { TokenStream } from "@/components/chrome/TokenStream";
 import { ContextWindow } from "@/components/chrome/ContextWindow";
 import { useTraversalState } from "@/hooks/useTraversalState";
@@ -39,8 +42,6 @@ function TreePageInner() {
 
   // After hydration, if no URL mode was specified and the store has a
   // different mode from the fallback, sync the URL to the store's mode.
-  // This prevents the flash where the selector briefly shows "parse"
-  // before switching to the hydrated "eval" (or vice versa).
   const hasSyncedMode = useRef(false);
   useEffect(() => {
     if (!hasHydrated || hasSyncedMode.current) return;
@@ -54,29 +55,37 @@ function TreePageInner() {
     (mode: TraversalMode) => {
       setStoreMode(mode);
       router.replace(`/tree?mode=${mode}`, { scroll: false });
+      // Close panels when leaving parse mode — they only apply to the tree canvas
+      if (mode !== "parse") {
+        setSelectedNodeSlug(null);
+        setContextOpen(false);
+      }
     },
     [setStoreMode, router]
   );
 
   // ── Context window panel state ─────────────────────────────────────
   const [contextOpen, setContextOpen] = useState(false);
-  const toggleContext = useCallback(() => setContextOpen((o) => !o), []);
+  const toggleContext = useCallback(() => {
+    setContextOpen((o) => !o);
+    setSelectedNodeSlug(null);
+  }, []);
   const closeContext = useCallback(() => setContextOpen(false), []);
 
+  // ── Node inspector state ───────────────────────────────────────────
+  const [selectedNodeSlug, setSelectedNodeSlug] = useState<string | null>(null);
+  const handleNodeSelect = useCallback((slug: string | null) => {
+    setSelectedNodeSlug(slug);
+    if (slug) setContextOpen(false);
+  }, []);
+
   // ── Active slug ────────────────────────────────────────────────────
-  // The most recently visited node is highlighted in the token stream.
-  // Guard with hasHydrated to avoid SSR/client mismatch — contextWindow
-  // is empty on the server but may contain entries after rehydration.
   const activeSlug =
     hasHydrated && contextWindow.length > 0
       ? contextWindow[contextWindow.length - 1].slug
       : null;
 
   // ── Share URL: restore visited nodes from query param ─────────────
-  // If the URL has ?traversal=slug1,slug2,..., replay the visits.
-  // This runs once after hydration — it's how "share traversal" works.
-  // A ref guards against re-running if searchParams change after we strip
-  // the traversal param from the URL.
   const hasRestoredTraversal = useRef(false);
 
   useEffect(() => {
@@ -86,13 +95,11 @@ function TreePageInner() {
 
     hasRestoredTraversal.current = true;
 
-    // Strip the traversal param from the URL so it doesn't persist
     const params = new URLSearchParams(searchParams.toString());
     params.delete("traversal");
     const newUrl = params.toString() ? `/tree?${params.toString()}` : "/tree";
     router.replace(newUrl, { scroll: false });
 
-    // Replay visits — resolve real labels, types, and colors from the AST
     const slugs = traversalParam.split(",").filter(Boolean);
     for (const slug of slugs) {
       const result = findNodeBySlug(slug);
@@ -103,21 +110,37 @@ function TreePageInner() {
     }
   }, [hasHydrated, searchParams, router, visitNode]);
 
+  const modeSubtitle: Record<string, string> = {
+    lex:   "words · the portfolio as a stream of tokens",
+    parse: "structure · click any branch to dive in",
+    eval:  "story · the rendered output a reader sees",
+  };
+
+  const isParseMode = currentMode === "parse";
+  const isLexMode   = currentMode === "lex";
+
   return (
-    <main id="main-content" className="flex flex-col h-screen overflow-hidden bg-ctp-base">
+    <main
+      id="main-content"
+      className="flex flex-col h-screen overflow-hidden"
+      style={{ background: "var(--ink)" }}
+    >
       {/* ── Top bar ─────────────────────────────────────────────────── */}
-      <header className="border-b border-ctp-surface0 bg-ctp-mantle/50 backdrop-blur-sm z-10 shrink-0">
-        {/* Row 1: Navigation + context toggle */}
-        <div className="flex items-center justify-between px-4 py-2.5 lg:py-3">
+      <header
+        className="z-10 shrink-0"
+        style={{ borderBottom: "1px solid var(--line)", background: "rgba(11,13,16,0.85)", backdropFilter: "blur(8px)" }}
+      >
+        {/* Row 1: Navigation + mode selector + ctx toggle */}
+        <div className="flex items-center justify-between px-5 py-3">
           <Link
             href="/"
-            className="text-ctp-overlay1 hover:text-ctp-text text-sm font-mono transition-colors"
+            style={{ fontSize: 12, color: "var(--text-faint)", fontFamily: "var(--mono)", transition: "color 150ms" }}
+            className="hover:text-[var(--tv-text)]"
           >
-            {"<-"} root
+            ← root
           </Link>
 
-          {/* Desktop: full mode selector inline — invisible until
-              hydration to prevent flash if stored mode differs from default */}
+          {/* Desktop: full mode selector inline */}
           <div className={cn("hidden lg:block transition-opacity duration-150", hasHydrated ? "opacity-100" : "opacity-0")}>
             <TraversalModeSelector
               currentMode={currentMode}
@@ -125,77 +148,122 @@ function TreePageInner() {
             />
           </div>
 
-          {/* Context window toggle */}
+          {/* Context window toggle — only meaningful in parse mode */}
           <button
             onClick={toggleContext}
-            className={cn(
-              "text-xs font-mono px-3 py-1.5 rounded border transition-colors",
-              contextOpen
-                ? "border-ctp-lavender text-ctp-lavender bg-ctp-lavender/10"
-                : "border-ctp-surface1 text-ctp-overlay1 hover:border-ctp-lavender hover:text-ctp-lavender"
-            )}
+            className="tv-chip"
+            data-on={contextOpen ? "true" : undefined}
+            style={{ cursor: "pointer" }}
             aria-pressed={contextOpen}
             aria-label={contextOpen ? "Close context window" : "Open context window"}
           >
             ctx
             {contextWindow.length > 0 && (
-              <span className="ml-1.5 text-ctp-lavender">
+              <span style={{ color: "var(--accent)" }}>
                 [{contextWindow.length}]
               </span>
             )}
           </button>
         </div>
 
-        {/* Row 2 (mobile only): Compact mode selector, centered */}
+        {/* Row 2 (mobile only): Compact mode selector */}
         <div className={cn("flex items-center justify-center px-4 pb-2.5 lg:hidden transition-opacity duration-150", hasHydrated ? "opacity-100" : "opacity-0")}>
-          <div className="flex items-center gap-1 bg-ctp-surface0/40 rounded-lg px-1 py-0.5">
-            <span className="text-ctp-green text-xs font-mono select-none mr-0.5">$</span>
-            <TraversalModeSelector
-              currentMode={currentMode}
-              onModeChange={handleModeChange}
-              compact
-            />
+          <TraversalModeSelector
+            currentMode={currentMode}
+            onModeChange={handleModeChange}
+            compact
+          />
+        </div>
+
+        {/* Subtitle band — plain-language mode description */}
+        <div
+          className="hidden lg:flex items-center justify-center"
+          style={{ height: 34, borderTop: "1px solid var(--line)", background: "rgba(11,13,16,0.4)" }}
+        >
+          <div style={{ fontSize: 11, color: "var(--text-faint)", letterSpacing: "0.04em", fontFamily: "var(--mono)" }}>
+            <span style={{ color: "var(--accent)", marginRight: 6 }}>›</span>
+            {modeSubtitle[currentMode]}
           </div>
         </div>
       </header>
 
       {/* ── Main area ───────────────────────────────────────────────── */}
-      {/* Both desktop and mobile trees are always in the DOM.
-          CSS (hidden/block via Tailwind breakpoints) controls which is
-          visible. This eliminates the flash where useMediaQuery starts
-          as false → mobile tree renders for one frame on desktop. */}
       <div className="flex-1 relative overflow-hidden">
-        {/* ── Desktop: AST Canvas ─────────────────────────────────── */}
-        <div
-          className={cn(
-            "hidden lg:block absolute inset-0 transition-all duration-300",
-            contextOpen && "lg:right-72"
-          )}
-          style={{ bottom: "40px" }}
-        >
-          <ASTCanvasLazy mode={currentMode} />
-        </div>
 
-        {/* ── Desktop: Context Window sidebar ─────────────────────── */}
+        {/* Line grid — always behind canvas in parse mode, subtle in others */}
         <div
-          className={cn(
-            "hidden lg:block absolute right-0 top-0 bottom-10 z-30",
-            contextOpen ? "pointer-events-auto" : "pointer-events-none"
-          )}
-        >
-          <ContextWindow
-            isOpen={contextOpen}
-            onClose={closeContext}
-            variant="sidebar"
-          />
-        </div>
+          className="tv-linegrid absolute inset-0 pointer-events-none"
+          style={{ opacity: isParseMode ? 0.5 : 0.25 }}
+        />
 
-        {/* ── Mobile: AST Mobile Tree ─────────────────────────────── */}
+        {/* ── Desktop: Parse mode — D3 tree canvas + sidebars ──────── */}
+        {isParseMode && (
+          <>
+            <div
+              className={cn(
+                "hidden lg:block absolute inset-0 transition-all duration-300",
+                (contextOpen || !!selectedNodeSlug) && "lg:right-72"
+              )}
+              style={{ bottom: "40px" }}
+            >
+              <ASTCanvasLazy mode={currentMode} onNodeSelect={handleNodeSelect} />
+            </div>
+
+            <div
+              className={cn(
+                "hidden lg:block absolute right-0 top-0 bottom-10 z-30",
+                contextOpen ? "pointer-events-auto" : "pointer-events-none"
+              )}
+            >
+              <ContextWindow
+                isOpen={contextOpen}
+                onClose={closeContext}
+                variant="sidebar"
+              />
+            </div>
+
+            <div
+              className={cn(
+                "hidden lg:block absolute right-0 top-0 bottom-10 z-25",
+                selectedNodeSlug ? "pointer-events-auto" : "pointer-events-none"
+              )}
+            >
+              <NodeInspector
+                slug={selectedNodeSlug}
+                onClose={() => setSelectedNodeSlug(null)}
+              />
+            </div>
+          </>
+        )}
+
+        {/* ── Desktop: Lex mode — token ribbon ────────────────────── */}
+        {isLexMode && (
+          <div
+            className="hidden lg:block absolute inset-0 overflow-y-auto"
+            style={{ bottom: "40px" }}
+          >
+            <ASTLexView />
+          </div>
+        )}
+
+        {/* ── Desktop: Eval mode — card grid ──────────────────────── */}
+        {!isParseMode && !isLexMode && (
+          <div
+            className="hidden lg:block absolute inset-0 overflow-y-auto"
+            style={{ bottom: "40px" }}
+          >
+            <ASTEvalView />
+          </div>
+        )}
+
+        {/* ── Mobile: mode-routed views ────────────────────────────── */}
         <div
           className="lg:hidden absolute inset-0 overflow-y-auto"
           style={{ bottom: "48px" }}
         >
-          <ASTMobileTree ast={getAST()} mode={currentMode} />
+          {isParseMode && <ASTMobileTree ast={getAST()} mode={currentMode} />}
+          {isLexMode   && <ASTLexView />}
+          {!isParseMode && !isLexMode && <ASTEvalView />}
         </div>
 
         {/* ── Mobile: Context Window overlay ──────────────────────── */}
@@ -225,8 +293,11 @@ export default function TreePage() {
   return (
     <Suspense
       fallback={
-        <main className="flex items-center justify-center h-screen bg-ctp-base">
-          <div className="text-ctp-overlay1 font-mono text-sm animate-pulse">
+        <main
+          className="flex items-center justify-center h-screen"
+          style={{ background: "var(--ink)" }}
+        >
+          <div className="font-mono text-sm animate-pulse" style={{ color: "var(--text-faint)" }}>
             loading AST...
           </div>
         </main>

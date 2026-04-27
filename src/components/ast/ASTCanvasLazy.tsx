@@ -50,8 +50,9 @@ const ASTCanvasDynamic = dynamic(
 
 interface ASTCanvasLazyProps {
   mode: TraversalMode;
+  onNodeSelect?: (slug: string | null) => void;
 }
 
-export function ASTCanvasLazy({ mode }: ASTCanvasLazyProps) {
-  return <ASTCanvasDynamic mode={mode} />;
+export function ASTCanvasLazy({ mode, onNodeSelect }: ASTCanvasLazyProps) {
+  return <ASTCanvasDynamic mode={mode} onNodeSelect={onNodeSelect} />;
 }

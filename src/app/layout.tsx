@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { jetbrainsMono, ebGaramond } from "@/lib/fonts";
+import { jetbrainsMono, sourceSerif4 } from "@/lib/fonts";
 import { FocusManager } from "@/components/chrome/FocusManager";
 import { EasterEggOverlays } from "@/components/chrome/EasterEggOverlays";
+import { ThemeInitializer } from "@/components/landing/ThemeInitializer";
 import "@/styles/globals.css";
 
 const BASE_URL = "https://thetraversal.dev";
@@ -92,7 +93,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${jetbrainsMono.variable} ${ebGaramond.variable}`}
+      className={`${jetbrainsMono.variable} ${sourceSerif4.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -112,6 +113,7 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
+        <ThemeInitializer />
         <FocusManager />
         <EasterEggOverlays />
         {children}

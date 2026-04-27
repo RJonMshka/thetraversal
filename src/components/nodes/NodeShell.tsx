@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { getGlowClasses } from "@/lib/glow";
 import { useTraversalState } from "@/hooks/useTraversalState";
 import type { ASTNode, ASTPath } from "@/lib/ast-types";
 
@@ -16,39 +15,58 @@ interface NodeShellProps {
 export function NodeShell({ node, path, children }: NodeShellProps) {
   const visitNode = useTraversalState((s) => s.visitNode);
 
-  // Mark node as visited on mount
   useEffect(() => {
     visitNode(node.slug, node.label, node.type, node.glowColor);
   }, [node.slug, node.label, node.type, node.glowColor, visitNode]);
 
-  const glow = getGlowClasses(node.glowColor);
-
   return (
-    <main id="main-content" className="min-h-screen bg-ctp-base">
-      {/* Top navigation bar */}
-      <header className="sticky top-0 z-10 px-4 py-3 border-b border-ctp-surface0 bg-ctp-mantle/80 backdrop-blur-sm">
+    <main
+      id="main-content"
+      className="min-h-screen"
+      style={{ background: "var(--ink)", color: "var(--tv-text)", fontFamily: "var(--mono)" }}
+    >
+      {/* ── Top navigation bar ──────────────────────────────────────── */}
+      <header
+        className="sticky top-0 z-10"
+        style={{
+          padding: "12px 20px",
+          borderBottom: "1px solid var(--line)",
+          background: "rgba(11,13,16,0.85)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        {/* Back link */}
         <Link
           href="/tree"
-          className="text-ctp-overlay1 hover:text-ctp-text text-sm font-mono transition-colors shrink-0"
+          style={{ fontSize: 12, color: "var(--text-faint)", transition: "color 150ms" }}
+          className="hover:text-[var(--tv-text)]"
         >
-          {"<-"} tree
+          ← tree
         </Link>
 
-        {/* Breadcrumb trail */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1 pt-3 text-xs font-mono overflow-x-auto">
+        {/* AST path breadcrumb — reads like Program → identity → skills */}
+        <nav
+          aria-label="Breadcrumb"
+          className="flex items-center gap-1 overflow-x-auto scrollbar-hidden"
+          style={{ marginTop: 10, fontSize: 11, color: "var(--text-mute)" }}
+        >
+          <span style={{ color: "var(--text-faint)" }}>Program</span>
           {path.map((segment, i) => (
             <span key={segment.id} className="flex items-center gap-1 shrink-0">
-              {i > 0 && <span className="text-ctp-overlay0">{">"}</span>}
+              <span style={{ color: "var(--text-faint)", marginLeft: 4 }}>→</span>
               {i < path.length - 1 ? (
                 <Link
                   href={`/node/${segment.slug}`}
-                  className="text-ctp-overlay1 hover:text-ctp-text transition-colors"
+                  style={{ color: "var(--text-mute)", transition: "color 150ms", marginLeft: 4 }}
+                  className="hover:text-[var(--tv-text)]"
                 >
-                  {segment.label}
+                  {segment.label.toLowerCase()}
                 </Link>
               ) : (
-                <span className={cn("font-medium", glow.text)}>
-                  {segment.label}
+                <span
+                  style={{ color: "var(--accent)", fontWeight: 500, marginLeft: 4 }}
+                >
+                  {segment.label.toLowerCase()}
                 </span>
               )}
             </span>
@@ -56,57 +74,73 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
         </nav>
       </header>
 
-      {/* Node type badge */}
-      <div className="px-4 pt-6 pb-2 max-w-4xl mx-auto">
-        <span className="text-xs font-mono text-ctp-overlay2">
-          {node.type}
-        </span>
+      {/* ── Node type tag ───────────────────────────────────────────── */}
+      <div style={{ padding: "28px 24px 8px", maxWidth: "64rem", margin: "0 auto" }}>
+        <div className="flex items-center gap-3">
+          <span className="tv-tag">{node.type}</span>
+          <span
+            style={{
+              width: 1,
+              height: 10,
+              background: "var(--line-2)",
+              display: "inline-block",
+            }}
+          />
+          <span style={{ fontSize: 10, color: "var(--text-faint)", letterSpacing: "0.08em" }}>
+            {node.slug}
+          </span>
+        </div>
       </div>
 
-      {/* Content area */}
-      <div className="max-w-4xl mx-auto px-4 pb-16">
+      {/* ── Content area ────────────────────────────────────────────── */}
+      <div style={{ maxWidth: "64rem", margin: "0 auto", padding: "0 24px 80px" }}>
         {children}
       </div>
 
-      {/* Children navigation (if node has children) */}
+      {/* ── Children navigation ─────────────────────────────────────── */}
       {node.children && node.children.length > 0 && (
-        <div className="max-w-4xl mx-auto px-4 pb-16">
-          <div className="border-t border-ctp-surface0 pt-8">
-            <h2 className="text-sm font-mono text-ctp-overlay2 mb-4">
+        <div style={{ maxWidth: "64rem", margin: "0 auto", padding: "0 24px 80px" }}>
+          <div style={{ borderTop: "1px solid var(--line)", paddingTop: 32 }}>
+            <div className="tv-tag" style={{ marginBottom: 16 }}>
               // children ({node.children.length})
-            </h2>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {node.children.map((child) => {
-                const childGlow = getGlowClasses(child.glowColor);
-                return (
-                  <Link
-                    key={child.id}
-                    href={`/node/${child.slug}`}
-                    className={cn(
-                      "group block p-4 rounded-lg border transition-all duration-200",
-                      "bg-ctp-surface0/30 hover:bg-ctp-surface0/60",
-                      childGlow.border,
-                      "hover:shadow-lg",
-                      childGlow.shadow,
-                    )}
+              {node.children.map((child) => (
+                <Link
+                  key={child.id}
+                  href={`/node/${child.slug}`}
+                  className="group block transition-all duration-200"
+                  style={{
+                    padding: "16px",
+                    borderRadius: 8,
+                    border: "1px solid var(--line-2)",
+                    background: "var(--ink-2)",
+                  }}
+                >
+                  <span className="tv-tag block" style={{ marginBottom: 6 }}>
+                    {child.type}
+                  </span>
+                  <span
+                    style={{ fontSize: 13, color: "var(--tv-text)", display: "block", fontWeight: 500 }}
                   >
-                    <span className="text-[10px] font-mono text-ctp-overlay1 block mb-1">
-                      {child.type}
+                    {child.label}
+                  </span>
+                  {child.content?.summary && (
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: "var(--text-mute)",
+                        display: "block",
+                        marginTop: 6,
+                        lineHeight: 1.55,
+                      }}
+                      className={cn("line-clamp-2")}
+                    >
+                      {child.content.summary}
                     </span>
-                    <span className={cn(
-                      "text-sm font-mono font-medium block",
-                      childGlow.text,
-                    )}>
-                      {child.label}
-                    </span>
-                    {child.content?.summary && (
-                      <span className="text-xs text-ctp-subtext0 block mt-1 line-clamp-2">
-                        {child.content.summary}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
+                  )}
+                </Link>
+              ))}
             </div>
           </div>
         </div>

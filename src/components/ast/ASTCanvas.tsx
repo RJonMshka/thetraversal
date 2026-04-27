@@ -18,6 +18,7 @@ import type { TraversalMode, ASTNode as ASTNodeType } from "@/lib/ast-types";
 
 interface ASTCanvasProps {
   mode: TraversalMode;
+  onNodeSelect?: (slug: string | null) => void;
 }
 
 // ── Tree navigation helpers ────────────────────────────────────────────
@@ -101,7 +102,7 @@ function findFirstChildSlug(
 // at its screen position. The visitor's zoom level is sacred; we never
 // change it programmatically.
 
-export function ASTCanvas({ mode }: ASTCanvasProps) {
+export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
   const ast = getAST();
   const router = useRouter();
   const svgRef = useRef<SVGSVGElement>(null);
@@ -208,8 +209,9 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
 
       toggleExpand(slug);
       visitNode(slug, node.label, node.type, node.glowColor);
+      onNodeSelect?.(slug);
     },
-    [nodes, toggleExpand, visitNode, registerOverflowClick]
+    [nodes, toggleExpand, visitNode, registerOverflowClick, onNodeSelect]
   );
 
   // ── Handle node navigation (double-click or leaf click) ───────────────
@@ -428,6 +430,16 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
   // before sessionStorage expanded state kicks in).
   const showTree = hasHydrated;
 
+  const handleSvgClick = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      const target = e.target as Element;
+      if (!target.closest?.('[role="treeitem"]')) {
+        onNodeSelect?.(null);
+      }
+    },
+    [onNodeSelect]
+  );
+
   return (
     <svg
       ref={svgRef}
@@ -436,6 +448,7 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
       aria-label="AST Visualization"
       style={{ touchAction: "none" }}
       onKeyDown={handleKeyDown}
+      onClick={handleSvgClick}
     >
       {showTree && (
         <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}>
@@ -483,7 +496,7 @@ export function ASTCanvas({ mode }: ASTCanvasProps) {
             position: "absolute",
             bottom: "12px",
             left: "16px",
-            color: "var(--color-ctp-overlay0)",
+            color: "var(--text-faint)",
             fontSize: "10px",
             fontFamily: "var(--font-mono)",
             opacity: 0.5,

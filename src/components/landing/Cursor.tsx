@@ -4,6 +4,15 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { getEasterEgg, isNavigationCommand, type EasterEggResult } from "@/lib/easter-eggs";
+import {
+  THEMES,
+  FONTS,
+  loadPersistedTheme,
+  applyTheme,
+  parseThemeCmd,
+  type ThemeName,
+  type FontName,
+} from "@/lib/themes";
 
 interface HistoryEntry {
   input: string;
@@ -12,15 +21,19 @@ interface HistoryEntry {
 
 interface CursorProps {
   onNavigate: () => void;
+  /** Embed in a parent container — removes max-width, auto-margin, and max-height */
+  embedded?: boolean;
 }
 
-export function Cursor({ onNavigate }: CursorProps) {
+export function Cursor({ onNavigate, embedded = false }: CursorProps) {
   const router = useRouter();
   const [input, setInput] = useState("");
   const [cursorPos, setCursorPos] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isActive, setIsActive] = useState(true);
   const [showHint, setShowHint] = useState(false);
+  const [activeTheme, setActiveTheme] = useState<ThemeName>("mint");
+  const [activeFont, setActiveFont] = useState<FontName>("mono");
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -30,6 +43,33 @@ export function Cursor({ onNavigate }: CursorProps) {
     return () => clearTimeout(timer);
   }, []);
 
+  // Load persisted theme on mount
+  useEffect(() => {
+    const { theme, font } = loadPersistedTheme();
+    setActiveTheme(theme);
+    setActiveFont(font);
+  }, []);
+
+  // Live-apply theme as user types a valid theme/font command
+  useEffect(() => {
+    if (!input.trim()) return;
+    const cmd = parseThemeCmd(input);
+    if (!cmd.valid) return;
+
+    if (cmd.type === "theme" && cmd.theme && cmd.theme !== activeTheme) {
+      applyTheme(cmd.theme, activeFont);
+      setActiveTheme(cmd.theme);
+    } else if (cmd.type === "font" && cmd.font && cmd.font !== activeFont) {
+      applyTheme(activeTheme, cmd.font);
+      setActiveFont(cmd.font);
+    } else if (cmd.type === "reset") {
+      applyTheme("mint", "mono");
+      setActiveTheme("mint");
+      setActiveFont("mono");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [input]);
+
   const handleSubmit = useCallback(() => {
     if (!input.trim()) return;
 
@@ -38,6 +78,33 @@ export function Cursor({ onNavigate }: CursorProps) {
     // Check for clear command
     if (trimmed === "clear") {
       setHistory([]);
+      setInput("");
+      setCursorPos(0);
+      return;
+    }
+
+    // Check for theme/font/reset commands
+    const themeCmd = parseThemeCmd(trimmed);
+    if (themeCmd.type === "theme" || themeCmd.type === "font" || themeCmd.type === "reset") {
+      let confirmText = "";
+      if (themeCmd.type === "theme" && themeCmd.theme) {
+        applyTheme(themeCmd.theme, activeFont);
+        setActiveTheme(themeCmd.theme);
+        confirmText = `✓ theme → ${themeCmd.theme} · ${THEMES[themeCmd.theme].label}`;
+      } else if (themeCmd.type === "font" && themeCmd.font) {
+        applyTheme(activeTheme, themeCmd.font);
+        setActiveFont(themeCmd.font);
+        confirmText = `✓ font → ${themeCmd.font} · ${FONTS[themeCmd.font].label}`;
+      } else if (themeCmd.type === "reset") {
+        applyTheme("mint", "mono");
+        setActiveTheme("mint");
+        setActiveFont("mono");
+        confirmText = "✓ reset to defaults · mint + mono";
+      }
+      setHistory((prev) => [
+        ...prev,
+        { input: trimmed, output: { type: "text", content: confirmText } },
+      ]);
       setInput("");
       setCursorPos(0);
       return;
@@ -76,12 +143,11 @@ export function Cursor({ onNavigate }: CursorProps) {
       setHistory((prev) => [...prev, { input: trimmed, output: null }]);
       setInput("");
       setCursorPos(0);
-      // Small delay before triggering navigation/animation
       setTimeout(() => {
         onNavigate();
       }, 100);
     }
-  }, [input, onNavigate]);
+  }, [input, onNavigate, activeTheme, activeFont]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -113,10 +179,28 @@ export function Cursor({ onNavigate }: CursorProps) {
     inputRef.current?.focus();
   };
 
+  // Compute live hint for theme/font completion
+  const liveCmd = parseThemeCmd(input);
+  const inlineHint =
+    liveCmd.type === "theme-pending"
+      ? `→ ${Object.keys(THEMES).join(" · ")}`
+      : liveCmd.type === "font-pending"
+      ? `→ ${Object.keys(FONTS).join(" · ")}`
+      : liveCmd.type === "theme-typing" && liveCmd.suggest
+      ? `→ ${liveCmd.suggest.join(" · ")}`
+      : liveCmd.type === "font-typing" && liveCmd.suggest
+      ? `→ ${liveCmd.suggest.join(" · ")}`
+      : liveCmd.valid && (liveCmd.type === "theme" || liveCmd.type === "font" || liveCmd.type === "reset")
+      ? `· applied`
+      : null;
+
   return (
     <div
       ref={containerRef}
-      className="flex flex-col items-start w-full max-w-2xl mx-auto px-6 overflow-y-auto max-h-[80vh]"
+      className={cn(
+        "flex flex-col items-start w-full overflow-y-auto",
+        embedded ? "max-h-52" : "max-w-2xl mx-auto px-6 max-h-[80vh]"
+      )}
       onClick={focusInput}
       role="log"
       aria-label="Terminal"
@@ -211,6 +295,16 @@ export function Cursor({ onNavigate }: CursorProps) {
                 aria-hidden="true"
               />
             </div>
+
+            {/* Live completion hint */}
+            {inlineHint && (
+              <span
+                className="text-xs shrink-0"
+                style={{ color: "var(--text-faint)", fontFamily: "var(--mono)" }}
+              >
+                {inlineHint}
+              </span>
+            )}
           </div>
 
           {/* Hint for non-devs — fades in after delay */}
@@ -221,10 +315,10 @@ export function Cursor({ onNavigate }: CursorProps) {
               </p>
               <p className="text-ctp-overlay1 text-xs font-mono">
                 or try: <span className="text-ctp-subtext0">help</span>
-                {" \u00B7 "}
+                {" · "}
+                <span className="text-ctp-subtext0">theme amber</span>
+                {" · "}
                 <span className="text-ctp-subtext0">ls</span>
-                {" \u00B7 "}
-                <span className="text-ctp-subtext0">console.log(rajat)</span>
               </p>
             </div>
           )}

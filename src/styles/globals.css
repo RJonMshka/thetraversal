@@ -1,44 +1,44 @@
 @import "tailwindcss";
 
 /*
- * Catppuccin Mocha — Design Tokens
- * https://catppuccin.com/palette
+ * Traversal v2 Design System
+ * Ink-dark base · mint accent · JetBrains Mono + Source Serif 4
  */
 @theme {
-  /* Base colors */
-  --color-ctp-rosewater: #f5e0dc;
-  --color-ctp-flamingo: #f2cdcd;
-  --color-ctp-pink: #f5c2e7;
-  --color-ctp-mauve: #cba6f7;
-  --color-ctp-red: #f38ba8;
-  --color-ctp-maroon: #eba0ac;
-  --color-ctp-peach: #fab387;
-  --color-ctp-yellow: #f9e2af;
-  --color-ctp-green: #a6e3a1;
-  --color-ctp-teal: #94e2d5;
-  --color-ctp-sky: #89dceb;
-  --color-ctp-sapphire: #74c7ec;
-  --color-ctp-blue: #89b4fa;
-  --color-ctp-lavender: #b4befe;
+  /* Syntax / accent colors — remapped to new palette */
+  --color-ctp-rosewater: oklch(0.78 0.08 20);
+  --color-ctp-flamingo:  oklch(0.78 0.08 20);
+  --color-ctp-pink:      oklch(0.78 0.10 320);
+  --color-ctp-mauve:     oklch(0.78 0.10 320);   /* keyword */
+  --color-ctp-red:       oklch(0.70 0.13 25);
+  --color-ctp-maroon:    oklch(0.72 0.12 25);
+  --color-ctp-peach:     oklch(0.78 0.13 70);     /* warn / number */
+  --color-ctp-yellow:    oklch(0.82 0.10 90);     /* string */
+  --color-ctp-green:     oklch(0.82 0.13 160);    /* accent mint */
+  --color-ctp-teal:      oklch(0.78 0.10 180);    /* op */
+  --color-ctp-sky:       oklch(0.80 0.08 200);
+  --color-ctp-sapphire:  oklch(0.76 0.10 220);
+  --color-ctp-blue:      oklch(0.78 0.10 220);    /* type */
+  --color-ctp-lavender:  oklch(0.82 0.13 160);    /* accent — same as green */
 
-  /* Surface colors */
-  --color-ctp-text: #cdd6f4;
-  --color-ctp-subtext1: #bac2de;
-  --color-ctp-subtext0: #a6adc8;
-  --color-ctp-overlay2: #9399b2;
-  --color-ctp-overlay1: #7f849c;
-  --color-ctp-overlay0: #6c7086;
-  --color-ctp-surface2: #585b70;
-  --color-ctp-surface1: #45475a;
-  --color-ctp-surface0: #313244;
-  --color-ctp-base: #1e1e2e;
-  --color-ctp-mantle: #181825;
-  --color-ctp-crust: #11111b;
+  /* Surface colors — ink-dark palette */
+  --color-ctp-text:      #e6e4dd;
+  --color-ctp-subtext1:  rgba(230, 228, 221, 0.55);
+  --color-ctp-subtext0:  rgba(230, 228, 221, 0.44);
+  --color-ctp-overlay2:  rgba(230, 228, 221, 0.38);
+  --color-ctp-overlay1:  rgba(230, 228, 221, 0.32);
+  --color-ctp-overlay0:  rgba(230, 228, 221, 0.22);
+  --color-ctp-surface2:  rgba(255, 255, 255, 0.12);
+  --color-ctp-surface1:  rgba(255, 255, 255, 0.07);
+  --color-ctp-surface0:  #131619;
+  --color-ctp-base:      #0b0d10;
+  --color-ctp-mantle:    #0f1216;
+  --color-ctp-crust:     #14181d;
 
   /* Font families */
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono",
     Menlo, Consolas, "Liberation Mono", monospace;
-  --font-serif: "EB Garamond", "Georgia", "Times New Roman", serif;
+  --font-serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
 
   /* Custom animations */
   --animate-cursor-blink: cursor-blink 1s step-end infinite;
@@ -87,14 +87,103 @@
   }
 }
 
+/* ── Traversal v2 design tokens ─────────────────────────────────────── */
+:root {
+  --ink:          #0b0d10;
+  --ink-2:        #0f1216;
+  --ink-3:        #14181d;
+  --paper:        #e8e6df;
+  --line:         rgba(255, 255, 255, 0.07);
+  --line-2:       rgba(255, 255, 255, 0.12);
+  --line-strong:  rgba(255, 255, 255, 0.22);
+  --tv-text:      #e6e4dd;
+  --text-mute:    rgba(230, 228, 221, 0.55);
+  --text-faint:   rgba(230, 228, 221, 0.32);
+  --accent:       oklch(0.82 0.13 160);
+  --accent-dim:   oklch(0.82 0.13 160 / 0.18);
+  --accent-faint: oklch(0.82 0.13 160 / 0.08);
+  --keyword:      oklch(0.78 0.10 320);
+  --string:       oklch(0.82 0.10 90);
+  --comment:      rgba(230, 228, 221, 0.38);
+  --type:         oklch(0.78 0.10 220);
+  --mono:         var(--font-mono);
+  --serif:        var(--font-serif);
+  --r-sm:         4px;
+  --r-md:         8px;
+  --r-lg:         12px;
+}
+
+/* ── TV utility classes (from design tokens.css) ─────────────────────── */
+.tv-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.tv-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  color: var(--text-mute);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: default;
+  user-select: none;
+  white-space: nowrap;
+}
+.tv-chip[data-on="true"] {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+  background: var(--accent-faint);
+}
+
+/* Caret blink */
+@keyframes tv-caret { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+.tv-caret-thin {
+  display: inline-block;
+  width: 1px;
+  height: 1em;
+  vertical-align: -0.15em;
+  background: var(--accent);
+  animation: tv-caret 1.05s steps(1) infinite;
+  margin-left: 1px;
+}
+
+/* Line grid background */
+.tv-linegrid {
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Dot grid background */
+.tv-dotgrid {
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* Content card — ink-2 surface with a hairline border */
+.tv-card {
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+
 /* Base styles */
 html {
   color-scheme: dark;
 }
 
 body {
-  background: var(--color-ctp-base);
-  color: var(--color-ctp-text);
+  background: var(--ink);
+  color: var(--tv-text);
   font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

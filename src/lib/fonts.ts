@@ -1,4 +1,4 @@
-import { JetBrains_Mono, EB_Garamond } from "next/font/google";
+import { JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 
 export const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -6,8 +6,10 @@ export const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-export const ebGaramond = EB_Garamond({
+export const sourceSerif4 = Source_Serif_4({
   subsets: ["latin"],
   variable: "--font-serif",
   display: "swap",
+  style: ["normal", "italic"],
+  weight: ["300", "400", "500"],
 });
