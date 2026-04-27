@@ -55,10 +55,9 @@ function TreePageInner() {
     (mode: TraversalMode) => {
       setStoreMode(mode);
       router.replace(`/tree?mode=${mode}`, { scroll: false });
-      // Close panels when leaving parse mode — they only apply to the tree canvas
+      // Close node inspector when leaving parse mode (it's parse-only)
       if (mode !== "parse") {
         setSelectedNodeSlug(null);
-        setContextOpen(false);
       }
     },
     [setStoreMode, router]
@@ -128,7 +127,7 @@ function TreePageInner() {
       {/* ── Top bar ─────────────────────────────────────────────────── */}
       <header
         className="z-10 shrink-0"
-        style={{ borderBottom: "1px solid var(--line)", background: "rgba(11,13,16,0.85)", backdropFilter: "blur(8px)" }}
+        style={{ borderBottom: "1px solid var(--line)", background: "color-mix(in srgb, var(--ink) 88%, transparent)", backdropFilter: "blur(8px)" }}
       >
         {/* Row 1: Navigation + mode selector + ctx toggle */}
         <div className="flex items-center justify-between px-5 py-3">
@@ -196,7 +195,7 @@ function TreePageInner() {
           style={{ opacity: isParseMode ? 0.5 : 0.25 }}
         />
 
-        {/* ── Desktop: Parse mode — D3 tree canvas + sidebars ──────── */}
+        {/* ── Desktop: Parse mode — D3 tree canvas + node inspector ── */}
         {isParseMode && (
           <>
             <div
@@ -207,19 +206,6 @@ function TreePageInner() {
               style={{ bottom: "40px" }}
             >
               <ASTCanvasLazy mode={currentMode} onNodeSelect={handleNodeSelect} />
-            </div>
-
-            <div
-              className={cn(
-                "hidden lg:block absolute right-0 top-0 bottom-10 z-30",
-                contextOpen ? "pointer-events-auto" : "pointer-events-none"
-              )}
-            >
-              <ContextWindow
-                isOpen={contextOpen}
-                onClose={closeContext}
-                variant="sidebar"
-              />
             </div>
 
             <div
@@ -235,6 +221,20 @@ function TreePageInner() {
             </div>
           </>
         )}
+
+        {/* ── Desktop: Context window — available in ALL modes ─────── */}
+        <div
+          className={cn(
+            "hidden lg:block absolute right-0 top-0 bottom-10 z-30",
+            contextOpen ? "pointer-events-auto" : "pointer-events-none"
+          )}
+        >
+          <ContextWindow
+            isOpen={contextOpen}
+            onClose={closeContext}
+            variant="sidebar"
+          />
+        </div>
 
         {/* ── Desktop: Lex mode — token ribbon ────────────────────── */}
         {isLexMode && (

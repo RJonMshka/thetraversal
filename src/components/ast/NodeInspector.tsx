@@ -117,7 +117,7 @@ export function NodeInspector({ slug, onClose }: NodeInspectorProps) {
                 marginTop: 10,
                 fontSize: 15,
                 fontWeight: 600,
-                color: resolveGlow(node.glowColor),
+                color: "var(--tv-text)",
                 letterSpacing: "-0.01em",
               }}
             >
@@ -334,9 +334,9 @@ export function NodeInspector({ slug, onClose }: NodeInspectorProps) {
                 display: "block",
                 marginTop: 24,
                 padding: "9px 14px",
-                border: `1px solid ${resolveGlow(node.glowColor)}`,
+                border: "1px solid var(--accent)",
                 borderRadius: 5,
-                color: resolveGlow(node.glowColor),
+                color: "var(--accent)",
                 fontSize: 11,
                 textAlign: "center",
                 fontFamily: "var(--mono)",

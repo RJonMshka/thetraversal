@@ -502,7 +502,7 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
             opacity: 0.5,
           }}
         >
-          scroll to zoom · drag to pan · click to expand · hold to open
+          scroll to zoom · drag to pan · click to expand · ⌘↩ to open
         </div>
       </foreignObject>
     </svg>

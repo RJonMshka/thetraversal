@@ -31,7 +31,7 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
         style={{
           padding: "12px 20px",
           borderBottom: "1px solid var(--line)",
-          background: "rgba(11,13,16,0.85)",
+          background: "color-mix(in srgb, var(--ink) 88%, transparent)",
           backdropFilter: "blur(8px)",
         }}
       >
@@ -50,10 +50,10 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
           className="flex items-center gap-1 overflow-x-auto scrollbar-hidden"
           style={{ marginTop: 10, fontSize: 11, color: "var(--text-mute)" }}
         >
-          <span style={{ color: "var(--text-faint)" }}>Program</span>
+          <span style={{ color: "var(--text-mute)" }}>Program</span>
           {path.map((segment, i) => (
             <span key={segment.id} className="flex items-center gap-1 shrink-0">
-              <span style={{ color: "var(--text-faint)", marginLeft: 4 }}>→</span>
+              <span style={{ color: "var(--text-mute)", marginLeft: 4 }}>→</span>
               {i < path.length - 1 ? (
                 <Link
                   href={`/node/${segment.slug}`}

@@ -3,11 +3,12 @@ export const THEMES = {
   amber:  { bg: '#0e0a04', card: '#161009', text: '#f0e4cc', mute: 'rgba(240,228,204,0.62)', faint: 'rgba(240,228,204,0.32)', line: 'rgba(240,228,204,0.08)', line2: 'rgba(240,228,204,0.14)', accent: 'oklch(0.82 0.14 75)',  accentDim: 'oklch(0.82 0.14 75 / 0.18)',  accentFaint: 'oklch(0.82 0.14 75 / 0.10)',  mode: 'dark'  as const, label: 'amber · phosphor CRT' },
   ice:    { bg: '#080b12', card: '#0e131c', text: '#dde6f2', mute: 'rgba(221,230,242,0.6)',  faint: 'rgba(221,230,242,0.32)', line: 'rgba(221,230,242,0.07)', line2: 'rgba(221,230,242,0.13)', accent: 'oklch(0.82 0.13 235)', accentDim: 'oklch(0.82 0.13 235 / 0.18)', accentFaint: 'oklch(0.82 0.13 235 / 0.09)', mode: 'dark'  as const, label: 'ice · cold blue' },
   mono:   { bg: '#000000', card: '#0a0a0a', text: '#ffffff', mute: 'rgba(255,255,255,0.62)', faint: 'rgba(255,255,255,0.32)', line: 'rgba(255,255,255,0.10)', line2: 'rgba(255,255,255,0.18)', accent: '#ffffff',              accentDim: 'rgba(255,255,255,0.7)',        accentFaint: 'rgba(255,255,255,0.08)',        mode: 'dark'  as const, label: 'mono · pure b/w' },
-  paper:  { bg: '#f3f0e6', card: '#faf8f1', text: '#2a251f', mute: 'rgba(42,37,31,0.62)',   faint: 'rgba(42,37,31,0.36)',   line: 'rgba(42,37,31,0.08)',   line2: 'rgba(42,37,31,0.14)',   accent: 'oklch(0.55 0.13 30)',  accentDim: 'oklch(0.55 0.13 30 / 0.25)',  accentFaint: 'oklch(0.55 0.13 30 / 0.10)',  mode: 'light' as const, label: 'paper · warm cream' },
-  linen:  { bg: '#eee9dd', card: '#f6f2e7', text: '#2d3026', mute: 'rgba(45,48,38,0.6)',    faint: 'rgba(45,48,38,0.34)',   line: 'rgba(45,48,38,0.08)',   line2: 'rgba(45,48,38,0.14)',   accent: 'oklch(0.50 0.10 150)', accentDim: 'oklch(0.50 0.10 150 / 0.25)', accentFaint: 'oklch(0.50 0.10 150 / 0.10)', mode: 'light' as const, label: 'linen · sage on cream' },
-  bone:   { bg: '#ededea', card: '#f5f5f2', text: '#1a1a1a', mute: 'rgba(26,26,26,0.6)',    faint: 'rgba(26,26,26,0.34)',   line: 'rgba(26,26,26,0.08)',   line2: 'rgba(26,26,26,0.14)',   accent: '#1a1a1a',              accentDim: 'rgba(26,26,26,0.45)',          accentFaint: 'rgba(26,26,26,0.06)',          mode: 'light' as const, label: 'bone · cool grey' },
-  chalk:  { bg: '#f0f1f4', card: '#f8f9fb', text: '#1a2233', mute: 'rgba(26,34,51,0.6)',    faint: 'rgba(26,34,51,0.34)',   line: 'rgba(26,34,51,0.08)',   line2: 'rgba(26,34,51,0.14)',   accent: 'oklch(0.50 0.16 250)', accentDim: 'oklch(0.50 0.16 250 / 0.25)', accentFaint: 'oklch(0.50 0.16 250 / 0.08)', mode: 'light' as const, label: 'chalk · blueprint blue' },
-  sun:    { bg: '#fbf3e0', card: '#fef9ec', text: '#3a2a10', mute: 'rgba(58,42,16,0.62)',   faint: 'rgba(58,42,16,0.36)',   line: 'rgba(58,42,16,0.08)',   line2: 'rgba(58,42,16,0.14)',   accent: 'oklch(0.62 0.16 60)',  accentDim: 'oklch(0.62 0.16 60 / 0.28)',  accentFaint: 'oklch(0.62 0.16 60 / 0.10)',  mode: 'light' as const, label: 'sun · warm amber' },
+  // Light themes: mute/faint use higher opacity for WCAG AA compliance (≥4.5:1)
+  paper:  { bg: '#f3f0e6', card: '#faf8f1', text: '#2a251f', mute: 'rgba(42,37,31,0.78)',   faint: 'rgba(42,37,31,0.55)',   line: 'rgba(42,37,31,0.10)',   line2: 'rgba(42,37,31,0.18)',   accent: 'oklch(0.50 0.14 30)',  accentDim: 'oklch(0.50 0.14 30 / 0.25)',  accentFaint: 'oklch(0.50 0.14 30 / 0.12)',  mode: 'light' as const, label: 'paper · warm cream' },
+  linen:  { bg: '#eee9dd', card: '#f6f2e7', text: '#2d3026', mute: 'rgba(45,48,38,0.78)',   faint: 'rgba(45,48,38,0.55)',   line: 'rgba(45,48,38,0.10)',   line2: 'rgba(45,48,38,0.18)',   accent: 'oklch(0.44 0.12 150)', accentDim: 'oklch(0.44 0.12 150 / 0.25)', accentFaint: 'oklch(0.44 0.12 150 / 0.12)', mode: 'light' as const, label: 'linen · sage on cream' },
+  bone:   { bg: '#ededea', card: '#f5f5f2', text: '#1a1a1a', mute: 'rgba(26,26,26,0.78)',   faint: 'rgba(26,26,26,0.55)',   line: 'rgba(26,26,26,0.10)',   line2: 'rgba(26,26,26,0.18)',   accent: '#1a1a1a',              accentDim: 'rgba(26,26,26,0.45)',          accentFaint: 'rgba(26,26,26,0.08)',          mode: 'light' as const, label: 'bone · cool grey' },
+  chalk:  { bg: '#f0f1f4', card: '#f8f9fb', text: '#1a2233', mute: 'rgba(26,34,51,0.78)',   faint: 'rgba(26,34,51,0.55)',   line: 'rgba(26,34,51,0.10)',   line2: 'rgba(26,34,51,0.18)',   accent: 'oklch(0.44 0.18 250)', accentDim: 'oklch(0.44 0.18 250 / 0.25)', accentFaint: 'oklch(0.44 0.18 250 / 0.10)', mode: 'light' as const, label: 'chalk · blueprint blue' },
+  sun:    { bg: '#fbf3e0', card: '#fef9ec', text: '#3a2a10', mute: 'rgba(58,42,16,0.78)',   faint: 'rgba(58,42,16,0.55)',   line: 'rgba(58,42,16,0.10)',   line2: 'rgba(58,42,16,0.18)',   accent: 'oklch(0.56 0.18 60)',  accentDim: 'oklch(0.56 0.18 60 / 0.28)',  accentFaint: 'oklch(0.56 0.18 60 / 0.12)',  mode: 'light' as const, label: 'sun · warm amber' },
 } as const;
 
 export const FONTS = {
@@ -57,6 +58,19 @@ export function applyTheme(themeName: ThemeName, fontName: FontName) {
   root.style.setProperty('--font-serif', F.serif);
   root.style.setProperty('--mono', F.mono);
   root.style.setProperty('--serif', F.serif);
+
+  // Syntax highlight colors — darker/more saturated for light themes (WCAG AA)
+  if (T.mode === 'dark') {
+    root.style.setProperty('--syntax-keyword', 'oklch(0.78 0.10 320)');
+    root.style.setProperty('--syntax-string',  'oklch(0.82 0.10 90)');
+    root.style.setProperty('--syntax-ident',   'oklch(0.78 0.13 70)');
+    root.style.setProperty('--syntax-type',    'oklch(0.78 0.10 220)');
+  } else {
+    root.style.setProperty('--syntax-keyword', 'oklch(0.42 0.18 320)');
+    root.style.setProperty('--syntax-string',  'oklch(0.46 0.16 75)');
+    root.style.setProperty('--syntax-ident',   'oklch(0.46 0.17 50)');
+    root.style.setProperty('--syntax-type',    'oklch(0.42 0.18 240)');
+  }
 
   saveTheme(themeName, fontName);
 }

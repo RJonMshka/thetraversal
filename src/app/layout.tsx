@@ -27,7 +27,7 @@ export const metadata: Metadata = {
       "An interactive AST-based developer portfolio. Traverse the Abstract Syntax Tree to discover who Rajat is.",
   },
   icons: {
-    icon: "/favicon.svg",
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
   alternates: {
     canonical: BASE_URL,
