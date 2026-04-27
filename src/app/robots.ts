@@ -8,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
       },
     ],
-    sitemap: "https://thetraversal.dev/sitemap.xml",
+    sitemap: "https://thetraversal.vercel.app/sitemap.xml",
   };
 }

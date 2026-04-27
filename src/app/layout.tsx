@@ -6,7 +6,7 @@ import { EasterEggOverlays } from "@/components/chrome/EasterEggOverlays";
 import { ThemeInitializer } from "@/components/landing/ThemeInitializer";
 import "@/styles/globals.css";
 
-const BASE_URL = "https://thetraversal.dev";
+const BASE_URL = "https://thetraversal.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
