@@ -1,0 +1,61 @@
+## Rewiring the Interface
+
+*How AI Is Reshaping Human–Computer Interaction and Frontend Architecture*
+
+A synthesis paper, completed July 2026. What follows is the argument in short form.
+
+---
+
+## The claim under test
+
+Generative AI is routinely described as a new interaction paradigm. The paper tests that claim against the actual arc of HCI history — Licklider and Engelbart, batch processing and the command line, Shneiderman's direct manipulation, the GUI, touch, voice, and now conversational and agentic systems.
+
+The conclusion is narrower than the marketing. **AI interaction is a new layer atop prior paradigms, not a replacement for them.** Nothing that came before was deleted; the command line survived the GUI, and the GUI will survive the chat box.
+
+Its effects also diverge sharply by generation and by context. Consumer usage skews toward advice-seeking and writing. Developer and enterprise usage skews toward coding and automation. Any claim about "how people use AI" that doesn't say *which* people is measuring an average nobody occupies.
+
+---
+
+## The new engineering problem
+
+The defining new problem is the **determinism–probability tension**.
+
+Classical UI engineering assumes a given input produces a predictable, testable output. That assumption is what makes a test suite meaningful, what makes a bug reproducible, and what makes a component library safe to reuse. Generative systems are probabilistic by construction. They break the assumption at the root.
+
+The paper's position is that this must be architected *for* rather than *around*. Three moves follow from it:
+
+- **Constrain generation to a validated component catalog.** The model chooses from things that already work; it does not invent markup.
+- **Keep a guardrails layer separate from application code**, so model behavior can be bounded faster than releases ship. Release cadence and safety cadence are different clocks.
+- **Treat any model-generated UI specification as untrusted input**, subject to the same validation discipline as user-submitted data. A spec from a model is closer to a form submission than to a function call.
+
+---
+
+## The ten patterns
+
+The central contribution is a framework of ten reusable interaction patterns, offered as a durable mental model for frontend architects working across this transition:
+
+| | |
+|---|---|
+| abstraction | adaptation |
+| intent | modality |
+| competence | bandwidth |
+| specialization | determinism |
+| trust | personalization |
+
+They are deliberately framed as patterns rather than predictions. A prediction expires; a pattern is still useful when the specifics change underneath it.
+
+---
+
+## Structure of the paper
+
+Historical foundations, then the current state — usage data, generational divergence, and the economy forming around AI interaction. Then the future of frontend architecture: generative UI, agent-facing protocols, design-to-code, spatial computing. Then the ten-pattern framework. Then staged recommendations for practice, split into no-regret moves, 6–18 month positioning, and 18+ month bets.
+
+Every recommendation names the evidence that would reverse it. A recommendation you can't falsify isn't advice, it's a mood.
+
+---
+
+## Why it sits on this site
+
+It's the one artifact that connects the two halves of the work — six years of frontend architecture and the recent AI engineering — as a single argument rather than two adjacent skill lists.
+
+It also has an implementation attached. Section 4.3 describes *structured generative UI*: a schema-constrained specification rendered from a pre-tested component catalog. That is precisely what **MFKit**'s plugin-API-plus-template model does for micro frontends. The paper is the thesis; MFKit is one of the places it gets built.

@@ -1,13 +1,17 @@
 ---
-summary: "Owns a production ecosystem of 15+ Spring Boot microservices and 2 Angular UIs. Merger integration affecting 5M+ customers. Datadog observability, Kubernetes tuning, Okta 2FA."
+summary: "Owns the collections operations console and the 15+ microservices behind it. Core engineer on the Discover → Capital One merger: 50M+ account migration, roughly 10M live to date, no service interruption on any owned system."
 ---
 
-Current role. Senior Associate Application Engineer at Capital One — which absorbed Discover Financial Services mid-tenure.
+Current role. Senior Software Engineer — Senior Associate, Application Engineering — at Capital One, which absorbed Discover Financial Services mid-tenure.
 
-The scope: owns and operates a production ecosystem of 15+ Spring Boot microservices, 2 Angular UI applications (including a business-critical application for collection agents), a gateway router, and Kafka pub/sub integrations. Near-zero production incidents on business-critical applications.
+The scope: two Angular applications used daily by collection agents, including the business-critical operations console, plus the 15+ Spring Boot microservices, gateway router, and Kafka pipelines behind them.
 
-Core team member for the Discover–Capital One merger integration — engineering capabilities affecting 5M+ customers while maintaining seamless service continuity. The merger work is the hardest kind of engineering: building new systems while the old ones are still running at full load.
+Core engineer on the Discover to Capital One merger integration — a 50M+ account migration, roughly 10M live to date, with no service interruption on any owned system. Merger work is the hardest kind of engineering: building new systems while the old ones are still running at full load.
 
-Provisioned and maintains the full Datadog observability stack: RUM, APM, Logs, custom dashboards, availability alerts, and SLOs across the entire service mesh. Tunes Kubernetes resource configs based on traffic patterns. Manages the full dependency lifecycle — framework upgrades, security patches, CVE remediation within 30 days, Angular major version migrations, CAB change validations.
+Ran CWE analysis across every owned application on findings from an LLM-driven vulnerability scanner built for chained exploit paths conventional SAST misses, dispositioning each result with model-assisted review and shipping valid fixes alongside merger delivery. That work is the direct origin of Reachble.
 
-Also: designed a Micro Frontend architecture for the primary collection-agent UI (paused due to merger priorities). Engineered Okta 2FA integration across all customer-facing applications. Led the Angular test framework migration from Karma/Jasmine to Vitest — cut test execution time significantly, improved DX. Upleveled frontend engineering knowledge across a 7-person team through structured demos on JavaScript, async patterns, and RxJS. Recognized by leadership for teaching and communication.
+Designed a Module Federation micro frontend architecture for the collection-agent UI so separate teams could deploy independently; approved as the platform's forward direction. Led the frontend test migration from Karma/Jasmine to Vitest with Playwright coverage, cutting CI time and moving the codebase onto a modern TypeScript/ESM toolchain.
+
+Stood up team-wide Datadog observability across the service mesh — RUM, APM, logs, custom SLOs — and tunes Kubernetes resource configs against live traffic, holding production incidents near zero. Runs a 30-day CVE remediation SLA and a rolling Angular major-version upgrade across every service, validated through formal change review. Built the Okta MFA integration for the agent-facing application, and is its SME and L2 escalation point.
+
+Sets technical direction and reviews code for a cross-seniority team — including engineers senior in title — through structured demos on JavaScript semantics, async patterns, and RxJS.

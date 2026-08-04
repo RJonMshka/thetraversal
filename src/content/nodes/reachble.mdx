@@ -1,0 +1,15 @@
+---
+summary: "Auto-generated VEX for npm projects, backed by reachability analysis."
+---
+
+Most CVEs flagged in a package-lock.json aren't exploitable. Research puts 60–80% of them in dependency code paths that are never called. SBOM mandates — US EO 14028, the EU CRA — increasingly require a VEX statement explaining why each unaffected CVE is unaffected, and today that explanation is a spreadsheet maintained by hand.
+
+Reachble produces it from the code. It traces call paths to the specific vulnerable symbol and emits CycloneDX VEX and OpenVEX with machine-checkable evidence: "vulnerable function never imported," "reachable but no path from any HTTP entry point," "reachable from unauthenticated POST /api/upload."
+
+Verdicts are tiered by how the symbol is actually reached. CRITICAL means reachable from unauthenticated external input. HIGH means reachable from an authenticated route or an internal service. LOW means reachable in code with no external input path found. SAFE means the vulnerable symbol is never reached at all — the case that earns a VEX not_affected.
+
+Traditional SCA and OSV-Scanner stop at lockfile detection. Endor Labs does function-level reachability but is closed source and only partially generates VEX. Reachble is the open-source, JS/TS-specialized option that does both reachability analysis and full VEX generation.
+
+Usage is one command: npx reachble scan. In CI it becomes reachble scan --format vex --fail-on high.
+
+Running a 30-day CVE remediation SLA in production teaches you fast that most findings are noise. Reachability is the difference between a real fix and a version bump performed as theater.

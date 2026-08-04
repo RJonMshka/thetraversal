@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Cursor } from "@/components/landing/Cursor";
 import { ParseAnimation } from "@/components/landing/ParseAnimation";
+import { getNodeCount, getTreeMaxDepth } from "@/data";
 
 const MODES = [
   { label: "— lex",   href: "/tree?mode=lex"   },
@@ -60,8 +61,8 @@ function TreeSneakPeek() {
           }}
         >
           <span style={{ width: 5, height: 5, borderRadius: 999, background: ACCENT, display: "inline-block" }} />
-          <span style={{ color: ACCENT }}>57 nodes</span>
-          <span>· depth 4</span>
+          <span style={{ color: ACCENT }}>{getNodeCount()} nodes</span>
+          <span>· depth {getTreeMaxDepth()}</span>
         </span>
       </div>
 
@@ -190,7 +191,7 @@ export default function LandingPage() {
         <div className="flex items-center justify-between">
           <div style={{ fontSize: 11, color: "var(--text-faint)", letterSpacing: "0.16em" }}>
             TRAVERSAL · v2.0 · BUILD{" "}
-            <span style={{ color: "var(--accent)" }}>2026.04</span>
+            <span style={{ color: "var(--accent)" }}>2026.08</span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -260,9 +261,10 @@ export default function LandingPage() {
                 maxWidth: 520,
               }}
             >
-              Senior software engineer. AI, compilers, distributed systems,
+              I build systems that think — and think about systems that build.
               <br />
-              and the parts of the frontend most engineers won&apos;t touch.
+              Senior software engineer. Compilers, AI engineering, and the
+              parts of the frontend most engineers won&apos;t touch.
             </p>
 
             {/* REPL input */}

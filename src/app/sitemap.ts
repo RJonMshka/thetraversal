@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { getFlatNodes } from "@/data";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://thetraversal.dev";
+  const baseUrl = "https://thetraversal.vercel.app";
   const allNodes = getFlatNodes();
 
   const nodePages: MetadataRoute.Sitemap = allNodes.map((node) => ({

@@ -1,4 +1,4 @@
-import { RESUME_TEXT_LINES } from "@/data/resume";
+import { RESUME_TEXT_LINES, RESUME_PDF_URL } from "@/data/resume";
 
 export interface EasterEggAction {
   kind: "download" | "navigate";
@@ -14,16 +14,17 @@ export interface EasterEggResult {
 const RAJAT_PROFILE = {
   name: "Rajat Kumar",
   type: "FunctionDeclaration",
-  role: "Software Engineer",
+  role: "Senior Software Engineer",
+  location: "Chicago, IL",
   traits: [
     "systems-thinker",
     "detail-oriented",
     "philosophy-adjacent",
     "perpetually-curious",
   ],
-  stack: ["TypeScript", "React", "Next.js", "Node.js", "Python"],
+  stack: ["TypeScript", "React", "Next.js", "Angular", "Go", "Python"],
   philosophy: "The medium is the message",
-  currently: "building this portfolio as an AST",
+  currently: "reachability analysis for VEX, and polyglot module federation",
   fun_fact: "You found the easter egg. You're my kind of person.",
 };
 
@@ -60,6 +61,7 @@ const commands: Record<string, () => EasterEggResult> = {
     type: "lines",
     content: [
       "drwxr-xr-x  projects/",
+      "drwxr-xr-x  research/",
       "drwxr-xr-x  skills/",
       "drwxr-xr-x  philosophy/",
       "drwxr-xr-x  timeline/",
@@ -93,9 +95,9 @@ const commands: Record<string, () => EasterEggResult> = {
     content: [
       "Downloading resume...",
       "",
-      "→ rajat-kumar-resume.pdf",
+      "→ Rajat_Kumar_Resume.pdf",
     ],
-    action: { kind: "download", url: "/resume/rajat-kumar-resume.pdf" },
+    action: { kind: "download", url: RESUME_PDF_URL },
   }),
 
   "cat resume": () => ({

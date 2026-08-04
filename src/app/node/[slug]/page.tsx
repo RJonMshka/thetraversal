@@ -96,8 +96,13 @@ function NodeContent({ node }: { node: ASTNode }) {
     case "ExportDeclaration":
       return <ConnectNode node={node} />;
 
+    // Resume gets the PDF viewer; other imports (Education) are generic.
     case "ImportDeclaration":
-      return <ResumeNode node={node} />;
+      return node.slug === "resume" ? (
+        <ResumeNode node={node} />
+      ) : (
+        <GenericNode node={node} />
+      );
 
     // BlockStatement, StringLiteral, ExpressionStatement,
     // TypeAnnotation, RootNode
