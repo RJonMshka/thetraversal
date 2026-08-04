@@ -3,46 +3,17 @@
 import { cn } from "@/lib/utils";
 import type { TraversalMode } from "@/lib/ast-types";
 
-// ── Props ──────────────────────────────────────────────────────────────
-
 interface TraversalModeSelectorProps {
   currentMode: TraversalMode;
   onModeChange: (mode: TraversalMode) => void;
-  /** Render the compact variant (no prefix, tighter padding) */
   compact?: boolean;
 }
 
-// ── Mode config ────────────────────────────────────────────────────────
-
-const MODES: {
-  mode: TraversalMode;
-  flag: string;
-  shortFlag: string;
-  description: string;
-}[] = [
-  {
-    mode: "lex",
-    flag: "--lex",
-    shortFlag: "lex",
-    description: "Labels + types only",
-  },
-  {
-    mode: "parse",
-    flag: "--parse",
-    shortFlag: "parse",
-    description: "Labels + summaries",
-  },
-  {
-    mode: "eval",
-    flag: "--eval",
-    shortFlag: "eval",
-    description: "Full content",
-  },
+const MODES: { mode: TraversalMode; flag: string; shortFlag: string }[] = [
+  { mode: "lex",   flag: "— lex",   shortFlag: "lex"   },
+  { mode: "parse", flag: "— parse", shortFlag: "parse" },
+  { mode: "eval",  flag: "— eval",  shortFlag: "eval"  },
 ];
-
-// ── Component ──────────────────────────────────────────────────────────
-// CLI-styled mode selector with $ prompt prefix.
-// Compact mode: drops the `$ traverse` prefix and uses tighter spacing.
 
 export function TraversalModeSelector({
   currentMode,
@@ -50,28 +21,21 @@ export function TraversalModeSelector({
   compact = false,
 }: TraversalModeSelectorProps) {
   return (
-    <div className="flex items-center gap-1 font-mono text-sm">
+    <div className="flex items-center gap-2 font-mono text-sm">
       {!compact && (
-        <>
-          <span className="text-ctp-green mr-1 select-none">$</span>
-          <span className="text-ctp-overlay1 mr-2 select-none">traverse</span>
-        </>
+        <span style={{ fontSize: 11, color: "var(--text-faint)", marginRight: 4 }}>
+          $ traverse
+        </span>
       )}
-      {MODES.map(({ mode, flag, shortFlag, description }) => (
+      {MODES.map(({ mode, flag, shortFlag }) => (
         <button
           key={mode}
           onClick={() => onModeChange(mode)}
-          className={cn(
-            "rounded transition-all duration-200",
-            "hover:bg-ctp-surface0 focus-visible:outline-2 focus-visible:outline-ctp-lavender",
-            compact ? "px-2.5 py-1 text-xs" : "px-3 py-1.5",
-            currentMode === mode
-              ? "bg-ctp-surface0 text-ctp-lavender"
-              : "text-ctp-overlay1 hover:text-ctp-text"
-          )}
-          aria-label={`Traversal mode: ${flag} - ${description}`}
+          className={cn("tv-chip transition-colors duration-150", compact ? "text-xs" : "")}
+          data-on={currentMode === mode ? "true" : undefined}
           aria-pressed={currentMode === mode}
-          title={description}
+          aria-label={`Traversal mode: ${flag}`}
+          style={{ cursor: "pointer" }}
         >
           {compact ? shortFlag : flag}
         </button>

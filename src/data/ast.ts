@@ -1,18 +1,10 @@
 import type { ASTNode } from "@/lib/ast-types";
-import {
-  RESUMIND_NODE,
-  CLAUSE_NODE,
-  AI_COMMIT_NODE,
-  CRM_NODE,
-} from "@/data/projects";
-import {
-  LANGUAGES_NODE,
-  FRAMEWORKS_NODE,
-  SYSTEMS_NODE,
-  TOOLS_NODE,
-} from "@/data/skills";
+import { PROJECT_NODES } from "@/data/projects";
+import { SKILL_NODES } from "@/data/skills";
+import { RESEARCH_NODE } from "@/data/research";
 import { TIMELINE_NODE } from "@/data/timeline";
 import { RESUME_NODE } from "@/data/resume";
+import { EDUCATION_NODE } from "@/data/education";
 import {
   CODE_AS_CONSCIOUSNESS_NODE,
   WHY_I_BUILD_LANGUAGES_NODE,
@@ -23,30 +15,24 @@ import {
 // The complete portfolio tree. Every node is discoverable, traversable,
 // and directly linkable via /node/[slug].
 //
+// Content source of truth: docs/CONTENT-v2.md. Projects and skills are
+// generated from their registries rather than listed here, so publishing
+// a project is a flag flip in one file.
+//
 // Structure:
 //   RootNode
 //   ├── ProgramNode: Identity (who I am)
-//   │   └── ImportDeclaration: Resume
+//   │   ├── ImportDeclaration: Resume
+//   │   └── ImportDeclaration: Education
 //   ├── BlockStatement: Projects (what I build)
-//   │   ├── FunctionDeclaration: RESUMIND
-//   │   ├── FunctionDeclaration: Clause
-//   │   ├── FunctionDeclaration: dev-session
-//   │   └── FunctionDeclaration: AI-Powered CRM
+//   │   └── FunctionDeclaration × PROJECT_NODES
+//   ├── BlockStatement: Research (what I argue)
+//   │   └── CallExpression: Rewiring the Interface
 //   ├── BlockStatement: Skills (what I know)
-//   │   ├── ObjectExpression: Languages
-//   │   ├── ObjectExpression: Frameworks
-//   │   ├── ObjectExpression: Systems
-//   │   └── ObjectExpression: Cloud & DevOps
+//   │   └── ObjectExpression × SKILL_NODES
 //   ├── VariableDeclaration: Timeline (where I've been)
 //   │   └── ArrayExpression: Journey
-//   │       ├── StringLiteral: Publicis Sapient
-//   │       ├── StringLiteral: UIC
-//   │       ├── StringLiteral: Airblox
-//   │       └── StringLiteral: Capital One
 //   ├── ExpressionStatement: Philosophy (what I think)
-//   │   ├── CallExpression: Code as Consciousness
-//   │   ├── CallExpression: Why I Build Languages
-//   │   └── CallExpression: On AI Consciousness
 //   └── ExportDeclaration: Connect (how to reach me)
 
 export const PORTFOLIO_AST = {
@@ -56,7 +42,7 @@ export const PORTFOLIO_AST = {
   slug: "root",
   glowColor: "--ctp-text",
   content: {
-    summary: "Senior Software Engineer. Compiler nerd. Vedanta reader. Chicago.",
+    summary: "I build systems that think — and think about systems that build.",
     body: "The root node. Everything begins here.",
   },
   children: [
@@ -69,9 +55,9 @@ export const PORTFOLIO_AST = {
       glowColor: "--ctp-yellow",
       content: {
         summary: "import { Rajat } from 'chicago'",
-        body: "Senior Software Engineer based in Chicago. Six years in production engineering across financial services and e-commerce. Builder of compilers, AI tools, and this portfolio.",
+        body: "Six years building production web systems end to end: multi-brand e-commerce serving 500K+ monthly users, and now the microservices, interfaces, and observability behind a top-10 US bank's collections operation. Increasingly, the work outside the day job is about the machinery of AI-assisted engineering itself — context management, token economics, and what it actually costs to hold a long agentic session together.",
       },
-      children: [RESUME_NODE],
+      children: [RESUME_NODE, EDUCATION_NODE],
       meta: {
         tags: ["identity", "about"],
         links: [
@@ -89,14 +75,17 @@ export const PORTFOLIO_AST = {
       slug: "projects",
       glowColor: "--ctp-peach",
       content: {
-        summary: "Four functions. Each solving a different problem.",
-        body: "FunctionDeclarations — callable units of work with defined inputs and outputs. RESUMIND, Clause, dev-session, AI-Powered CRM.",
+        summary: "Callable units of work, each with a public artifact behind it.",
+        body: "FunctionDeclarations — defined inputs, defined outputs. Only projects with something publicly verifiable appear here: a public repo, a published package, a live site. The rest are written up and waiting on their repos to open.",
       },
-      children: [RESUMIND_NODE, CLAUSE_NODE, AI_COMMIT_NODE, CRM_NODE],
+      children: PROJECT_NODES,
       meta: {
         tags: ["projects"],
       },
     },
+
+    // ── Research ───────────────────────────────────────────────────────
+    RESEARCH_NODE,
 
     // ── Skills ─────────────────────────────────────────────────────────
     {
@@ -106,10 +95,10 @@ export const PORTFOLIO_AST = {
       slug: "skills",
       glowColor: "--ctp-mauve",
       content: {
-        summary: "The object expression: what I know and how well I know it.",
-        body: "Skills as key-value pairs. Proficiency is honest. Languages, frameworks, systems, cloud and DevOps.",
+        summary: "The object expression: what I know and where I've used it.",
+        body: "Skills as key-value pairs, grouped the way the work actually groups. No proficiency scores — a percentage next to a language name is a number nobody can check.",
       },
-      children: [LANGUAGES_NODE, FRAMEWORKS_NODE, SYSTEMS_NODE, TOOLS_NODE],
+      children: SKILL_NODES,
       meta: {
         tags: ["skills"],
       },
@@ -128,7 +117,7 @@ export const PORTFOLIO_AST = {
       content: {
         summary:
           "Three essays on consciousness, compilers, and the nature of understanding.",
-        body: "Genuine inquiries into code, consciousness, and meaning — informed by Advaita Vedanta and daily engineering practice.",
+        body: "Software isn't only a craft, it's a way of thinking. Building a compiler forces the question of what computation is, not just how to perform it. Running production systems at scale forces the question of what reliability means, not just how to measure it. The good work lives at that intersection — precise enough to be correct, general enough to be honest.\n\nThere is no separation between thinking work and building work. The design is in the code. The architecture is in the types. A well-named function is a philosophical claim.\n\nOn Vedanta: a real intellectual interest, not brand decoration. The recursive structure of awareness maps onto how computation gets thought about here. The site is an AST for that reason — the metaphor is load-bearing.",
       },
       children: [
         CODE_AS_CONSCIOUSNESS_NODE,
@@ -160,7 +149,7 @@ export const PORTFOLIO_AST = {
           glowColor: "--ctp-green",
           content: {
             summary: "Where the code lives.",
-            body: "My GitHub profile. Open source contributions, side projects, and the source code for this portfolio.",
+            body: "Reachble, MFKit, RESUMIND, and the source for this site. Most of the rest is still private.",
           },
           meta: {
             links: [
@@ -176,7 +165,7 @@ export const PORTFOLIO_AST = {
           glowColor: "--ctp-green",
           content: {
             summary: "The professional graph.",
-            body: "My LinkedIn profile. Career history, endorsements, and the network.",
+            body: "Career history, endorsements, and the network.",
           },
           meta: {
             links: [

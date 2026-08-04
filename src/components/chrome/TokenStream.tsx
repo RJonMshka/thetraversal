@@ -53,7 +53,7 @@ function Token({ token, isActive, isVisited, onClick }: TokenProps) {
 
   if (token.type === "OP") {
     return (
-      <span className="text-ctp-overlay0 select-none px-1.5 lg:px-1 shrink-0 text-sm lg:text-base">
+      <span className="select-none px-1.5 lg:px-1 shrink-0 text-sm lg:text-base" style={{ color: "var(--text-faint)" }}>
         {token.value}
       </span>
     );
@@ -67,16 +67,16 @@ function Token({ token, isActive, isVisited, onClick }: TokenProps) {
         "relative flex flex-col items-start shrink-0 px-2.5 lg:px-2 py-1 lg:py-0.5 rounded",
         "transition-colors duration-150",
         isNavigable
-          ? "cursor-pointer hover:bg-ctp-surface0 active:bg-ctp-surface0"
+          ? "cursor-pointer hover:bg-[var(--ink-2)] active:bg-[var(--ink-2)]"
           : "cursor-default",
-        isActive && "bg-ctp-surface0"
+        isActive && "bg-[var(--ink-2)]"
       )}
       whileHover={isNavigable ? { y: -1 } : {}}
       whileTap={isNavigable ? { scale: 0.97 } : {}}
       transition={{ duration: 0.1 }}
     >
       {/* Type label */}
-      <span className="text-ctp-overlay0 text-[9px] leading-none font-mono select-none">
+      <span className="text-[9px] leading-none font-mono select-none" style={{ color: "var(--text-faint)" }}>
         {token.type}
       </span>
 
@@ -97,7 +97,8 @@ function Token({ token, isActive, isVisited, onClick }: TokenProps) {
         {isActive && (
           <motion.span
             key="active-underline"
-            className="absolute bottom-0 left-0 right-0 h-px bg-ctp-lavender"
+            className="absolute bottom-0 left-0 right-0 h-px"
+            style={{ background: "var(--accent)" }}
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             exit={{ scaleX: 0 }}
@@ -414,17 +415,14 @@ export function TokenStream({ activeSlug, visible = true }: TokenStreamProps) {
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className={cn(
-            "absolute bottom-0 left-0 right-0 bg-ctp-mantle border-t border-ctp-surface0 z-20",
-            // Taller on mobile for touch targets + readability
-            "h-12 lg:h-10"
-          )}
+          className="absolute bottom-0 left-0 right-0 z-20 h-12 lg:h-10"
+          style={{ background: "var(--ink)", borderTop: "1px solid var(--line)" }}
           role="navigation"
           aria-label="Career token stream"
         >
           {/* Fade gradients on edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-6 lg:w-8 bg-gradient-to-r from-ctp-mantle to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-6 lg:w-8 bg-gradient-to-l from-ctp-mantle to-transparent z-10 pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-0 w-6 lg:w-8 z-10 pointer-events-none" style={{ background: "linear-gradient(to right, var(--ink), transparent)" }} />
+          <div className="absolute right-0 top-0 bottom-0 w-6 lg:w-8 z-10 pointer-events-none" style={{ background: "linear-gradient(to left, var(--ink), transparent)" }} />
 
           {isDesktop ? (
             /* ── Desktop: scrollable container ───────────────────── */
@@ -432,7 +430,7 @@ export function TokenStream({ activeSlug, visible = true }: TokenStreamProps) {
               ref={scrollRef}
               className="h-full flex items-center gap-0.5 px-6 overflow-x-auto scrollbar-hidden"
             >
-              <span className="text-ctp-overlay0 text-[10px] font-mono shrink-0 mr-2 select-none">
+              <span className="text-[10px] font-mono shrink-0 mr-2 select-none" style={{ color: "var(--text-faint)" }}>
                 STREAM
               </span>
               {tokenElements}
@@ -440,7 +438,7 @@ export function TokenStream({ activeSlug, visible = true }: TokenStreamProps) {
           ) : (
             /* ── Mobile: physics-based drift stream ─────────────── */
             <DriftStream activeIndex={activeIndex}>
-              <span className="text-ctp-overlay0 text-[10px] font-mono shrink-0 mr-2 select-none">
+              <span className="text-[10px] font-mono shrink-0 mr-2 select-none" style={{ color: "var(--text-faint)" }}>
                 STREAM
               </span>
               {tokenElements}

@@ -1,0 +1,13 @@
+---
+summary: "Polyglot Module Federation, scaffolded and self-healing."
+---
+
+A framework for production microfrontend architectures where every MFE can run a different framework — React, Svelte, Vue, Angular, Lit — while the system stays coherent at runtime.
+
+MFKit ships as a monorepo of packages. @mfkit/plugin-api is the stable TypeScript contract every layer implements. @mfkit/kit holds the runtime, Vite config generation, self-healing primitives, and the MFKitOutlet component. @mfkit/codemods handles upgrades, create-mfkit scaffolds new work, and per-framework template packages supply the starting points.
+
+Five principles hold the design together. Convention with smart inference rather than enforcement — detect, propose, apply. Every layer pluggable, with the plugin API locked so everything behind it can iterate freely. Self-healing at runtime: boundaries, retries, quarantine, last-known-good cache. Templates as first-class objects, reusable and versioned, resolvable from npm, git, or a local path. And AI tooling as tier-1, with skills, agents, and MCPs shipping alongside the scaffold.
+
+Module Federation solves loading, not operating. The hard parts are what happens when one team's MFE breaks in production, when frameworks diverge, and when a new team needs to stand up an MFE without reverse-engineering the shell. MFKit is the layer that handles those.
+
+Currently alpha, Phase 1 — the plugin API is unstable until v0.1. MIT licensed, Node 20 or newer, pnpm 10 or newer.

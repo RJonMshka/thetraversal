@@ -99,11 +99,12 @@ function MobileTreeNode({ node, mode, depth }: MobileTreeNodeProps) {
           "group flex items-center gap-2 py-2.5 px-3 rounded-md",
           "border-l-2 transition-colors duration-150",
           glow.border,
-          isVisited
-            ? "bg-ctp-surface0/30"
-            : "hover:bg-ctp-surface0/40 active:bg-ctp-surface0/60"
+          isVisited ? "" : "hover:bg-white/[0.03] active:bg-white/[0.06]"
         )}
-        style={{ marginLeft: `${depth * 16}px` }}
+        style={{
+          marginLeft: `${depth * 16}px`,
+          background: isVisited ? "rgba(255,255,255,0.03)" : undefined,
+        }}
       >
         {/* Expand/collapse chevron */}
         {hasChildren ? (
@@ -131,16 +132,26 @@ function MobileTreeNode({ node, mode, depth }: MobileTreeNodeProps) {
           </span>
         )}
 
-        {/* Type badge pill */}
-        <span
-          className={cn(
-            "shrink-0 text-[10px] font-mono leading-none px-1.5 py-0.5 rounded",
-            "bg-ctp-surface0 text-ctp-overlay2",
-            "select-none"
-          )}
-        >
-          {typeAbbrev}
-        </span>
+        {/* Type badge — only shown in lex/parse mode; eval shows human labels only */}
+        {mode !== "eval" && (
+          <span
+            style={{
+              fontFamily: "var(--mono)",
+              fontSize: 10,
+              lineHeight: 1,
+              padding: "2px 6px",
+              borderRadius: 3,
+              background: "var(--ink-3)",
+              border: "1px solid var(--line-2)",
+              color: "var(--text-faint)",
+              userSelect: "none",
+              flexShrink: 0,
+              letterSpacing: "0.04em",
+            }}
+          >
+            {typeAbbrev}
+          </span>
+        )}
 
         {/* Label — links to node detail page */}
         <Link

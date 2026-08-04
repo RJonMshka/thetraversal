@@ -1,51 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { ASTNode } from "@/lib/ast-types";
 
 interface SkillNodeProps {
   node: ASTNode;
-}
-
-// ── Skill bar component ────────────────────────────────────────────────
-interface SkillBarProps {
-  name: string;
-  proficiency: number;
-  years: number;
-}
-
-function SkillBar({ name, proficiency, years }: SkillBarProps) {
-  return (
-    <div className="group space-y-1.5">
-      <div className="flex items-center justify-between text-sm font-mono">
-        <span className="text-ctp-text">{name}</span>
-        <span className="text-ctp-overlay0 text-xs">
-          {proficiency}% · {years}y
-        </span>
-      </div>
-      <div className="h-2 rounded-full bg-ctp-surface0 overflow-hidden">
-        <div
-          className="h-full rounded-full bg-ctp-mauve/80 transition-all duration-700 ease-out group-hover:bg-ctp-mauve"
-          style={{ width: `${proficiency}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-// ── Parse proficiency from content summary ─────────────────────────────
-function parseSkillData(child: ASTNode): SkillBarProps | null {
-  if (!child.content?.summary) return null;
-
-  // Pattern: "92% proficiency · 4 years"
-  const match = child.content.summary.match(/(\d+)%\s*proficiency\s*·\s*(\d+)\s*year/);
-  if (!match) return null;
-
-  return {
-    name: child.label,
-    proficiency: parseInt(match[1], 10),
-    years: parseInt(match[2], 10),
-  };
 }
 
 export function SkillNode({ node }: SkillNodeProps) {
@@ -84,14 +44,28 @@ export function SkillNode({ node }: SkillNodeProps) {
         </div>
       )}
 
-      {/* Skill bars */}
+      {/* Keys of the object expression — each one traversable */}
       {children.length > 0 && (
-        <div className="pl-6 space-y-4">
-          {children.map((child) => {
-            const data = parseSkillData(child);
-            if (!data) return null;
-            return <SkillBar key={child.id} {...data} />;
-          })}
+        <div className="pl-6 space-y-3">
+          <span className="text-xs font-mono text-ctp-overlay0">
+            {`// ${children.length} keys`}
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {children.map((child) => (
+              <Link
+                key={child.id}
+                href={`/node/${child.slug}`}
+                className={cn(
+                  "px-2.5 py-1 text-xs font-mono rounded",
+                  "bg-ctp-surface0 text-ctp-mauve/90 border border-ctp-mauve/20",
+                  "hover:border-ctp-mauve/50 hover:text-ctp-mauve hover:bg-ctp-surface1",
+                  "transition-colors duration-200",
+                )}
+              >
+                {child.label}
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 

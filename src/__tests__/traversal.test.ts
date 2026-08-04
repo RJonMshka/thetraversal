@@ -9,6 +9,7 @@ import {
   getMaxDepth,
 } from "@/lib/traversal";
 import { getAST } from "@/data";
+import { PROJECT_REGISTRY } from "@/data/projects";
 import type { ASTNode } from "@/lib/ast-types";
 
 // Use the data access layer instead of direct import
@@ -76,14 +77,14 @@ describe("findNode", () => {
 describe("getChildren", () => {
   it("returns children of the root node", () => {
     const children = getChildren(PORTFOLIO_AST, "root");
-    expect(children.length).toBe(6); // identity, projects, skills, timeline, philosophy, connect
+    // identity, projects, research, skills, timeline, philosophy, connect
+    expect(children.length).toBe(7);
   });
 
-  it("returns project nodes", () => {
+  it("returns only published project nodes", () => {
     const children = getChildren(PORTFOLIO_AST, "projects");
-    expect(children.length).toBe(4); // 4 projects
-    expect(children.map((c) => c.id)).toContain("resumind");
-    expect(children.map((c) => c.id)).toContain("clause");
+    const ids = children.map((c) => c.id);
+    expect(ids).toEqual(["reachble", "mfkit", "resumind", "thetraversal"]);
   });
 
   it("returns empty array for leaf node", () => {
@@ -295,6 +296,30 @@ describe("PORTFOLIO_AST data integrity", () => {
     const flat = flatten(PORTFOLIO_AST);
     flat.forEach((node) => {
       expect(node.slug.length).toBeGreaterThan(0);
+    });
+  });
+
+  // CONTENT-v2 §0: an unpublished project must not render, link, or appear
+  // anywhere in the tree — including as a stale slug someone can deep-link to.
+  it("no unpublished project reaches the tree", () => {
+    const slugs = new Set(flatten(PORTFOLIO_AST).map((n) => n.slug));
+    const leaked = PROJECT_REGISTRY.filter(
+      (entry) => !entry.publish && slugs.has(entry.node.slug)
+    ).map((entry) => entry.node.slug);
+
+    expect(leaked).toEqual([]);
+  });
+
+  it("every published project links to a public artifact", () => {
+    const published = PROJECT_REGISTRY.filter((entry) => entry.publish);
+    expect(published.length).toBeGreaterThan(0);
+
+    published.forEach((entry) => {
+      const links = entry.node.meta?.links ?? [];
+      expect(links.length).toBeGreaterThan(0);
+      links.forEach((link) => {
+        expect(link.url).toMatch(/^https:\/\//);
+      });
     });
   });
 
