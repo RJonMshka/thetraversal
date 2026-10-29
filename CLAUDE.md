@@ -11,7 +11,7 @@ The medium is the message: the site is a compiler. Content is the source, `packa
 ## 2. Current phase
 
 ```
-PHASE: 0  (baseline, single Next.js app at repo root)
+PHASE: 0 complete  (baseline recorded in architecture/baseline.md; single Next.js app at repo root; next: Phase 1)
 ```
 
 The repo moves toward the end-state layout one phase at a time. **Only the structure for completed phases exists.** Do not create folders for a later phase unless the task is that phase. Phase definitions and exit criteria: `architecture/MIGRATION.md`.

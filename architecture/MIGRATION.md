@@ -19,9 +19,9 @@ Each phase has a **prompt for Claude Code** you can paste to start it.
 Steps
 - [x] Add `CLAUDE.md` at repo root. Replace `AGENTS.md` content with a single line: `See CLAUDE.md.` (keeps other agents pointed at one source).
 - [x] Add `architecture/` with HLD, LLDs, and this file.
-- [ ] Install Playwright as a dev dependency. Add `e2e/parity.spec.ts` capturing screenshots of: `/`, `/tree?mode=lex`, `/tree?mode=parse`, `/tree?mode=eval`, `/node/reachble`, `/node/rewiring-the-interface`, `/node/timeline-0`, at 1440×900 and 390×844, in the `mint` and `paper` themes. Disable animations for capture (`prefers-reduced-motion: reduce` + `animations: "disabled"`).
-- [ ] Record baselines in `architecture/baseline.md`: first-load JS per route from `next build` output, Lighthouse scores for `/` and `/node/reachble`, number of statically generated `/node/*` pages.
-- [ ] Add a `pnpm e2e` script.
+- [x] Install Playwright as a dev dependency. Add `e2e/parity.spec.ts` capturing screenshots of: `/`, `/tree?mode=lex`, `/tree?mode=parse`, `/tree?mode=eval`, `/node/reachble`, `/node/rewiring-the-interface`, `/node/timeline-0`, at 1440×900 and 390×844, in the `mint` and `paper` themes. Disable animations for capture (`prefers-reduced-motion: reduce` + `animations: "disabled"`).
+- [x] Record baselines in `architecture/baseline.md`: first-load JS per route from `next build` output, Lighthouse scores for `/` and `/node/reachble`, number of statically generated `/node/*` pages.
+- [x] Add a `pnpm e2e` script.
 
 Exit criteria
 - Parity snapshots committed and passing against the current build.
