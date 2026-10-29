@@ -49,7 +49,7 @@ Breaking any of these breaks the project.
 - Never use relative `../../` imports inside a workspace. Use `@/` inside `apps/shell`, package names (`@tv/ir`) across workspaces.
 
 **Files you do not touch**
-- `apps/shell/src/content/**/*.mdx` (later `content/mdx/**`): essay and node prose. Only edit when the task is explicitly a content change from Rajat.
+- `content/mdx/**/*.mdx`: essay and node prose. Only edit when the task is explicitly a content change from Rajat.
 - `apps/shell/public/resume/*`: download artifacts.
 - `docs/*`: local, gitignored editorial notes. Read `docs/CONTENT-v2.md` only when the task is a content sync.
 - `pnpm-lock.yaml` by hand.

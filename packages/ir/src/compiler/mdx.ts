@@ -19,7 +19,7 @@ export interface Frontmatter {
 
 const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 
-/** Splits `key: "value"` frontmatter (the only form the content uses). */
+/** Splits flat `key: value` frontmatter (plain, "double" or 'single' quoted). */
 export function splitFrontmatter(raw: string): { data: Frontmatter; content: string } {
   const match = FRONTMATTER.exec(raw);
   if (!match) return { data: {}, content: raw };
@@ -28,7 +28,11 @@ export function splitFrontmatter(raw: string): { data: Frontmatter; content: str
     const kv = /^([A-Za-z_][\w-]*):\s*(.*)$/.exec(line);
     if (!kv) continue;
     const value = kv[2].trim();
-    data[kv[1]] = value.startsWith('"') ? (JSON.parse(value) as string) : value;
+    data[kv[1]] = value.startsWith('"')
+      ? (JSON.parse(value) as string)
+      : value.startsWith("'")
+        ? value.slice(1, -1).replace(/''/g, "'")
+        : value;
   }
   return { data, content: raw.slice(match[0].length) };
 }

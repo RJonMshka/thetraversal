@@ -2,10 +2,11 @@ import fs from "fs/promises";
 import path from "path";
 
 // ── MDX content loader ─────────────────────────────────────────────────
-// Reads raw MDX from src/content/{slug}.mdx. Runs server-side only.
+// Reads raw MDX from content/mdx/essays/{slug}.mdx. Runs server-side only.
 // Returns null if the file doesn't exist (graceful fallback).
 
-const CONTENT_DIR = path.join(process.cwd(), "src", "content");
+// process.cwd() is apps/shell during next build and dev.
+const CONTENT_DIR = path.join(process.cwd(), "..", "..", "content", "mdx", "essays");
 
 /**
  * Load the raw MDX source for a given slug.

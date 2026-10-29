@@ -3,7 +3,7 @@ import path from "path";
 import matter from "gray-matter";
 
 // ── Node Content Loader ────────────────────────────────────────────────
-// Server-only content loader. Reads MDX files from src/content/nodes/
+// Server-only content loader. Reads MDX files from content/mdx/nodes/
 // and parses frontmatter for summary + body. Falls back to null if
 // the file doesn't exist — callers should fall back to the inline
 // content from the data layer.
@@ -11,7 +11,8 @@ import matter from "gray-matter";
 // This module is the canonical way to load node prose. Data files hold
 // fallback strings; MDX holds the real content; renderers prefer MDX.
 
-const CONTENT_DIR = path.join(process.cwd(), "src", "content");
+// process.cwd() is apps/shell during next build and dev.
+const CONTENT_DIR = path.join(process.cwd(), "..", "..", "content", "mdx");
 
 export interface NodeContent {
   summary: string;
@@ -21,7 +22,7 @@ export interface NodeContent {
 
 /**
  * Load content for a given node slug.
- * Looks in src/content/nodes/{slug}.mdx.
+ * Looks in content/mdx/nodes/{slug}.mdx.
  * Returns null if not found — caller should use inline content.
  */
 export async function loadNodeContent(
@@ -44,7 +45,7 @@ export async function loadNodeContent(
 
 /**
  * Load UI copy by key.
- * Looks in src/content/ui/{key}.mdx.
+ * Looks in content/mdx/ui/{key}.mdx.
  */
 export async function loadUICopy(key: string): Promise<string | null> {
   const filePath = path.join(CONTENT_DIR, "ui", `${key}.mdx`);
