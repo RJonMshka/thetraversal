@@ -30,11 +30,7 @@ for (const theme of THEMES) {
         await page.waitForLoadState("networkidle");
         await page.evaluate(() => document.fonts.ready);
 
-        await expect(page).toHaveScreenshot(`${route.name}-${theme}.png`, {
-          fullPage: true,
-          // The token stream drifts on a rAF loop that ignores reduced motion.
-          mask: [page.locator('[aria-label="Career token stream"]')],
-        });
+        await expect(page).toHaveScreenshot(`${route.name}-${theme}.png`, { fullPage: true });
       });
     }
   });

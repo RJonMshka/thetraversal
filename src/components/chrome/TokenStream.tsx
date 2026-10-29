@@ -151,6 +151,16 @@ function DriftStream({
   useEffect(() => {
     let lastTime = performance.now();
 
+    // Reduced motion: no drift, no fling, no breathing; snaps are instant.
+    // Dragging still moves the stream because the user drives it directly.
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reduceMotion = motionQuery.matches;
+    const onMotionChange = (e: MediaQueryListEvent) => {
+      reduceMotion = e.matches;
+      if (reduceMotion) setWavePhase(0);
+    };
+    motionQuery.addEventListener("change", onMotionChange);
+
     function tick(now: number) {
       const dt = Math.min(now - lastTime, 32); // cap at ~30fps min
       lastTime = now;
@@ -175,8 +185,8 @@ function DriftStream({
         const target = targetOffsetRef.current;
         const diff = target - offsetRef.current;
 
-        // If close enough, snap and resume drift
-        if (Math.abs(diff) < 0.5) {
+        // If close enough (or motion is reduced), snap and resume drift
+        if (reduceMotion || Math.abs(diff) < 0.5) {
           offsetRef.current = target;
           targetOffsetRef.current = null;
           velocityRef.current = 0;
@@ -186,6 +196,8 @@ function DriftStream({
         }
       } else if (isDragging.current) {
         // User is swiping — no auto-movement
+      } else if (reduceMotion) {
+        velocityRef.current = 0;
       } else {
         // Apply residual velocity from fling
         if (Math.abs(velocityRef.current) > 0.1) {
@@ -208,13 +220,16 @@ function DriftStream({
       inner.style.transform = `translateX(${-offsetRef.current}px)`;
 
       // Update wave phase for opacity breathing (slow)
-      setWavePhase((now / 2000) % (Math.PI * 2));
+      if (!reduceMotion) setWavePhase((now / 2000) % (Math.PI * 2));
 
       rafRef.current = requestAnimationFrame(tick);
     }
 
     rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      motionQuery.removeEventListener("change", onMotionChange);
+    };
   }, []);
 
   // When activeIndex changes, snap to center it
