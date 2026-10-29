@@ -234,6 +234,8 @@ it("IR projected to AST equals the legacy tree", () => {
 });
 ```
 
+After the golden test passed (commit `41286ae`), the legacy registries were deleted and the test became projection invariants: every entity projected once with slug = id, `contains` order kept, label/summary/excerpt carried over, glow is a theme token and sections glow like their first child, and the `@/data` facade serves the same tree.
+
 No stripping: the inline `content.body` is kept as `Entity.excerpt` and projected back, so the client tree is unchanged and the comparison is full equality. Any glow, type, or text mismatch shows up here as a precise diff. Resolve each by fixing the projection table, not by special-casing ids. If a mismatch is genuinely per-entity (for example one project deliberately glows differently), add a semantic `accent` field to `Entity` rather than a hex or token name.
 
 ## 9. Versioning
