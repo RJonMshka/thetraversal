@@ -156,3 +156,12 @@ Same failing audits as "Phase 0 fixes": `color-contrast`, `largest-contentful-pa
 - Lockfile: the only resolved-version change is the shell's direct `@eslint/eslintrc` (3.3.5 → 3.3.7, deduped with ESLint's copy; dev-only, not imported by the ESLint config). Turbo was added.
 - Coverage moved: `e2e/`, `playwright.config.ts` and `scripts/` stay at the root, so they are no longer linted (`eslint .` runs in `apps/shell`) or type-checked by `tsc`. Playwright still compiles the spec when it runs.
 - Vercel cutover (root directory `apps/shell`) not done yet; the production-deploy exit criterion is still open.
+
+### Vercel preview (2026-10-29)
+
+Temporary Vercel project built from `platform/phase-1` with root directory `apps/shell`: https://thetraversal-phase1.vercel.app. Compared against production (https://thetraversal.vercel.app, built from `main` at `1803dc4`).
+
+- Status codes and response sizes match for `/`, `/tree`, `/tree?mode=lex`, three `/node/*` pages, `/robots.txt`, `/sitemap.xml`, `/opengraph-image`, a 404 page, and the `/resume/` redirect. Both resume files match the local copies byte for byte.
+- HTML of all 114 sitemap URLs is identical once hashed asset names, Turbopack module ids and the build id are normalized. The one exception is the Phase 0 lint fix on `/`: the terminal input now has `role="combobox"` and `aria-controls`. That commit (`4c41b74`) is on this branch but not on `main`, so the difference is expected.
+- `PARITY_BASE_URL=https://thetraversal-phase1.vercel.app pnpm exec playwright test`: 28 parity snapshots passed. `playwright.config.ts` now accepts `PARITY_BASE_URL` to run against a deployed site and skips the local web server when it is set.
+- Pre-existing on both deploys, not caused by Phase 1: `/opengraph-image` returns 200 with an empty body (0 bytes), and `/favicon.ico` is 404 (`/favicon.svg` is served).
