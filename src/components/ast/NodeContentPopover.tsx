@@ -117,7 +117,7 @@ export function NodeContentPopover({
           height={800 / transform.k} // large enough; content clips naturally
           style={{ overflow: "visible", pointerEvents: "none" }}
         >
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- required for foreignObject HTML child in SVG */}
+          {/* `any`: React's div props don't include xmlns, which an HTML child of an SVG foreignObject needs. */}
           <div {...({ xmlns: "http://www.w3.org/1999/xhtml" } as any)}>
             <motion.div
               initial={{ opacity: 0, scale: 0.92, y: -4 }}

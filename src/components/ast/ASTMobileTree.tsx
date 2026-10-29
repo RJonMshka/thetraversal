@@ -90,6 +90,7 @@ function MobileTreeNode({ node, mode, depth }: MobileTreeNodeProps) {
   return (
     <div
       role="treeitem"
+      aria-selected={false}
       aria-expanded={hasChildren ? isExpanded : undefined}
       aria-label={`${node.type}: ${node.label}${isVisited ? ", visited" : ""}`}
     >

@@ -102,6 +102,9 @@ function findFirstChildSlug(
 // at its screen position. The visitor's zoom level is sacred; we never
 // change it programmatically.
 
+// Stable empty list so pre-hydration renders don't change hook dependencies.
+const NO_EXPANDED_NODES: string[] = [];
+
 export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
   const ast = getAST();
   const router = useRouter();
@@ -110,14 +113,17 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [focusedNodeSlug, setFocusedNodeSlug] = useState<string | null>(null);
   const [transform, setTransform] = useState({ x: 0, y: 0, k: 1 });
-  const [hasInitialized, setHasInitialized] = useState(false);
+  // Guards the one-time zoom-to-fit; never rendered, so a ref is enough.
+  const hasInitializedRef = useRef(false);
 
 
   // ── Refs for stable access without stale closures ────────────────────
   // transformRef always holds the latest transform value, accessible from
   // callbacks and effects without adding transform to dependency arrays.
   const transformRef = useRef(transform);
-  transformRef.current = transform;
+  useLayoutEffect(() => {
+    transformRef.current = transform;
+  }, [transform]);
 
   // Snapshot of where the clicked node was *before* layout recalculation.
   // Stored as a ref because it's imperative state that bridges two events
@@ -137,7 +143,7 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
   const rawIsVisited = useTraversalState((s) => s.isVisited);
 
   // Before hydration, render with empty state (matches SSR output)
-  const expandedNodes = hasHydrated ? rawExpandedNodes : [];
+  const expandedNodes = hasHydrated ? rawExpandedNodes : NO_EXPANDED_NODES;
   const isVisited = hasHydrated
     ? rawIsVisited
     : () => false;
@@ -330,7 +336,7 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
   // This ensures we fit the tree with the correct expanded state from
   // sessionStorage, not the empty default state from SSR.
   useEffect(() => {
-    if (hasInitialized || nodes.length === 0 || !hasHydrated) return;
+    if (hasInitializedRef.current || nodes.length === 0 || !hasHydrated) return;
 
     const svg = svgRef.current;
     const zoomBehavior = zoomRef.current;
@@ -350,8 +356,8 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
       zoomIdentity.translate(translateX, translateY).scale(scale)
     );
 
-    setHasInitialized(true);
-  }, [dimensions, nodes.length, hasInitialized, hasHydrated]);
+    hasInitializedRef.current = true;
+  }, [dimensions, nodes.length, hasHydrated]);
 
   // ── Stabilize viewport after expand/collapse ─────────────────────────
   // When a node is expanded/collapsed, D3 recalculates the entire tree

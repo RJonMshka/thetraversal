@@ -86,8 +86,13 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
   useEffect(() => {
     if (!isActive) return;
 
-    setPhase("lex");
-    setLexTokens(generateLexTokens());
+    // Start on the next tick so the effect itself never sets state synchronously.
+    const lexTimer = setTimeout(() => {
+      setVisibleParseNodes(0);
+      setVisibleEvalLines(0);
+      setLexTokens(generateLexTokens());
+      setPhase("lex");
+    }, 0);
 
     // lex -> parse transition (was 1500, now 800)
     const parseTimer = setTimeout(() => {
@@ -104,7 +109,7 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
       setPhase("done");
     }, 2800);
 
-    timersRef.current = [parseTimer, evalTimer, doneTimer];
+    timersRef.current = [lexTimer, parseTimer, evalTimer, doneTimer];
 
     return () => {
       for (const t of timersRef.current) clearTimeout(t);
@@ -116,12 +121,11 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
   useEffect(() => {
     if (phase !== "parse") return;
 
-    setVisibleParseNodes(0);
     const intervals: NodeJS.Timeout[] = [];
 
     PARSE_NODES.forEach((_, i) => {
       const timer = setTimeout(() => {
-        setVisibleParseNodes((prev) => prev + 1);
+        setVisibleParseNodes(i + 1);
       }, i * 100); // Was 200, now 100
       intervals.push(timer);
     });
@@ -135,12 +139,11 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
   useEffect(() => {
     if (phase !== "eval") return;
 
-    setVisibleEvalLines(0);
     const intervals: NodeJS.Timeout[] = [];
 
     EVAL_LINES.forEach((_, i) => {
       const timer = setTimeout(() => {
-        setVisibleEvalLines((prev) => prev + 1);
+        setVisibleEvalLines(i + 1);
       }, i * 150); // Was 300, now 150
       intervals.push(timer);
     });

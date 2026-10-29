@@ -51,6 +51,8 @@ function TreePageInner() {
     }
   }, [hasHydrated, validUrlMode, storeMode, router]);
 
+  const [selectedNodeSlug, setSelectedNodeSlug] = useState<string | null>(null);
+
   const handleModeChange = useCallback(
     (mode: TraversalMode) => {
       setStoreMode(mode);
@@ -72,7 +74,6 @@ function TreePageInner() {
   const closeContext = useCallback(() => setContextOpen(false), []);
 
   // ── Node inspector state ───────────────────────────────────────────
-  const [selectedNodeSlug, setSelectedNodeSlug] = useState<string | null>(null);
   const handleNodeSelect = useCallback((slug: string | null) => {
     setSelectedNodeSlug(slug);
     if (slug) setContextOpen(false);

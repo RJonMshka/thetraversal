@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useLayoutEffect } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import type { LayoutEdge } from "@/hooks/useASTLayout";
 import { HEADER_SECTION_HEIGHT } from "@/lib/node-dimensions";
@@ -29,10 +29,7 @@ const springConfig = { stiffness: 170, damping: 28, mass: 1, restDelta: 0.01, re
 // keeping edges attached to their nodes as the tree reshapes.
 
 export function ASTEdge({ edge, isHighlighted }: ASTEdgeProps) {
-  const isFirstRender = useRef(true);
-
   // Spring-animated coordinates — edges track node positions smoothly.
-  // On first render, snap to position (no spring). After that, spring.
   const sourceX = useSpring(edge.sourceX, springConfig);
   const sourceYRaw = useSpring(edge.sourceY, springConfig);
   const targetX = useSpring(edge.targetX, springConfig);
@@ -53,20 +50,14 @@ export function ASTEdge({ edge, isHighlighted }: ASTEdgeProps) {
       `M ${sx} ${sy} C ${sx} ${my}, ${tx} ${my}, ${tx} ${ty}`
   );
 
-  // Update spring targets when edge coordinates change.
-  // On first render, jump instantly so entering edges don't spring from 0,0.
-  if (isFirstRender.current) {
-    sourceX.jump(edge.sourceX);
-    sourceYRaw.jump(edge.sourceY);
-    targetX.jump(edge.targetX);
-    targetYRaw.jump(edge.targetY);
-    isFirstRender.current = false;
-  } else {
+  // Update spring targets when edge coordinates change. useSpring starts at
+  // the initial coordinates, so entering edges don't spring from 0,0.
+  useLayoutEffect(() => {
     sourceX.set(edge.sourceX);
     sourceYRaw.set(edge.sourceY);
     targetX.set(edge.targetX);
     targetYRaw.set(edge.targetY);
-  }
+  }, [edge.sourceX, edge.sourceY, edge.targetX, edge.targetY, sourceX, sourceYRaw, targetX, targetYRaw]);
 
   return (
     <motion.path

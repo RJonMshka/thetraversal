@@ -111,7 +111,7 @@ export function ASTEvalView() {
         }}
       >
         <div className="tv-tag" style={{ marginBottom: 10 }}>
-          // hello
+          {"// hello"}
         </div>
         <div
           style={{

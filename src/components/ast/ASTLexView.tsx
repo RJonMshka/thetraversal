@@ -79,7 +79,7 @@ export function ASTLexView() {
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <div className="tv-tag" style={{ marginBottom: 6 }}>
-          // lex · portfolio as token stream
+          {"// lex · portfolio as token stream"}
         </div>
         <div style={{ fontSize: 10, color: "var(--text-faint)" }}>
           {nodes.length} tokens · click any to open

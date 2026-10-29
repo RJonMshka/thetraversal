@@ -69,7 +69,7 @@ function KonamiOverlay() {
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
           >
             <div className="text-xs font-mono text-ctp-yellow/80 bg-ctp-crust/90 px-4 py-2 rounded-lg border border-ctp-yellow/20">
-              // Clause mode activated for 10s
+              {"// Clause mode activated for 10s"}
             </div>
           </motion.div>
         </motion.div>

@@ -5,7 +5,7 @@ export default function NotFound() {
     <main className="flex flex-col items-center justify-center min-h-screen bg-ctp-base text-ctp-text font-mono px-4">
       <div className="text-center max-w-md">
         <p className="text-ctp-overlay2 text-xs tracking-wider uppercase mb-4">
-          // ReferenceError
+          {"// ReferenceError"}
         </p>
         <h1 className="text-2xl font-semibold text-ctp-red mb-2">
           Node Not Found

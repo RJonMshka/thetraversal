@@ -49,7 +49,7 @@ function TreeSneakPeek() {
     <div className="tv-card" style={{ padding: 18, overflow: "hidden" }}>
       {/* Header */}
       <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
-        <span className="tv-tag">// preview · /tree</span>
+        <span className="tv-tag">{"// preview · /tree"}</span>
         <span
           style={{
             fontSize: 10,
@@ -234,7 +234,7 @@ export default function LandingPage() {
           {/* Left column: identity + REPL */}
           <div>
             <div className="tv-tag" style={{ marginBottom: 18 }}>
-              // node[0] · root
+              {"// node[0] · root"}
             </div>
 
             <h1

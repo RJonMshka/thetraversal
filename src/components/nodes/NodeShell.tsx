@@ -102,7 +102,7 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
         <div style={{ maxWidth: "64rem", margin: "0 auto", padding: "0 24px 80px" }}>
           <div style={{ borderTop: "1px solid var(--line)", paddingTop: 32 }}>
             <div className="tv-tag" style={{ marginBottom: 16 }}>
-              // children ({node.children.length})
+              {"// children ("}{node.children.length}{")"}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {node.children.map((child) => (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useId } from "react";
 import { useRouter } from "next/navigation";
 import { getEasterEgg, isNavigationCommand, type EasterEggResult } from "@/lib/easter-eggs";
 import {
@@ -63,6 +63,7 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
   const router = useRouter();
 
   // Core state
+  const listboxId = useId();
   const [input, setInput] = useState("");
   const [cursorPos, setCursorPos] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -437,7 +438,9 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck={false}
+                role="combobox"
                 aria-label="Terminal input"
+                aria-controls={listboxId}
                 aria-autocomplete={dropdownOpen ? "list" : "none"}
                 aria-expanded={dropdownOpen}
               />
@@ -467,6 +470,7 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
           {/* Autocomplete dropdown — flush against prompt, visually one widget */}
           {dropdownOpen && (
             <div
+              id={listboxId}
               role="listbox"
               style={{
                 background: "var(--ink-2)",
