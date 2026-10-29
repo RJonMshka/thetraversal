@@ -11,8 +11,8 @@ The medium is the message: the site is a compiler. Content is the source, `packa
 ## 2. Current phase
 
 ```
-PHASE: 1 in progress  (monorepo done: app lives in apps/shell as @tv/shell, pnpm workspace + Turborepo at root;
-          local exit checks pass, see architecture/baseline.md "Phase 1"; remaining: Vercel root directory cutover)
+PHASE: 1 complete  (app lives in apps/shell as @tv/shell, pnpm workspace + Turborepo at root;
+          production deploys from apps/shell, see architecture/baseline.md "Phase 1"). Next: Phase 2.
 ```
 
 The repo moves toward the end-state layout one phase at a time. **Only the structure for completed phases exists.** Do not create folders for a later phase unless the task is that phase. Phase definitions and exit criteria: `architecture/MIGRATION.md`.

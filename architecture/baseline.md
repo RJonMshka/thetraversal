@@ -155,7 +155,7 @@ Same failing audits as "Phase 0 fixes": `color-contrast`, `largest-contentful-pa
 - `pnpm-workspace.yaml` publicly hoists `@types/react` and `@types/react-dom`. Without it, Next's own type definitions (resolved from `node_modules/.pnpm`) cannot find React types, and React event handler params in the shell become implicit `any`, which fails the build.
 - Lockfile: the only resolved-version change is the shell's direct `@eslint/eslintrc` (3.3.5 → 3.3.7, deduped with ESLint's copy; dev-only, not imported by the ESLint config). Turbo was added.
 - Coverage moved: `e2e/`, `playwright.config.ts` and `scripts/` stay at the root, so they are no longer linted (`eslint .` runs in `apps/shell`) or type-checked by `tsc`. Playwright still compiles the spec when it runs.
-- Vercel cutover (root directory `apps/shell`) not done yet; the production-deploy exit criterion is still open.
+- Vercel cutover: done, see "Production cutover" below.
 
 ### Vercel preview (2026-10-29)
 
@@ -165,3 +165,13 @@ Temporary Vercel project built from `platform/phase-1` with root directory `apps
 - HTML of all 114 sitemap URLs is identical once hashed asset names, Turbopack module ids and the build id are normalized. The one exception is the Phase 0 lint fix on `/`: the terminal input now has `role="combobox"` and `aria-controls`. That commit (`4c41b74`) is on this branch but not on `main`, so the difference is expected.
 - `PARITY_BASE_URL=https://thetraversal-phase1.vercel.app pnpm exec playwright test`: 28 parity snapshots passed. `playwright.config.ts` now accepts `PARITY_BASE_URL` to run against a deployed site and skips the local web server when it is set.
 - Pre-existing on both deploys, not caused by Phase 1: `/opengraph-image` returns 200 with an empty body (0 bytes), and `/favicon.ico` is 404 (`/favicon.svg` is served).
+
+### Production cutover (2026-10-29)
+
+The production project (`thetraversal`) now has root directory `apps/shell` and is connected to GitHub, so pushes to `main` deploy it. Before this it was deployed with the Vercel CLI and had no Git integration. Deployed commit: `50125c6` (merge of `platform/phase-1`).
+
+- https://thetraversal.vercel.app serves the same status codes and sizes as the preview for every route checked, including both resume files.
+- HTML of all 114 sitemap URLs is identical to the preview after normalizing hashes, module ids and the build id.
+- `PARITY_BASE_URL=https://thetraversal.vercel.app pnpm exec playwright test`: 28 parity snapshots passed.
+
+All Phase 1 exit criteria are met. The temporary `thetraversal-phase1` project is still connected to the repo and can be deleted.

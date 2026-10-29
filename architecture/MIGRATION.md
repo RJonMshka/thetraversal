@@ -43,9 +43,9 @@ Steps
 - [x] Remove the stray `.DS_Store` files and add `.DS_Store` to `.gitignore`.
 - [x] Regenerate the lockfile with `pnpm install` from root.
 - [x] Move `e2e/` to `apps/shell/e2e/` or keep at root with a Playwright config that starts `@tv/shell`. Pick root; it will test the whole platform later.
-- [ ] Vercel: create a temporary project from the branch with root directory `apps/shell`. Confirm deploy and parity against it. At merge time, change the production project's root directory to `apps/shell`, then merge.
+- [x] Vercel: create a temporary project from the branch with root directory `apps/shell`. Confirm deploy and parity against it. At merge time, change the production project's root directory to `apps/shell`, then merge.
   - [x] Temporary project deployed (https://thetraversal-phase1.vercel.app); routes, HTML and 28 parity snapshots match (baseline.md "Vercel preview").
-  - [ ] Production project root directory set to `apps/shell`, branch merged, production verified.
+  - [x] Production project root directory set to `apps/shell`, branch merged, production verified (baseline.md "Production cutover").
 
 Exit criteria
 - `pnpm build` from root produces the same route table and first-load sizes as baseline (±1 KB).
