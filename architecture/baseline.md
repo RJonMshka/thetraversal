@@ -165,6 +165,7 @@ Temporary Vercel project built from `platform/phase-1` with root directory `apps
 - HTML of all 114 sitemap URLs is identical once hashed asset names, Turbopack module ids and the build id are normalized. The one exception is the Phase 0 lint fix on `/`: the terminal input now has `role="combobox"` and `aria-controls`. That commit (`4c41b74`) is on this branch but not on `main`, so the difference is expected.
 - `PARITY_BASE_URL=https://thetraversal-phase1.vercel.app pnpm exec playwright test`: 28 parity snapshots passed. `playwright.config.ts` now accepts `PARITY_BASE_URL` to run against a deployed site and skips the local web server when it is set.
 - Pre-existing on both deploys, not caused by Phase 1: `/opengraph-image` returns 200 with an empty body (0 bytes), and `/favicon.ico` is 404 (`/favicon.svg` is served).
+  - Fixed after Phase 1: the empty OG body was a satori error (a multi-child `<div>` without `display: flex`). `/opengraph-image` and the new per-node `/node/[slug]/opengraph-image` are now static, rendered at build by `apps/shell/src/lib/og/card.tsx` on the Node runtime. `public/` now has `favicon.ico` (16/32/48) and `apple-touch-icon.png`, both rasterized from `favicon.svg`.
 
 ### Production cutover (2026-10-29)
 

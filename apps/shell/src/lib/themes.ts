@@ -11,6 +11,10 @@ export const THEMES = {
   sun:    { bg: '#fbf3e0', card: '#fef9ec', text: '#3a2a10', mute: 'rgba(58,42,16,0.78)',   faint: 'rgba(58,42,16,0.55)',   line: 'rgba(58,42,16,0.10)',   line2: 'rgba(58,42,16,0.18)',   accent: 'oklch(0.56 0.18 60)',  accentDim: 'oklch(0.56 0.18 60 / 0.28)',  accentFaint: 'oklch(0.56 0.18 60 / 0.12)',  mode: 'light' as const, label: 'sun · warm amber' },
 } as const;
 
+// sRGB equivalent of THEMES.mint.accent, for renderers that cannot parse
+// oklch (OG images via next/og, raster icons).
+export const MINT_ACCENT_SRGB = '#6fdea7';
+
 export const FONTS = {
   mono:      { mono: '"JetBrains Mono", ui-monospace, monospace', serif: '"JetBrains Mono", ui-monospace, monospace', label: 'mono · uniform' },
   serif:     { mono: '"JetBrains Mono", ui-monospace, monospace', serif: '"Source Serif 4", "Source Serif Pro", Georgia, serif', label: 'serif · editorial mix' },
