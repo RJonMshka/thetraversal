@@ -69,7 +69,7 @@ Steps
 - [x] Create `content/registry/*.ts` from the legacy registries, converting each entry to an `Entity`: AST `type` becomes `kind` (mapping in LLD-01 §7), `meta.params` becomes `stack`, `content.deep` becomes `essayRef`, `publish` becomes `status`, drop `glowColor` and inline `content.body` where an MDX body exists.
 - [x] Add `content/registry/relations.ts` with the cross-links (thesis triangle: `mfkit implements rewiring-the-interface`, `kata implements rewiring-the-interface`; the Kata edge is dropped with a warning while Kata is a draft).
 - [x] `git mv apps/shell/src/content content/mdx` and update the compiler paths. `loadNodeContent` and `loadEssay` now read from the IR bodies instead.
-- [ ] Compile MDX to sanitized HTML in the IR build. Move element styles from `mdx-components.tsx` into `packages/tokens/prose.css` (create `packages/tokens` now with just this file and `themes.ts` moved from `src/lib/themes.ts`; leave a re-export at the old path).
+- [x] Compile MDX to sanitized HTML in the IR build. Move element styles from `mdx-components.tsx` into `packages/tokens/prose.css` (create `packages/tokens` now with just this file and `themes.ts` moved from `src/lib/themes.ts`; leave a re-export at the old path).
 - [ ] Write `apps/shell/src/data/projection.ts` (`toAST`).
 - [ ] Reimplement `apps/shell/src/data/index.ts` over `createIRClient(graph)` + `toAST`. Keep every exported function signature identical. The 13 consumers do not change.
 - [ ] Add `ir-parity.test.ts` (LLD-01 §8). Fix projection tables until it passes. Do not special-case ids.

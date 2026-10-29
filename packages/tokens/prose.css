@@ -1,0 +1,187 @@
+/*
+ * Prose styles for IR bodies (compiled MDX shipped as HTML, LLD-01 §4).
+ *
+ *   .tv-prose          long-form essays and papers
+ *   .tv-prose-compact  short node prose on /node pages
+ *
+ * Colors come only from theme tokens. Spacing between compact paragraphs
+ * belongs to the container (e.g. `space-y-4`), as it always has.
+ *
+ * Unlayered on purpose: these rules sit above Tailwind's base layer and
+ * never need to fight utilities, which are not used inside bodies.
+ */
+
+/* ── Long-form (was mdx-components.tsx + .mdx-essay) ───────────────── */
+
+.tv-prose h2 {
+  font-family: var(--font-mono);
+  font-size: 1.125rem;
+  line-height: calc(1.75 / 1.125);
+  color: var(--accent);
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--ink-2);
+  padding-bottom: 0.5rem;
+}
+
+.tv-prose h3 {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--syntax-keyword);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.tv-prose p {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--tv-text);
+  margin-bottom: 1.5rem;
+}
+
+.tv-prose blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 1.5rem;
+  margin-block: 2rem;
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--text-mute);
+  line-height: 1.8;
+}
+
+.tv-prose blockquote > p {
+  margin-bottom: 0.5rem;
+  color: var(--text-mute);
+}
+
+.tv-prose em {
+  color: var(--text-mute);
+  font-style: normal;
+  font-family: var(--font-serif);
+}
+
+.tv-prose strong {
+  color: var(--syntax-ident);
+  font-family: var(--font-serif);
+  font-weight: 600;
+}
+
+/* Inline code. Block code inherits size and radius, and resets the rest
+   under `pre > code` below (same cascade as the old components). */
+.tv-prose code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  color: var(--syntax-ident);
+  background: var(--ink-2);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.375rem;
+}
+
+.tv-prose pre {
+  margin-block: 2rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  background: var(--ink) !important;
+  border: 1px solid var(--ink-2);
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.tv-prose pre > code {
+  background: transparent !important;
+  padding: 0;
+  color: inherit;
+  font-family: var(--font-mono);
+}
+
+/* Line numbers from rehype-pretty-code */
+.tv-prose code[data-line-numbers] {
+  counter-reset: line;
+}
+.tv-prose code[data-line-numbers] > [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1rem;
+  margin-right: 1.25rem;
+  text-align: right;
+  color: var(--text-faint);
+}
+
+/* Highlighted lines */
+.tv-prose [data-highlighted-line] {
+  background: color-mix(in srgb, var(--ink-2) 50%, transparent);
+  border-left: 2px solid var(--accent);
+  margin-left: -1.25rem;
+  margin-right: -1.25rem;
+  padding-left: calc(1.25rem - 2px);
+  padding-right: 1.25rem;
+}
+
+.tv-prose a {
+  color: var(--accent);
+  text-decoration-line: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--line-2);
+  transition-property: color, text-decoration-color;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tv-prose a:hover {
+  text-decoration-color: var(--accent);
+}
+
+.tv-prose hr {
+  margin-block: 2.5rem;
+  border: none;
+  height: 1px;
+  background: var(--ink-2);
+}
+
+.tv-prose ul,
+.tv-prose ol {
+  list-style-position: outside;
+  padding-left: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--tv-text);
+}
+.tv-prose ul {
+  list-style-type: disc;
+}
+.tv-prose ol {
+  list-style-type: decimal;
+}
+.tv-prose :is(ul, ol) > :not(:last-child) {
+  margin-bottom: 0.5rem;
+}
+.tv-prose :is(ul, ol) ::marker {
+  color: var(--text-faint);
+}
+.tv-prose li {
+  padding-left: 0.25rem;
+}
+
+/* Drop cap on the opening paragraph */
+.tv-prose > p:first-of-type::first-letter {
+  font-size: 3.5em;
+  float: left;
+  line-height: 0.8;
+  margin-right: 0.1em;
+  margin-top: 0.05em;
+  font-family: var(--font-serif);
+  color: var(--accent);
+}
+
+/* ── Compact node prose ─────────────────────────────────────────────── */
+
+.tv-prose-compact p {
+  color: var(--tv-text);
+  font-size: 0.875rem;
+  line-height: 1.75rem;
+}

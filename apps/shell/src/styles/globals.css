@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@tv/tokens/prose.css";
 
 /*
  * Traversal v2 Design System
