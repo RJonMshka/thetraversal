@@ -53,13 +53,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const breadcrumb = path.map((p) => p.label).join(" > ");
   const description = node.content?.summary ?? `${node.type}: ${node.label}`;
 
+  const title = `${node.label} — The Traversal`;
+  const url = `/node/${node.slug}`;
+
+  // openGraph and twitter replace the root layout's objects rather than
+  // merging, so set every field here. og:image comes from ./opengraph-image.
   return {
-    title: `${node.label} — The Traversal`,
+    title,
     description,
+    alternates: { canonical: url },
     openGraph: {
-      title: `${node.label} — The Traversal`,
+      title,
       description,
       type: "article",
+      url,
+      siteName: "The Traversal",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
     },
     other: {
       "ast-path": breadcrumb,
