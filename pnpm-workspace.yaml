@@ -1,0 +1,10 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Next's own .d.ts files resolve `react` by walking up from node_modules/.pnpm.
+# Without @types/react at the root they fall back to untyped JS and React
+# event handlers in the shell become implicit `any`.
+publicHoistPattern:
+  - "@types/react"
+  - "@types/react-dom"

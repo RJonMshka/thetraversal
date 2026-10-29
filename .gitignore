@@ -141,3 +141,15 @@ vite.config.ts.timestamp-*
 # docs
 docs/*
 .vercel
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# macOS
+.DS_Store
+
+# turborepo
+.turbo/
