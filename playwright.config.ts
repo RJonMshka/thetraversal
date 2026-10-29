@@ -19,9 +19,9 @@ export default defineConfig({
     { name: "desktop", use: { viewport: { width: 1440, height: 900 } } },
     { name: "mobile", use: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
   ],
-  // Parity is measured against the production build, not the dev server.
+  // Parity is measured against the shell's production build, not the dev server.
   webServer: {
-    command: `pnpm build && pnpm start --port ${PORT}`,
+    command: `pnpm --filter @tv/shell build && pnpm --filter @tv/shell start --port ${PORT}`,
     url: `http://localhost:${PORT}`,
     timeout: 300_000,
     reuseExistingServer: !process.env.CI,

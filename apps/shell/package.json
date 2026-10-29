@@ -1,5 +1,5 @@
 {
-  "name": "thetraversal",
+  "name": "@tv/shell",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -8,12 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
-    "test": "vitest run",
-    "e2e": "playwright test",
-    "e2e:update": "playwright test --update-snapshots",
-    "measure:first-load": "node scripts/measure-first-load.mjs"
+    "test": "vitest run"
   },
-  "packageManager": "pnpm@10.32.1",
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
@@ -35,8 +31,8 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
-    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4.2.2",
+    "@tv/tsconfig": "workspace:*",
     "@types/d3-hierarchy": "^3.1.7",
     "@types/d3-selection": "^3.0.11",
     "@types/d3-transition": "^3.0.9",

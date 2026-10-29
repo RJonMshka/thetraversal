@@ -1,6 +1,6 @@
 // First-load JS per route, gzipped. Next 16 (Turbopack) no longer prints this
 // in `next build`, so we read the prerendered HTML and sum the scripts it loads.
-// Run after `pnpm build`: node scripts/measure-first-load.mjs
+// Run after `pnpm build`: node scripts/measure-first-load.mjs <path-to-.next>
 import { readFileSync, existsSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import path from "node:path";
