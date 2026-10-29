@@ -37,12 +37,12 @@ Prompt for Claude Code
 **Goal:** same app, new home. Zero behavior change.
 
 Steps
-- [ ] `git mv` app files into `apps/shell/`: `src/`, `public/`, `next.config.ts`, `next-env.d.ts`, `tsconfig.json`, `postcss.config.mjs`, `eslint.config.mjs`, `vitest.config.ts`, `.vscode/` stays at root. Use `git mv` so history follows.
-- [ ] Split `package.json`: root keeps `packageManager`, adds `turbo` dev dependency and scripts (`dev`, `build`, `lint`, `type-check`, `test`, `e2e` calling `turbo run …`). `apps/shell/package.json` gets the current dependencies and scripts, name `@tv/shell`.
-- [ ] Add `pnpm-workspace.yaml` and `turbo.json` (LLD-04 §2). Add `packages/tsconfig` with a `base.json`; `apps/shell/tsconfig.json` extends it and keeps `@/*` → `./src/*`.
-- [ ] Remove the stray `.DS_Store` files and add `.DS_Store` to `.gitignore`.
-- [ ] Regenerate the lockfile with `pnpm install` from root.
-- [ ] Move `e2e/` to `apps/shell/e2e/` or keep at root with a Playwright config that starts `@tv/shell`. Pick root; it will test the whole platform later.
+- [x] `git mv` app files into `apps/shell/`: `src/`, `public/`, `next.config.ts`, `next-env.d.ts`, `tsconfig.json`, `postcss.config.mjs`, `eslint.config.mjs`, `vitest.config.ts`, `.vscode/` stays at root. Use `git mv` so history follows.
+- [x] Split `package.json`: root keeps `packageManager`, adds `turbo` dev dependency and scripts (`dev`, `build`, `lint`, `type-check`, `test`, `e2e` calling `turbo run …`). `apps/shell/package.json` gets the current dependencies and scripts, name `@tv/shell`.
+- [x] Add `pnpm-workspace.yaml` and `turbo.json` (LLD-04 §2). Add `packages/tsconfig` with a `base.json`; `apps/shell/tsconfig.json` extends it and keeps `@/*` → `./src/*`.
+- [x] Remove the stray `.DS_Store` files and add `.DS_Store` to `.gitignore`.
+- [x] Regenerate the lockfile with `pnpm install` from root.
+- [x] Move `e2e/` to `apps/shell/e2e/` or keep at root with a Playwright config that starts `@tv/shell`. Pick root; it will test the whole platform later.
 - [ ] Vercel: create a temporary project from the branch with root directory `apps/shell`. Confirm deploy and parity against it. At merge time, change the production project's root directory to `apps/shell`, then merge.
 
 Exit criteria

@@ -53,6 +53,11 @@ packages:
 }
 ```
 
+The blocks above are the end state. The repo only carries config for completed phases (CLAUDE.md §2), so in Phase 1:
+
+- `pnpm-workspace.yaml` lists `apps/*` and `packages/*` only. It also sets `publicHoistPattern` for `@types/react` and `@types/react-dom`: Next's own `.d.ts` files resolve `react` from `node_modules/.pnpm` and need React types at the root, or the shell's event handlers type as implicit `any`.
+- `turbo.json` has `build`, `dev`, `lint`, `type-check`, `test`, plus a root task `//#parity` that `pnpm e2e` runs (Playwright from the root `e2e/`, which builds and starts `@tv/shell`). `@tv/ir#build`, `conformance`, and the `dist/**` / `public/ir/**` outputs arrive with the phases that add those packages.
+
 Package naming: `@tv/*` for internal packages, `@tv/target-<id>` for targets, `@tv/shell` for the app. All `"private": true`.
 
 Internal packages are consumed as source in dev via `exports` pointing at `src/*.ts` with a `development` condition, and at `dist/` for build. Keeps `pnpm dev` free of watch-build chains.

@@ -108,3 +108,51 @@ Same setup as above.
 ### First-load JS
 
 Unchanged within 0.1 KB (`/` 265.2, `/tree` 270.6, node pages 246.3 KB gz).
+
+## Phase 1 (2026-10-29)
+
+Commit: `platform/phase-1`. The app moved to `apps/shell/` (`@tv/shell`) inside a pnpm workspace with Turborepo 2.11.10 at the root. No change under `src/`. Same machine and Next.js 16.2.1 as Phase 0. All commands run from the repo root.
+
+### Build
+
+- `pnpm build` (`turbo run build` → `@tv/shell#build`): passes, no warnings. 118 static pages generated.
+- Statically generated `/node/*` pages: **112**.
+- Route table is the same as Phase 0: `/` (static), `/tree` (static), `/node/[slug]` (SSG), `/_not-found`, `/robots.txt`, `/sitemap.xml` (static), `/opengraph-image` (dynamic).
+
+### First-load JS (gzipped)
+
+`pnpm measure:first-load` (now reads `apps/shell/.next`).
+
+| Route | KB gz | Chunks |
+|---|---:|---:|
+| `/` | 265.2 | 13 |
+| `/tree` | 270.6 | 14 |
+| `/node/reachble` | 246.3 | 12 |
+| `/node/rewiring-the-interface` | 246.3 | 12 |
+| `/node/timeline-0` | 246.3 | 12 |
+
+Identical to "Phase 0 fixes". Still over the 200 KB budget (deferred).
+
+### Lighthouse
+
+Same setup as Phase 0 (Lighthouse 12.8.2, default mobile, headless Chrome against `pnpm --filter @tv/shell start`).
+
+| Page | Perf | A11y | Best practices | SEO | LCP | TBT | CLS |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `/` | 94 | 95 | 96 | 100 | 3.1 s | 20 ms | 0 |
+| `/node/reachble` | 95 | 95 | 96 | 100 | 2.9 s | 10 ms | 0 |
+
+Same failing audits as "Phase 0 fixes": `color-contrast`, `largest-contentful-paint` (both deferred), and the local-only `errors-in-console`. The `/node/reachble` performance change (93 → 95) is run-to-run variance.
+
+### Other checks
+
+- `pnpm lint`: 0 problems. `pnpm type-check`: passes. `pnpm test`: 1 file, 35 tests, all pass.
+- `pnpm e2e`: 28 parity snapshots passed twice in a row. No snapshot was re-recorded.
+
+### Notes
+
+- Effective TypeScript compiler options for the shell are unchanged (`tsc --showConfig` diff is ordering only). `apps/shell/tsconfig.json` extends `@tv/tsconfig/base.json`.
+- `pnpm-workspace.yaml` publicly hoists `@types/react` and `@types/react-dom`. Without it, Next's own type definitions (resolved from `node_modules/.pnpm`) cannot find React types, and React event handler params in the shell become implicit `any`, which fails the build.
+- Lockfile: the only resolved-version change is the shell's direct `@eslint/eslintrc` (3.3.5 → 3.3.7, deduped with ESLint's copy; dev-only, not imported by the ESLint config). Turbo was added.
+- Coverage moved: `e2e/`, `playwright.config.ts` and `scripts/` stay at the root, so they are no longer linted (`eslint .` runs in `apps/shell`) or type-checked by `tsc`. Playwright still compiles the spec when it runs.
+- Vercel cutover (root directory `apps/shell`) not done yet; the production-deploy exit criterion is still open.

@@ -11,7 +11,8 @@ The medium is the message: the site is a compiler. Content is the source, `packa
 ## 2. Current phase
 
 ```
-PHASE: 0 complete  (baseline recorded in architecture/baseline.md; single Next.js app at repo root; next: Phase 1)
+PHASE: 1 in progress  (monorepo done: app lives in apps/shell as @tv/shell, pnpm workspace + Turborepo at root;
+          local exit checks pass, see architecture/baseline.md "Phase 1"; remaining: Vercel root directory cutover)
 ```
 
 The repo moves toward the end-state layout one phase at a time. **Only the structure for completed phases exists.** Do not create folders for a later phase unless the task is that phase. Phase definitions and exit criteria: `architecture/MIGRATION.md`.
@@ -48,15 +49,15 @@ Breaking any of these breaks the project.
 - Never use relative `../../` imports inside a workspace. Use `@/` inside `apps/shell`, package names (`@tv/ir`) across workspaces.
 
 **Files you do not touch**
-- `src/content/**/*.mdx` (later `content/mdx/**`): essay and node prose. Only edit when the task is explicitly a content change from Rajat.
-- `public/resume/*`: download artifacts.
+- `apps/shell/src/content/**/*.mdx` (later `content/mdx/**`): essay and node prose. Only edit when the task is explicitly a content change from Rajat.
+- `apps/shell/public/resume/*`: download artifacts.
 - `docs/*`: local, gitignored editorial notes. Read `docs/CONTENT-v2.md` only when the task is a content sync.
 - `pnpm-lock.yaml` by hand.
 
 **Styling**
-- Never hardcode colors. Use theme variables (`--ink`, `--ink-2`, `--tv-text`, `--text-mute`, `--text-faint`, `--line`, `--accent`, `--syntax-*`) or their Tailwind aliases (`ctp-*` utilities map onto them in `globals.css`). Theme values live in `src/lib/themes.ts` (later `packages/tokens`).
+- Never hardcode colors. Use theme variables (`--ink`, `--ink-2`, `--tv-text`, `--text-mute`, `--text-faint`, `--line`, `--accent`, `--syntax-*`) or their Tailwind aliases (`ctp-*` utilities map onto them in `globals.css`). Theme values live in `apps/shell/src/lib/themes.ts` (later `packages/tokens`).
 - No CSS modules, styled-components, or inline `style={{}}` except computed values from D3, Framer Motion, or canvas/WebGL.
-- Known debt: `src/components/ast/ASTNode.tsx` has a hex `GLOW_COLORS` map that bypasses themes. Do not copy the pattern; it is removed in Phase 3.
+- Known debt: `apps/shell/src/components/ast/ASTNode.tsx` has a hex `GLOW_COLORS` map that bypasses themes. Do not copy the pattern; it is removed in Phase 3.
 
 **Components**
 - No default exports, except Next.js pages/layouts/route files and a target's `./mount` module (contract requires it).
@@ -74,19 +75,14 @@ Breaking any of these breaks the project.
 
 ## 5. Commands
 
-Phase 0:
+From the repo root (Turborepo). The shell's own scripts (`next dev --turbopack`, `next build`, `eslint .`, `tsc --noEmit`, `vitest run`) live in `apps/shell/package.json`.
 ```bash
-pnpm dev          # next dev --turbopack
-pnpm build        # must pass with zero errors before any task is done
-pnpm lint
-pnpm type-check   # run after touching src/lib/ast-types.ts or src/data/*
-pnpm test         # vitest
-```
-
-Phase 1+ (from repo root, Turborepo):
-```bash
-pnpm dev                                   # shell + all targets + IR watch
-pnpm build | lint | type-check | test      # all workspaces
+pnpm dev                                   # shell (+ targets and IR watch from Phase 2/4)
+pnpm build | lint | type-check | test      # all workspaces; build must pass with zero errors before any task is done
+pnpm type-check                            # run after touching apps/shell/src/lib/ast-types.ts or apps/shell/src/data/*
+pnpm e2e                                   # Playwright parity snapshots (e2e/ at root; builds and starts @tv/shell)
+pnpm e2e:update                            # re-record snapshots (only when a visual change is intended)
+pnpm measure:first-load                    # first-load JS per route, from apps/shell/.next (run after build)
 pnpm --filter @tv/shell dev                # shell only
 pnpm --filter @tv/ir build                 # recompile content into the IR
 pnpm --filter @tv/target-<id> dev:standalone   # target in the harness (Phase 4+)
@@ -135,7 +131,7 @@ Platform: pnpm workspaces, Turborepo, `@module-federation/runtime` in the shell,
 
 Projects follow the publication policy: only entries with a publicly verifiable artifact are published; everything else stays fully written with its flag off. Nothing is deleted from a registry.
 
-- Phase 0-1: registries are `src/data/*.ts` (`PROJECT_REGISTRY` with `publish` flags).
+- Phase 0-1: registries are `apps/shell/src/data/*.ts` (`PROJECT_REGISTRY` with `publish` flags).
 - Phase 2+: registries are `content/registry/*.ts` with `status: "published" | "draft"`, compiled by `pnpm --filter @tv/ir build`, which must pass its integrity checks.
 
 ## 11. Definition of done for any task
