@@ -66,7 +66,7 @@ Prompt for Claude Code
 Steps
 - [x] Create `packages/ir` with `schema.ts`, `compiler/`, `client.ts` per LLD-01. Add `zod`, `@mdx-js/mdx`, `rehype-sanitize`; reuse existing `remark-gfm`, `rehype-pretty-code`, `shiki`.
 - [x] Copy (not move yet) `apps/shell/src/data/*.ts` to `apps/shell/src/data/legacy/` untouched. This is the golden reference.
-- [ ] Create `content/registry/*.ts` from the legacy registries, converting each entry to an `Entity`: AST `type` becomes `kind` (mapping in LLD-01 §7), `meta.params` becomes `stack`, `content.deep` becomes `essayRef`, `publish` becomes `status`, drop `glowColor` and inline `content.body` where an MDX body exists.
+- [x] Create `content/registry/*.ts` from the legacy registries, converting each entry to an `Entity`: AST `type` becomes `kind` (mapping in LLD-01 §7), `meta.params` becomes `stack`, `content.deep` becomes `essayRef`, `publish` becomes `status`, drop `glowColor` and inline `content.body` where an MDX body exists.
 - [ ] Add `content/registry/relations.ts` with the cross-links (thesis triangle: `mfkit implements rewiring-the-interface`, `kata implements rewiring-the-interface`; the Kata edge is dropped with a warning while Kata is a draft).
 - [ ] `git mv apps/shell/src/content content/mdx` and update the compiler paths. `loadNodeContent` and `loadEssay` now read from the IR bodies instead.
 - [ ] Compile MDX to sanitized HTML in the IR build. Move element styles from `mdx-components.tsx` into `packages/tokens/prose.css` (create `packages/tokens` now with just this file and `themes.ts` moved from `src/lib/themes.ts`; leave a re-export at the old path).
