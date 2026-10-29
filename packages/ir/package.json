@@ -3,10 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
+    "./client": "./src/client.ts",
     "./compiler": "./src/compiler/index.ts",
-    "./dist/graph.json": "./dist/graph.json"
+    "./dist/graph.json": "./dist/graph.json",
+    "./dist/index.json": "./dist/index.json"
   },
   "scripts": {
     "build": "tsx src/compiler/cli.ts",

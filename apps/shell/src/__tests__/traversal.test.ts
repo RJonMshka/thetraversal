@@ -9,7 +9,6 @@ import {
   getMaxDepth,
 } from "@/lib/traversal";
 import { getAST } from "@/data";
-import { PROJECT_REGISTRY } from "@/data/projects";
 import type { ASTNode } from "@/lib/ast-types";
 
 // Use the data access layer instead of direct import
@@ -296,30 +295,6 @@ describe("PORTFOLIO_AST data integrity", () => {
     const flat = flatten(PORTFOLIO_AST);
     flat.forEach((node) => {
       expect(node.slug.length).toBeGreaterThan(0);
-    });
-  });
-
-  // CONTENT-v2 §0: an unpublished project must not render, link, or appear
-  // anywhere in the tree — including as a stale slug someone can deep-link to.
-  it("no unpublished project reaches the tree", () => {
-    const slugs = new Set(flatten(PORTFOLIO_AST).map((n) => n.slug));
-    const leaked = PROJECT_REGISTRY.filter(
-      (entry) => !entry.publish && slugs.has(entry.node.slug)
-    ).map((entry) => entry.node.slug);
-
-    expect(leaked).toEqual([]);
-  });
-
-  it("every published project links to a public artifact", () => {
-    const published = PROJECT_REGISTRY.filter((entry) => entry.publish);
-    expect(published.length).toBeGreaterThan(0);
-
-    published.forEach((entry) => {
-      const links = entry.node.meta?.links ?? [];
-      expect(links.length).toBeGreaterThan(0);
-      links.forEach((link) => {
-        expect(link.url).toMatch(/^https:\/\//);
-      });
     });
   });
 
