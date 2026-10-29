@@ -13,9 +13,13 @@ const IR_DIR = path.join(process.cwd(), "public", "ir", "v1");
 let indexPromise: Promise<IRIndex> | null = null;
 
 function loadIndex(): Promise<IRIndex> {
-  indexPromise ??= fs
-    .readFile(path.join(IR_DIR, "index.json"), "utf-8")
-    .then((raw) => JSON.parse(raw) as IRIndex);
+  const read = () =>
+    fs
+      .readFile(path.join(IR_DIR, "index.json"), "utf-8")
+      .then((raw) => JSON.parse(raw) as IRIndex);
+  // In dev the IR watcher rewrites the hashed files, so re-read each time.
+  if (process.env.NODE_ENV !== "production") return read();
+  indexPromise ??= read();
   return indexPromise;
 }
 

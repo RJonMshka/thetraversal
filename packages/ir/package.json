@@ -13,6 +13,7 @@
   },
   "scripts": {
     "build": "tsx src/compiler/cli.ts",
+    "dev": "tsx watch --include \"../../content/**\" src/compiler/cli.ts",
     "type-check": "tsc --noEmit",
     "test": "vitest run"
   },
