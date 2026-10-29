@@ -66,9 +66,9 @@ Prompt for Claude Code
 Steps
 - [x] Create `packages/ir` with `schema.ts`, `compiler/`, `client.ts` per LLD-01. Add `zod`, `@mdx-js/mdx`, `rehype-sanitize`; reuse existing `remark-gfm`, `rehype-pretty-code`, `shiki`.
 - [x] Copy (not move yet) `apps/shell/src/data/*.ts` to `apps/shell/src/data/legacy/` untouched. This is the golden reference.
-- [x] Create `content/registry/*.ts` from the legacy registries, converting each entry to an `Entity`: AST `type` becomes `kind` (mapping in LLD-01 §7), `meta.params` becomes `stack`, `content.deep` becomes `essayRef`, `publish` becomes `status`, drop `glowColor` and inline `content.body` where an MDX body exists.
+- [x] Create `content/registry/*.ts` from the legacy registries, converting each entry to an `Entity`: AST `type` becomes `kind` (mapping in LLD-01 §7), `meta.params` becomes `stack`, `content.deep` becomes `essayRef`, `publish` becomes `status`, drop `glowColor`. The inline `content.body` becomes `excerpt` (it still feeds the client tree), so the golden test can compare full trees.
 - [x] Add `content/registry/relations.ts` with the cross-links (thesis triangle: `mfkit implements rewiring-the-interface`, `kata implements rewiring-the-interface`; the Kata edge is dropped with a warning while Kata is a draft).
-- [x] `git mv apps/shell/src/content content/mdx` and update the compiler paths. `loadNodeContent` and `loadEssay` now read from the IR bodies instead.
+- [x] `git mv apps/shell/src/content content/mdx` and update the compiler paths. `loadNodeContent` and `loadEssay` now read from the IR bodies instead (done together with the renderer switch below, so no commit renders HTML as text).
 - [x] Compile MDX to sanitized HTML in the IR build. Move element styles from `mdx-components.tsx` into `packages/tokens/prose.css` (create `packages/tokens` now with just this file and `themes.ts` moved from `src/lib/themes.ts`; leave a re-export at the old path).
 - [x] Write `apps/shell/src/data/projection.ts` (`toAST`).
 - [x] Reimplement `apps/shell/src/data/index.ts` over `createIRClient(graph)` + `toAST`. Keep every exported function signature identical. The 13 consumers do not change.

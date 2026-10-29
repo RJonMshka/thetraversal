@@ -42,9 +42,9 @@ packages:
 {
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
-    "build":      { "dependsOn": ["^build"], "outputs": ["dist/**", ".next/**", "!.next/cache/**", "public/ir/**"] },
-    "@tv/ir#build": { "inputs": ["src/**", "../../content/**"], "outputs": ["dist/**"] },
-    "dev":        { "cache": false, "persistent": true },
+    "build":      { "dependsOn": ["^build"], "outputs": ["dist/**", ".next/**", "!.next/cache/**"] },
+    "@tv/ir#build": { "inputs": ["src/**", "package.json", "../../content/**"], "outputs": ["dist/**", "../../apps/shell/public/ir/**"] },
+    "dev":        { "dependsOn": ["^build"], "cache": false, "persistent": true },
     "lint":       {},
     "type-check": { "dependsOn": ["^build"] },
     "test":       { "dependsOn": ["^build"] },
@@ -56,7 +56,9 @@ packages:
 The blocks above are the end state. The repo only carries config for completed phases (CLAUDE.md §2), so in Phase 1:
 
 - `pnpm-workspace.yaml` lists `apps/*` and `packages/*` only. It also sets `publicHoistPattern` for `@types/react` and `@types/react-dom`: Next's own `.d.ts` files resolve `react` from `node_modules/.pnpm` and need React types at the root, or the shell's event handlers type as implicit `any`.
-- `turbo.json` has `build`, `dev`, `lint`, `type-check`, `test`, plus a root task `//#parity` that `pnpm e2e` runs (Playwright from the root `e2e/`, which builds and starts `@tv/shell`). `@tv/ir#build`, `conformance`, and the `dist/**` / `public/ir/**` outputs arrive with the phases that add those packages.
+- `turbo.json` has `build`, `dev`, `lint`, `type-check`, `test`, plus a root task `//#parity` that `pnpm e2e` runs (Playwright from the root `e2e/`, which builds and starts `@tv/shell`). `conformance` arrives with Phase 4.
+- Phase 2 adds `@tv/ir#build`. The IR compiler writes `apps/shell/public/ir/v1`, outside its own package, so that path is listed in the IR task's outputs: Turbo restores it on a cache hit (verified), and the shell's own `build` no longer needs `public/ir/**`. `dev` depends on `^build` so the shell boots with an IR, and `@tv/ir#dev` watches `content/`.
+- Because Vercel's root directory is `apps/shell`, `next build` alone would run without the IR. `apps/shell/vercel.json` sets `buildCommand` to `cd ../.. && pnpm exec turbo run build --filter=@tv/shell`.
 
 Package naming: `@tv/*` for internal packages, `@tv/target-<id>` for targets, `@tv/shell` for the app. All `"private": true`.
 

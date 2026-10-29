@@ -55,7 +55,7 @@ Breaking any of these breaks the project.
 - `pnpm-lock.yaml` by hand.
 
 **Styling**
-- Never hardcode colors. Use theme variables (`--ink`, `--ink-2`, `--tv-text`, `--text-mute`, `--text-faint`, `--line`, `--accent`, `--syntax-*`) or their Tailwind aliases (`ctp-*` utilities map onto them in `globals.css`). Theme values live in `apps/shell/src/lib/themes.ts` (later `packages/tokens`).
+- Never hardcode colors. Use theme variables (`--ink`, `--ink-2`, `--tv-text`, `--text-mute`, `--text-faint`, `--line`, `--accent`, `--syntax-*`) or their Tailwind aliases (`ctp-*` utilities map onto them in `globals.css`). Theme values live in `packages/tokens/src/themes.ts` (`@tv/tokens`; `@/lib/themes` re-exports it until Phase 3).
 - No CSS modules, styled-components, or inline `style={{}}` except computed values from D3, Framer Motion, or canvas/WebGL.
 - Known debt: `apps/shell/src/components/ast/ASTNode.tsx` has a hex `GLOW_COLORS` map that bypasses themes. Do not copy the pattern; it is removed in Phase 3.
 
