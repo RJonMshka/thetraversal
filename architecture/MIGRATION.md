@@ -73,7 +73,7 @@ Steps
 - [x] Write `apps/shell/src/data/projection.ts` (`toAST`).
 - [x] Reimplement `apps/shell/src/data/index.ts` over `createIRClient(graph)` + `toAST`. Keep every exported function signature identical. The 13 consumers do not change.
 - [x] Add `ir-parity.test.ts` (LLD-01 §8). Fix projection tables until it passes. Do not special-case ids.
-- [ ] `/node/[slug]/page.tsx`: render `body.html` inside `.tv-prose` instead of `MDXRemote` (in `PhilosophyNode` and wherever bodies render). Keep dispatching node components on the projected AST type for now; the switch to `kind` happens in Phase 3 when AST types leave the shell.
+- [x] `/node/[slug]/page.tsx`: render `body.html` inside `.tv-prose` instead of `MDXRemote` (in `PhilosophyNode` and wherever bodies render). Keep dispatching node components on the projected AST type for now; the switch to `kind` happens in Phase 3 when AST types leave the shell.
 - [ ] Wire `@tv/ir#build` before `@tv/shell#build` in Turborepo; emit `public/ir/v1/*`.
 - [ ] When parity holds: delete `src/data/legacy/`, `next-mdx-remote`, `gray-matter`, and `src/lib/mdx.ts`.
 

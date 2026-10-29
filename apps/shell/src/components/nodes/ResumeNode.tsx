@@ -2,12 +2,14 @@
 
 import { cn } from "@/lib/utils";
 import type { ASTNode } from "@/lib/ast-types";
+import { NodeBody } from "@/components/shared/NodeBody";
 
 interface ResumeNodeProps {
   node: ASTNode;
+  bodyHtml?: string;
 }
 
-export function ResumeNode({ node }: ResumeNodeProps) {
+export function ResumeNode({ node, bodyHtml }: ResumeNodeProps) {
   const links = node.meta?.links ?? [];
   const pdfLink = links.find((l) => l.url.endsWith(".pdf"));
   const docxLink = links.find((l) => l.url.endsWith(".docx"));
@@ -127,14 +129,8 @@ export function ResumeNode({ node }: ResumeNodeProps) {
       )}
 
       {/* Body content */}
-      {node.content?.body && (
-        <div className="space-y-4">
-          {node.content.body.split("\n\n").filter(Boolean).map((paragraph, i) => (
-            <p key={i} className="text-ctp-text text-sm leading-7">
-              {paragraph}
-            </p>
-          ))}
-        </div>
+      {(bodyHtml || node.content?.body) && (
+        <NodeBody html={bodyHtml} text={node.content?.body} className="space-y-4" />
       )}
     </article>
   );

@@ -1,59 +1,36 @@
 import fs from "fs/promises";
 import path from "path";
-import matter from "gray-matter";
+import { essayBodyId, type Body, type IRIndex } from "@tv/ir";
 
-// ── Node Content Loader ────────────────────────────────────────────────
-// Server-only content loader. Reads MDX files from content/mdx/nodes/
-// and parses frontmatter for summary + body. Falls back to null if
-// the file doesn't exist — callers should fall back to the inline
-// content from the data layer.
-//
-// This module is the canonical way to load node prose. Data files hold
-// fallback strings; MDX holds the real content; renderers prefer MDX.
+// ── IR body loader ─────────────────────────────────────────────────────
+// Server-only. Reads compiled bodies from public/ir/v1, written by
+// `pnpm --filter @tv/ir build`. Returns null when an entity has no body;
+// callers fall back to the entity's excerpt.
 
 // process.cwd() is apps/shell during next build and dev.
-const CONTENT_DIR = path.join(process.cwd(), "..", "..", "content", "mdx");
+const IR_DIR = path.join(process.cwd(), "public", "ir", "v1");
 
-export interface NodeContent {
-  summary: string;
-  body: string; // raw MDX string
-  deep?: string; // slug for full essay (philosophy nodes)
+let indexPromise: Promise<IRIndex> | null = null;
+
+function loadIndex(): Promise<IRIndex> {
+  indexPromise ??= fs
+    .readFile(path.join(IR_DIR, "index.json"), "utf-8")
+    .then((raw) => JSON.parse(raw) as IRIndex);
+  return indexPromise;
 }
 
-/**
- * Load content for a given node slug.
- * Looks in content/mdx/nodes/{slug}.mdx.
- * Returns null if not found — caller should use inline content.
- */
-export async function loadNodeContent(
-  slug: string
-): Promise<NodeContent | null> {
-  const filePath = path.join(CONTENT_DIR, "nodes", `${slug}.mdx`);
-
-  try {
-    const raw = await fs.readFile(filePath, "utf-8");
-    const { data, content } = matter(raw);
-    return {
-      summary: (data.summary as string) ?? "",
-      body: content.trim(),
-      deep: (data.deep as string) ?? undefined,
-    };
-  } catch {
-    return null;
-  }
+async function loadBody(id: string): Promise<Body | null> {
+  const rel = (await loadIndex()).bodies[id];
+  if (!rel) return null;
+  return JSON.parse(await fs.readFile(path.join(IR_DIR, rel), "utf-8")) as Body;
 }
 
-/**
- * Load UI copy by key.
- * Looks in content/mdx/ui/{key}.mdx.
- */
-export async function loadUICopy(key: string): Promise<string | null> {
-  const filePath = path.join(CONTENT_DIR, "ui", `${key}.mdx`);
+/** Node prose compiled from content/mdx/nodes/<slug>.mdx. */
+export function loadNodeContent(slug: string): Promise<Body | null> {
+  return loadBody(slug);
+}
 
-  try {
-    const raw = await fs.readFile(filePath, "utf-8");
-    return raw;
-  } catch {
-    return null;
-  }
+/** Long-form essay compiled from content/mdx/essays/<ref>.mdx. */
+export function loadEssay(ref: string): Promise<Body | null> {
+  return loadBody(essayBodyId(ref));
 }

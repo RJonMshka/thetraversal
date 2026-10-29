@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { ASTNode } from "@/lib/ast-types";
+import { NodeBody, hasNodeBody } from "@/components/shared/NodeBody";
 
 interface TimelineNodeProps {
   node: ASTNode;
+  bodyHtml?: string;
 }
 
 // ── Timeline Entry ─────────────────────────────────────────────────────
@@ -85,14 +87,12 @@ function TimelineEntry({ entry, index, isLast }: TimelineEntryProps) {
   );
 }
 
-export function TimelineNode({ node }: TimelineNodeProps) {
+export function TimelineNode({ node, bodyHtml }: TimelineNodeProps) {
   // For the VariableDeclaration wrapper, show the ArrayExpression children
   // For the ArrayExpression itself, show the StringLiteral entries
   const entries = node.type === "VariableDeclaration"
     ? (node.children?.[0]?.children ?? [])
     : (node.children ?? []);
-
-  const bodyParagraphs = node.content?.body?.split("\n\n").filter(Boolean) ?? [];
 
   return (
     <article className="space-y-8">
@@ -114,14 +114,8 @@ export function TimelineNode({ node }: TimelineNodeProps) {
       </header>
 
       {/* Description */}
-      {bodyParagraphs.length > 0 && (
-        <div className="pl-6 space-y-4">
-          {bodyParagraphs.map((paragraph, i) => (
-            <p key={i} className="text-ctp-text text-sm leading-7">
-              {paragraph}
-            </p>
-          ))}
-        </div>
+      {hasNodeBody({ html: bodyHtml, text: node.content?.body }) && (
+        <NodeBody html={bodyHtml} text={node.content?.body} className="pl-6 space-y-4" />
       )}
 
       {/* Timeline entries */}

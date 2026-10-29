@@ -2,14 +2,15 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { getGlowClasses } from "@/lib/glow";
 import type { ASTNode } from "@/lib/ast-types";
+import { NodeBody } from "@/components/shared/NodeBody";
 
 interface IdentityNodeProps {
   node: ASTNode;
+  bodyHtml?: string;
   siblings?: ASTNode[];
 }
 
-export function IdentityNode({ node, siblings = [] }: IdentityNodeProps) {
-  const bodyParagraphs = node.content?.body?.split("\n\n").filter(Boolean) ?? [];
+export function IdentityNode({ node, bodyHtml, siblings = [] }: IdentityNodeProps) {
   const links = node.meta?.links ?? [];
 
   return (
@@ -37,13 +38,7 @@ export function IdentityNode({ node, siblings = [] }: IdentityNodeProps) {
       <div className="border-t border-ctp-surface0" />
 
       {/* Bio paragraphs */}
-      <div className="space-y-4 max-w-[65ch]">
-        {bodyParagraphs.map((paragraph, i) => (
-          <p key={i} className="text-ctp-text text-sm leading-7">
-            {paragraph}
-          </p>
-        ))}
-      </div>
+      <NodeBody html={bodyHtml} text={node.content?.body} className="space-y-4 max-w-[65ch]" />
 
       {/* External links */}
       {links.length > 0 && (

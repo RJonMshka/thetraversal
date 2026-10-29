@@ -1,33 +1,34 @@
 import { cn } from "@/lib/utils";
-import { loadEssay } from "@/lib/mdx";
-import { MDXRemote } from "next-mdx-remote/rsc";
-import remarkGfm from "remark-gfm";
-import rehypePrettyCode from "rehype-pretty-code";
-import { mdxComponents } from "@/components/shared/mdx-components";
+import { loadEssay } from "@/lib/content";
 import { ReadingProgress } from "@/components/shared/ReadingProgress";
 import type { ASTNode } from "@/lib/ast-types";
 
 interface PhilosophyNodeProps {
   node: ASTNode;
+  bodyHtml?: string;
 }
 
-// ── Reading time estimate ──────────────────────────────────────────────
+// ── Reading time estimate (when there is no compiled essay) ────────────
 function estimateReadingTime(text: string): number {
   const wordsPerMinute = 200;
   const words = text.split(/\s+/).length;
   return Math.max(1, Math.ceil(words / wordsPerMinute));
 }
 
-// ── Fallback body renderer (when no MDX file exists) ───────────────────
-function FallbackBody({ body }: { body: string }) {
-  const paragraphs = body.split("\n\n").filter(Boolean);
+// ── Fallback body (no essay): node prose in the essay's serif voice ─────
+// Paragraphs carry no classes; they inherit from the container.
+function FallbackBody({ html, text }: { html?: string; text: string }) {
+  const className = cn(
+    "space-y-6 max-w-[65ch]",
+    "font-serif text-base leading-[1.8] text-ctp-text"
+  );
+  if (html) {
+    // Sanitized at build time by the IR compiler.
+    return <div className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+  }
+  const paragraphs = text.split("\n\n").filter(Boolean);
   return (
-    <div
-      className={cn(
-        "space-y-6 max-w-[65ch]",
-        "font-serif text-base leading-[1.8] text-ctp-text"
-      )}
-    >
+    <div className={className}>
       {paragraphs.map((paragraph, i) => (
         <p key={i}>{paragraph}</p>
       ))}
@@ -35,17 +36,15 @@ function FallbackBody({ body }: { body: string }) {
   );
 }
 
-export async function PhilosophyNode({ node }: PhilosophyNodeProps) {
+export async function PhilosophyNode({ node, bodyHtml }: PhilosophyNodeProps) {
   const tags = node.meta?.tags ?? [];
   const date = node.meta?.date;
-  const essaySlug = node.content?.deep;
+  const essayRef = node.content?.deep;
 
-  // Try to load the MDX essay
-  const mdxSource = essaySlug ? await loadEssay(essaySlug) : null;
-
-  // Estimate reading time from MDX source or fallback body
-  const textForTime = mdxSource ?? node.content?.body ?? "";
-  const readingTime = estimateReadingTime(textForTime);
+  // The long-form essay from the IR body store, when the node has one
+  const essay = essayRef ? await loadEssay(essayRef) : null;
+  const readingTime =
+    essay?.readingMinutes ?? estimateReadingTime(node.content?.body ?? "");
 
   return (
     <article className="space-y-8">
@@ -85,30 +84,14 @@ export async function PhilosophyNode({ node }: PhilosophyNodeProps) {
       {/* Divider */}
       <div className="border-t border-ctp-surface0" />
 
-      {/* Essay content */}
-      {mdxSource ? (
-        <div className="max-w-[65ch] mdx-essay">
-          <MDXRemote
-            source={mdxSource}
-            components={mdxComponents}
-            options={{
-              mdxOptions: {
-                remarkPlugins: [remarkGfm],
-                rehypePlugins: [
-                  [
-                    rehypePrettyCode,
-                    {
-                      theme: "catppuccin-mocha",
-                      keepBackground: false,
-                    },
-                  ],
-                ],
-              },
-            }}
-          />
-        </div>
+      {/* Essay content (compiled and sanitized by the IR build) */}
+      {essay ? (
+        <div
+          className="max-w-[65ch] tv-prose"
+          dangerouslySetInnerHTML={{ __html: essay.html }}
+        />
       ) : (
-        <FallbackBody body={node.content?.body ?? ""} />
+        <FallbackBody html={bodyHtml} text={node.content?.body ?? ""} />
       )}
     </article>
   );

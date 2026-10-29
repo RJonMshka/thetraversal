@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { ASTNode } from "@/lib/ast-types";
+import { NodeBody, hasNodeBody } from "@/components/shared/NodeBody";
 
 interface GenericNodeProps {
   node: ASTNode;
+  bodyHtml?: string;
 }
 
 // ── Type label map ─────────────────────────────────────────────────────
@@ -18,9 +20,8 @@ const TYPE_KEYWORDS: Record<string, string> = {
   RootNode: "root",
 };
 
-export function GenericNode({ node }: GenericNodeProps) {
+export function GenericNode({ node, bodyHtml }: GenericNodeProps) {
   const keyword = TYPE_KEYWORDS[node.type] ?? node.type.toLowerCase();
-  const bodyParagraphs = node.content?.body?.split("\n\n").filter(Boolean) ?? [];
   const tags = node.meta?.tags ?? [];
   const links = node.meta?.links ?? [];
 
@@ -41,14 +42,8 @@ export function GenericNode({ node }: GenericNodeProps) {
       </header>
 
       {/* Body content */}
-      {bodyParagraphs.length > 0 && (
-        <div className="space-y-4">
-          {bodyParagraphs.map((paragraph, i) => (
-            <p key={i} className="text-ctp-text text-sm leading-7">
-              {paragraph}
-            </p>
-          ))}
-        </div>
+      {hasNodeBody({ html: bodyHtml, text: node.content?.body }) && (
+        <NodeBody html={bodyHtml} text={node.content?.body} className="space-y-4" />
       )}
 
       {/* Tags */}

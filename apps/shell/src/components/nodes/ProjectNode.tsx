@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { ASTNode } from "@/lib/ast-types";
+import { NodeBody } from "@/components/shared/NodeBody";
 
 interface ProjectNodeProps {
   node: ASTNode;
+  bodyHtml?: string;
 }
 
-export function ProjectNode({ node }: ProjectNodeProps) {
+export function ProjectNode({ node, bodyHtml }: ProjectNodeProps) {
   const params = node.meta?.params ?? [];
   const tags = node.meta?.tags ?? [];
   const links = node.meta?.links ?? [];
-  const bodyParagraphs = node.content?.body?.split("\n\n").filter(Boolean) ?? [];
 
   return (
     <article className="space-y-8">
@@ -39,13 +40,7 @@ export function ProjectNode({ node }: ProjectNodeProps) {
       </header>
 
       {/* Body content — indented to look like function body */}
-      <div className="pl-6 space-y-4">
-        {bodyParagraphs.map((paragraph, i) => (
-          <p key={i} className="text-ctp-text text-sm leading-7">
-            {paragraph}
-          </p>
-        ))}
-      </div>
+      <NodeBody html={bodyHtml} text={node.content?.body} className="pl-6 space-y-4" />
 
       {/* Tech stack tags */}
       {tags.length > 0 && (

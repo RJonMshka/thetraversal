@@ -13,23 +13,6 @@ import { GenericNode } from "@/components/nodes/GenericNode";
 import { ResumeNode } from "@/components/nodes/ResumeNode";
 import type { ASTNode } from "@/lib/ast-types";
 
-// ── Content enrichment ─────────────────────────────────────────────────
-// Merges MDX content into the node, preferring MDX over inline fallback.
-// Data files hold short fallback strings; MDX holds the canonical prose.
-async function enrichNodeContent(node: ASTNode): Promise<ASTNode> {
-  const mdx = await loadNodeContent(node.slug);
-  if (!mdx) return node;
-
-  return {
-    ...node,
-    content: {
-      summary: mdx.summary || node.content?.summary || "",
-      body: mdx.body || node.content?.body || "",
-      deep: mdx.deep ?? node.content?.deep ?? null,
-    },
-  };
-}
-
 // ── Static params for SSG ──────────────────────────────────────────────
 export function generateStaticParams() {
   const allNodes = getFlatNodes();
@@ -81,46 +64,48 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 // ── Node content renderer ──────────────────────────────────────────────
-// Maps ASTNodeType to the appropriate component.
-// Receives an MDX-enriched node — content already merged from MDX loader.
-function NodeContent({ node }: { node: ASTNode }) {
+// Maps ASTNodeType to the appropriate component. `bodyHtml` is the node's
+// compiled IR body (canonical prose); without one, components render the
+// node's excerpt (content.body). Dispatch moves to Entity.kind in Phase 3.
+function NodeContent({ node, bodyHtml }: { node: ASTNode; bodyHtml?: string }) {
   switch (node.type) {
     case "FunctionDeclaration":
-      return <ProjectNode node={node} />;
+      return <ProjectNode node={node} bodyHtml={bodyHtml} />;
 
     case "ObjectExpression":
-      return <SkillNode node={node} />;
+      return <SkillNode node={node} bodyHtml={bodyHtml} />;
 
     case "CallExpression":
-      return <PhilosophyNode node={node} />;
+      return <PhilosophyNode node={node} bodyHtml={bodyHtml} />;
 
     case "VariableDeclaration":
     case "ArrayExpression":
-      return <TimelineNode node={node} />;
+      return <TimelineNode node={node} bodyHtml={bodyHtml} />;
 
     case "ProgramNode":
       return (
         <IdentityNode
           node={node}
+          bodyHtml={bodyHtml}
           siblings={getAST().children ?? []}
         />
       );
 
     case "ExportDeclaration":
-      return <ConnectNode node={node} />;
+      return <ConnectNode node={node} bodyHtml={bodyHtml} />;
 
     // Resume gets the PDF viewer; other imports (Education) are generic.
     case "ImportDeclaration":
       return node.slug === "resume" ? (
-        <ResumeNode node={node} />
+        <ResumeNode node={node} bodyHtml={bodyHtml} />
       ) : (
-        <GenericNode node={node} />
+        <GenericNode node={node} bodyHtml={bodyHtml} />
       );
 
     // BlockStatement, StringLiteral, ExpressionStatement,
     // TypeAnnotation, RootNode
     default:
-      return <GenericNode node={node} />;
+      return <GenericNode node={node} bodyHtml={bodyHtml} />;
   }
 }
 
@@ -135,12 +120,12 @@ export default async function NodePage({ params }: PageProps) {
 
   const { node, path } = result;
 
-  // Enrich node content from MDX (merges canonical prose over inline fallback)
-  const enrichedNode = await enrichNodeContent(node);
+  // Canonical prose from the IR body store; null falls back to the excerpt.
+  const body = await loadNodeContent(node.slug);
 
   return (
-    <NodeShell node={enrichedNode} path={path}>
-      <NodeContent node={enrichedNode} />
+    <NodeShell node={node} path={path}>
+      <NodeContent node={node} bodyHtml={body?.html} />
     </NodeShell>
   );
 }
