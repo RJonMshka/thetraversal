@@ -7,6 +7,7 @@ import { RESEARCH } from "./research";
 import { SKILLS } from "./skills";
 import { TIMELINE } from "./timeline";
 import { ESSAYS } from "./essays";
+import { RELATIONS, STACK_ALIASES } from "./relations";
 
 // ── Registry entry point (read by `pnpm --filter @tv/ir build`) ────────
 // Order here is the order entities appear in graph.json. Tree order comes
@@ -25,6 +26,6 @@ export const REGISTRY: Registry = {
     ...TIMELINE,
     ...ESSAYS,
   ],
-  relations: [],
-  stackAliases: {},
+  relations: RELATIONS,
+  stackAliases: STACK_ALIASES,
 };
