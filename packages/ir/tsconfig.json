@@ -1,0 +1,11 @@
+{
+  "extends": "@tv/tsconfig/base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "types": ["node"],
+    // content/ is not a workspace, so its type-only `@tv/ir` imports
+    // resolve to this package's source through a path alias.
+    "paths": { "@tv/ir": ["./src/index.ts"] }
+  },
+  "include": ["src/**/*.ts", "../../content/registry/**/*.ts"]
+}

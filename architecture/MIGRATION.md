@@ -64,7 +64,7 @@ Prompt for Claude Code
 **Goal:** the IR becomes the source of data. Every existing consumer keeps working through the `@/data` facade.
 
 Steps
-- [ ] Create `packages/ir` with `schema.ts`, `compiler/`, `client.ts` per LLD-01. Add `zod`, `@mdx-js/mdx`, `rehype-sanitize`; reuse existing `remark-gfm`, `rehype-pretty-code`, `shiki`.
+- [x] Create `packages/ir` with `schema.ts`, `compiler/`, `client.ts` per LLD-01. Add `zod`, `@mdx-js/mdx`, `rehype-sanitize`; reuse existing `remark-gfm`, `rehype-pretty-code`, `shiki`.
 - [ ] Copy (not move yet) `apps/shell/src/data/*.ts` to `apps/shell/src/data/legacy/` untouched. This is the golden reference.
 - [ ] Create `content/registry/*.ts` from the legacy registries, converting each entry to an `Entity`: AST `type` becomes `kind` (mapping in LLD-01 §7), `meta.params` becomes `stack`, `content.deep` becomes `essayRef`, `publish` becomes `status`, drop `glowColor` and inline `content.body` where an MDX body exists.
 - [ ] Add `content/registry/relations.ts` with the cross-links (thesis triangle: `mfkit implements rewiring-the-interface`, `kata implements rewiring-the-interface`; the Kata edge is dropped with a warning while Kata is a draft).

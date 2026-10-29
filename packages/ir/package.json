@@ -1,0 +1,34 @@
+{
+  "name": "@tv/ir",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./compiler": "./src/compiler/index.ts",
+    "./dist/graph.json": "./dist/graph.json"
+  },
+  "scripts": {
+    "build": "tsx src/compiler/cli.ts",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@mdx-js/mdx": "^3.1.1",
+    "hast-util-to-html": "^9.0.6",
+    "rehype-pretty-code": "^0.14.3",
+    "rehype-sanitize": "^6.0.0",
+    "remark-gfm": "^4.0.1",
+    "shiki": "^4.0.2",
+    "unist-util-visit": "^5.2.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@tv/tsconfig": "workspace:*",
+    "@types/hast": "^3.0.5",
+    "@types/node": "^25.5.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0"
+  }
+}
