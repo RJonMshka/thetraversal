@@ -24,17 +24,19 @@ export default defineConfig({
   // Parity is measured against production builds, not dev servers: the
   // AST target's build served on its port, and the shell rewriting
   // /_t/ast/* to it (TARGET_AST_ORIGIN defaults to localhost:5101).
+  // The servers only start: `pnpm e2e` builds both through Turbo first
+  // (the shell needs @tv/ir compiled), and `pnpm parity` reuses builds.
   webServer: REMOTE
     ? undefined
     : [
         {
-          command: "pnpm --filter @tv/target-ast build && pnpm --filter @tv/target-ast preview",
+          command: "pnpm --filter @tv/target-ast preview",
           url: "http://localhost:5101/_t/ast/manifest.json",
           timeout: 120_000,
           reuseExistingServer: !process.env.CI,
         },
         {
-          command: `pnpm --filter @tv/shell build && pnpm --filter @tv/shell start --port ${PORT}`,
+          command: `pnpm --filter @tv/shell start --port ${PORT}`,
           url: `http://localhost:${PORT}`,
           timeout: 300_000,
           reuseExistingServer: !process.env.CI,
