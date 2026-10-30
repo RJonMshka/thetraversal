@@ -224,3 +224,53 @@ Same failing audits as Phase 1: `color-contrast`, `largest-contentful-paint` (de
 
 - Removed from the shell: `next-mdx-remote`, `gray-matter`, `remark-gfm`, `rehype-pretty-code`, `shiki` (the last three now belong to `@tv/ir`), `src/lib/mdx.ts`, `mdx-components.tsx`, `src/data/legacy/`.
 - `apps/shell/vercel.json` builds through Turbo (`pnpm exec turbo run build --filter=@tv/shell` from the repo root) so the IR is compiled before `next build`. Not yet verified on a Vercel preview.
+
+## Phase 3 (2026-10-29)
+
+Branch: `platform/phase-3`. `packages/contract` and the shell's target host exist; the AST runs as a local target in `apps/shell/src/targets/ast`, mounted into a shadow root at `/t/ast` through `TargetContext` only. `/tree` is a 308 to `/t/ast`. Same machine and Next.js 16.2.1.
+
+### Build
+
+- `pnpm build`: passes. Statically generated `/node/*` pages: **112**. New route `/t/[target]` → `/t/ast` (SSG; the server outline is in the HTML). `/tree` redirects in `next.config.ts`, query kept.
+
+### First-load JS (gzipped)
+
+| Route | KB gz | Chunks |
+|---|---:|---:|
+| `/` | 268.7 | 16 |
+| `/t/ast` | 265.8 | 15 |
+| `/node/reachble` | 247.5 | 14 |
+| `/node/rewiring-the-interface` | 247.5 | 14 |
+| `/node/timeline-0` | 247.5 | 14 |
+
+`/t/ast` replaces `/tree` (273.0): the AST is no longer in first-load JS. It loads on demand at mount: **47.3 KB gz** in 6 chunks (manifest budget 120). Node pages +1.0 KB (shell store and kind tables).
+
+### Lighthouse
+
+Same setup as Phase 2.
+
+| Page | Perf | A11y | Best practices | SEO | LCP | TBT | CLS |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `/` | 92 | 95 | 96 | 100 | 3.4 s | 10 ms | 0 |
+| `/node/reachble` | 93 | 95 | 96 | 100 | 3.2 s | 10 ms | 0 |
+| `/t/ast` | 93 | 95 | 96 | 100 | 3.2 s | 10 ms | 0 |
+| `/tree` on `main` (Phase 2, for comparison) | 99 | 96 | 96 | 100 | 2.1 s | 20 ms | 0 |
+
+`/` and `/node/*` are within Phase 2's run-to-run range. `/t/ast` paints the tree later than `/tree` did (LCP 2.1 → 3.2 s): the target mounts after hydration and loads its chunk, with the outline shown until then. Prefetching the target (LLD-03 §11) is the planned fix. Its failing audits (`aria-allowed-role`, `label-content-name-mismatch`, `uses-passive-event-listeners`, `color-contrast`) fail on `main`'s `/tree` too.
+
+### Parity
+
+- `pnpm e2e`: 28 snapshots passed. The three AST routes now load `/t/ast?mode=…` and are compared with their Phase 0 `/tree` snapshots; none was re-recorded. The mobile AST snapshots were flaky at first because the token stream's Framer spring ran despite reduced motion; the AST now wraps Framer in `MotionConfig reducedMotion="user"`, and 36 repeated runs passed.
+- Against a production build of `main` (`c58dac8`): all 112 `/node/*` pages × 2 themes × 2 viewports are **byte-identical (448/448)**, all 112 node OG images are byte-identical, and the sitemap differs only in `/tree` → `/t/ast`.
+- Functional checks (Playwright, production build): a node click sets `?focus=` and records a visit; opening the context window narrows the canvas and closes the inspector; mode changes go through the URL; visits made on `/node/*` show in the tree and the ctx count; clearing the history clears both; an unknown `focus` is removed from the URL; `?traversal=` share links restore visits. No console errors besides the local-only analytics 404.
+- `?remount=1` (dev): three unmount/mount cycles leave one React root and one adopted stylesheet, the tree stays interactive, and React logs no warnings.
+
+### Other checks
+
+- `pnpm lint`: 0 problems, with the new boundaries (a probe importing `next/link` or `@/platform/*` from `targets/ast` fails). `pnpm type-check`: passes. `pnpm test`: `@tv/contract` 19, `@tv/ir` 13, `@tv/shell` 47; all pass.
+
+### Notes
+
+- Contract additions made before any target shipped (CONTRACT_VERSION stays 1): `ctx.visited`, `ctx.inset`, bus events `traversal:reset` and `chrome:inset`, manifest `entry.kind: "local"`.
+- Shell chrome is overlaid on the AST (LLD-03 §12): the AST keeps invisible stand-ins for `← root` and `ctx`, and its header height is `--tv-chrome-top` in `tokens.css`. The target switcher renders nothing until a second target is registered.
+- The landing preview label still reads `// preview · /tree` so the landing snapshot is unchanged; the link under it goes to `/t/ast`.

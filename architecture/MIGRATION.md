@@ -113,7 +113,7 @@ Steps
 - [x] Add the Phase 3 lint boundary (LLD-04 §8) on `src/targets/ast/**`.
 - [x] Audit moved AST code for `document`/`window` use and portals. Scope listeners to the shadow root host or `ctx.signal`, and make sure all are removed on unmount. (`ReadingProgress` is used by node pages and stays in the shell.) Result: no portals and no writes outside the root; `matchMedia` listeners, the drift `rAF` loop and d3-zoom handlers were already released on unmount; the stack-overflow timer and in-flight d3 pan transitions now are too.
 
-Exit criteria
+Exit criteria (all met; see baseline.md "Phase 3")
 - `/t/ast?mode=lex|parse|eval` matches the Phase 0 `/tree?mode=…` snapshots (allow the URL difference only).
 - `/tree?mode=eval` returns 308 to `/t/ast?mode=eval`.
 - Lint boundary passes: nothing under `targets/ast` imports `next/*`, `@/data`, or the shell store.

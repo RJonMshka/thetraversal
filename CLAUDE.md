@@ -11,8 +11,8 @@ The medium is the message: the site is a compiler. Content is the source, `packa
 ## 2. Current phase
 
 ```
-PHASE: 2 complete  (content compiles from content/ into the IR via packages/ir; apps/shell/src/data
-          is a facade over it; see architecture/baseline.md "Phase 2"). Next: Phase 3.
+PHASE: 3 complete  (the AST runs as a local target in apps/shell/src/targets/ast, mounted at /t/ast
+          through @tv/contract only; see architecture/baseline.md "Phase 3"). Next: Phase 4.
 ```
 
 The repo moves toward the end-state layout one phase at a time. **Only the structure for completed phases exists.** Do not create folders for a later phase unless the task is that phase. Phase definitions and exit criteria: `architecture/MIGRATION.md`.
@@ -55,7 +55,7 @@ Breaking any of these breaks the project.
 - `pnpm-lock.yaml` by hand.
 
 **Styling**
-- Never hardcode colors. Use theme variables (`--ink`, `--ink-2`, `--tv-text`, `--text-mute`, `--text-faint`, `--line`, `--accent`, `--syntax-*`) or their Tailwind aliases (`ctp-*` utilities map onto them in `globals.css`). Theme values live in `packages/tokens/src/themes.ts` (`@tv/tokens`; `@/lib/themes` re-exports it until Phase 3).
+- Never hardcode colors. Use theme variables (`--ink`, `--ink-2`, `--tv-text`, `--text-mute`, `--text-faint`, `--line`, `--accent`, `--syntax-*`) or their Tailwind aliases (`ctp-*` utilities map onto them in `globals.css`). Theme values live in `packages/tokens/src/themes.ts` and the CSS defaults in `packages/tokens/tokens.css` (`@tv/tokens`).
 - No CSS modules, styled-components, or inline `style={{}}` except computed values from D3, Framer Motion, or canvas/WebGL.
 
 **Components**
@@ -78,7 +78,7 @@ From the repo root (Turborepo). The shell's own scripts (`next dev --turbopack`,
 ```bash
 pnpm dev                                   # shell (+ targets and IR watch from Phase 2/4)
 pnpm build | lint | type-check | test      # all workspaces; build must pass with zero errors before any task is done
-pnpm type-check                            # run after touching apps/shell/src/lib/ast-types.ts or apps/shell/src/data/*
+pnpm type-check                            # run after touching packages/contract, packages/ir/src/schema.ts, or apps/shell/src/targets/ast/lib/ast-types.ts
 pnpm e2e                                   # Playwright parity snapshots (e2e/ at root; builds and starts @tv/shell)
 pnpm e2e:update                            # re-record snapshots (only when a visual change is intended)
 pnpm measure:first-load                    # first-load JS per route, from apps/shell/.next (run after build)
@@ -116,7 +116,7 @@ Platform: pnpm workspaces, Turborepo, `@module-federation/runtime` in the shell,
 | Thing | Convention | Example |
 |---|---|---|
 | Components | PascalCase | `TargetHost.tsx` |
-| Hooks | camelCase, `use` prefix | `useTraversalState.ts` |
+| Hooks | camelCase, `use` prefix | `useIsDesktop.ts` |
 | Utils | camelCase | `traversal.ts` |
 | MDX | kebab-case | `code-as-consciousness.mdx` |
 | Entity ids / slugs | kebab-case, permanent | `reachble` |
