@@ -1,0 +1,244 @@
+/*
+ * Shared Tailwind theme (@tv/tokens/tailwind.css).
+ * The shell and every Tailwind target import this after "tailwindcss", so
+ * ctp-* utilities, fonts, animations and the tv-* classes compile the same
+ * way in the document and inside a target's shadow root. Rules here must
+ * work in both: no html/body selectors.
+ */
+
+/*
+ * Traversal v2 Design System
+ * Ink-dark base · mint accent · JetBrains Mono + Source Serif 4
+ */
+@theme {
+  /*
+   * All ctp-* colors now reference CSS custom properties so they react to
+   * theme switches via applyTheme(). Opacity-modified utilities (e.g.
+   * bg-ctp-surface0/30) gracefully degrade to the resolved base color.
+   */
+
+  /* Surface / text colors — theme-reactive */
+  --color-ctp-text:      var(--tv-text);
+  --color-ctp-subtext1:  var(--text-mute);
+  --color-ctp-subtext0:  var(--text-mute);
+  --color-ctp-overlay2:  var(--text-faint);
+  --color-ctp-overlay1:  var(--text-mute);
+  --color-ctp-overlay0:  var(--text-faint);
+  --color-ctp-surface2:  var(--line-2);
+  --color-ctp-surface1:  var(--line-2);
+  --color-ctp-surface0:  var(--ink-2);
+  --color-ctp-base:      var(--ink);
+  --color-ctp-mantle:    var(--ink);
+  --color-ctp-crust:     var(--ink-2);
+
+  /* Syntax / semantic colors — theme-reactive */
+  --color-ctp-green:     var(--accent);
+  --color-ctp-lavender:  var(--accent);
+  --color-ctp-mauve:     var(--syntax-keyword);
+  --color-ctp-pink:      var(--syntax-keyword);
+  --color-ctp-yellow:    var(--syntax-string);
+  --color-ctp-peach:     var(--syntax-ident);
+  --color-ctp-teal:      var(--syntax-type);
+  --color-ctp-sky:       var(--syntax-type);
+  --color-ctp-blue:      var(--syntax-type);
+  --color-ctp-sapphire:  var(--syntax-type);
+
+  /* Static colors that don't shift with theme */
+  --color-ctp-rosewater: oklch(0.78 0.08 20);
+  --color-ctp-flamingo:  oklch(0.78 0.08 20);
+  --color-ctp-red:       oklch(0.70 0.13 25);
+  --color-ctp-maroon:    oklch(0.72 0.12 25);
+
+  /* Font families */
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono",
+    Menlo, Consolas, "Liberation Mono", monospace;
+  --font-serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+
+  /* Custom animations */
+  --animate-cursor-blink: cursor-blink 1s step-end infinite;
+  --animate-glow-pulse: glow-pulse 3s ease-in-out infinite;
+  --animate-parse-in: parse-in 0.6s ease-out forwards;
+  --animate-fade-in: fade-in 0.3s ease-out forwards;
+}
+
+@keyframes cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes parse-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── TV utility classes (from design tokens.css) ─────────────────────── */
+.tv-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.tv-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  color: var(--text-mute);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: default;
+  user-select: none;
+  white-space: nowrap;
+  transition: color 600ms cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tv-chip[data-on="true"] {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+  background: var(--accent-faint);
+}
+
+/* Caret blink */
+@keyframes tv-caret { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+.tv-caret-thin {
+  display: inline-block;
+  width: 1px;
+  height: 1em;
+  vertical-align: -0.15em;
+  background: var(--accent);
+  animation: tv-caret 1.05s steps(1) infinite;
+  margin-left: 1px;
+}
+
+/* CLI cursor animations */
+@keyframes cli-blink { 50% { opacity: 0; } }
+@keyframes cli-fade  { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
+
+/* Bar cursor — editorial, breathy */
+.cli-cursor-bar {
+  display: inline-block;
+  width: 2px;
+  height: 15px;
+  background: var(--accent);
+  vertical-align: text-bottom;
+  box-shadow: 0 0 8px var(--accent);
+  animation: cli-fade 1.05s ease-in-out infinite;
+  margin-left: 1px;
+  flex-shrink: 0;
+}
+
+/* Line grid background */
+.tv-linegrid {
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Dot grid background */
+.tv-dotgrid {
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* Content card — ink-2 surface with a hairline border */
+.tv-card {
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  transition: background-color 600ms cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus ring — exclude SVG group elements (handled visually within components) */
+*:focus-visible {
+  outline: 2px solid var(--color-ctp-lavender);
+  outline-offset: 2px;
+}
+
+svg [role="treeitem"]:focus-visible,
+svg [role="treeitem"]:focus,
+svg g:focus-visible,
+svg g:focus {
+  outline: none;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Selection */
+::selection {
+  background: var(--color-ctp-surface2);
+  color: var(--color-ctp-text);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-ctp-mantle);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-ctp-surface1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ctp-surface2);
+}
+
+/* Hidden scrollbar utility — for horizontal token stream etc. */
+.scrollbar-hidden {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
+}
