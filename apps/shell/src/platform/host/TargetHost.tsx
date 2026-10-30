@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type MutableRefObject, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { ChromeInset, FocusSource } from "@tv/contract";
 import { themeSnapshot } from "@tv/tokens";
@@ -29,6 +29,8 @@ interface TargetHostProps {
   inset: ChromeInset;
   /** A target moved focus itself (shell chrome may react, e.g. close a panel). */
   onTargetFocus?: (id: string) => void;
+  /** Set while a target is mounted: shell chrome (the accessible list) moves focus through it. */
+  chromeFocusRef?: MutableRefObject<((id: string) => void) | null>;
   children: ReactNode;
 }
 
@@ -42,7 +44,7 @@ function sameParams(a: Readonly<Record<string, string>>, b: Readonly<Record<stri
   return keys.length === Object.keys(b).length && keys.every((k) => a[k] === b[k]);
 }
 
-export function TargetHost({ targetId, inset, onTargetFocus, children }: TargetHostProps) {
+export function TargetHost({ targetId, inset, onTargetFocus, chromeFocusRef, children }: TargetHostProps) {
   const router = useRouter();
   const search = useSearchParams();
   const hasHydrated = useShellStore((s) => s.hasHydrated);
@@ -176,6 +178,21 @@ export function TargetHost({ targetId, inset, onTargetFocus, children }: TargetH
       guard(targetId, () => mounted.handle.onParams?.(params));
     }
   }, [search, status, targetId]);
+
+  // ── Chrome → focus (LLD-03 §7: source "shell-chrome") ──────────────
+  useEffect(() => {
+    const mounted = mountedRef.current;
+    if (!chromeFocusRef || !mounted || status !== "ready") return;
+    chromeFocusRef.current = (id) => {
+      if (!ir.entity(id) || id === urlFocusRef.current) return;
+      pendingSourceRef.current = "shell-chrome";
+      const params = pickParams(new URLSearchParams(window.location.search), mounted.manifest.urlParams);
+      window.history.replaceState(null, "", targetHref(targetId, { params, focus: id }));
+    };
+    return () => {
+      chromeFocusRef.current = null;
+    };
+  }, [chromeFocusRef, status, targetId]);
 
   // ── Shell state → bus ──────────────────────────────────────────────
   useEffect(

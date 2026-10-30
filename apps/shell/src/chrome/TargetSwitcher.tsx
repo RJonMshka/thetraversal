@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FOCUS_PARAM, targetHref } from "@/platform/focus";
+import { prefetchTarget } from "@/platform/prefetch";
 import { TARGETS, type TargetId } from "@/platform/registry";
 
 // ── Target switcher (LLD-03 §12) ───────────────────────────────────────
 // `--target=<id>` chips, the visual sibling of the AST mode selector.
-// Hidden while only one target is registered, so the AST's top bar is
-// unchanged until a second target ships.
+// Hidden while only one target is registered. Hover, keyboard focus or a
+// touch on a chip prefetches that target's code (LLD-03 §11), so the
+// switch only has to mount it.
 
 export function TargetSwitcher({ current }: { current: TargetId }) {
   const search = useSearchParams();
@@ -24,8 +26,12 @@ export function TargetSwitcher({ current }: { current: TargetId }) {
           className="tv-chip"
           data-on={id === current ? "true" : undefined}
           aria-current={id === current ? "page" : undefined}
+          onPointerEnter={() => id !== current && prefetchTarget(id)}
+          onFocus={() => id !== current && prefetchTarget(id)}
         >
-          --target={id}
+          {/* Phones show the id alone so the top row fits beside ← root and ctx. */}
+          <span className="hidden sm:inline">--target=</span>
+          {id}
         </Link>
       ))}
     </nav>
