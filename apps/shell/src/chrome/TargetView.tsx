@@ -1,14 +1,17 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ComponentProps, type ComponentType, type ReactNode } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import type { ChromeInset } from "@tv/contract";
+import type { ChromeInset, TargetManifest } from "@tv/contract";
 import { cn } from "@/lib/utils";
 import { useIsDesktop } from "@/hooks/useMediaQuery";
 import { ir } from "@/platform/ir";
 import { TargetHost } from "@/platform/host/TargetHost";
-import type { TargetId } from "@/platform/registry";
+import { FOCUS_PARAM, pickParams, resolveFocus, targetHref } from "@/platform/focus";
+import { loader } from "@/platform/loader";
+import { prefetchManifests } from "@/platform/prefetch";
+import { TARGETS, type TargetId } from "@/platform/registry";
 import { useShellStore } from "@/state/shell-store";
 import { preloadable, usePreloadWhenIdle } from "@/lib/preloadable";
 import { TargetSwitcher } from "@/chrome/TargetSwitcher";
@@ -18,6 +21,9 @@ import { TargetSwitcher } from "@/chrome/TargetSwitcher";
 // link and ctx toggle sit in the target's top row (the AST leaves
 // same-sized stand-ins), and the context window opens below the
 // target's header, whose height is the --tv-chrome-top token.
+// Targets that are not fully accessible on their own (manifest a11y
+// "partial" or "decorative") get the accessible entity list beside them:
+// a right-hand column on desktop, below a shorter stage on phones.
 
 const SIDEBAR_WIDTH = 288; // w-72
 
@@ -25,6 +31,11 @@ const SIDEBAR_WIDTH = 288; // w-72
 // the page is idle, so it is not first-load JS.
 const ContextWindowLazy = preloadable(() => import("@/chrome/ContextWindow").then((m) => m.ContextWindow));
 const ContextWindow = ContextWindowLazy.Component;
+// Only targets that need it load the list. It is rendered from the
+// resolved module rather than through lazy() + Suspense, whose reveal
+// React throttles by ~300 ms: the list would land well after the target.
+type EntityListProps = ComponentProps<typeof import("@/chrome/AccessibleEntityList").AccessibleEntityList>;
+const EntityListLazy = preloadable(() => import("@/chrome/AccessibleEntityList").then((m) => m.AccessibleEntityList));
 const NO_INSET: ChromeInset = { top: 0, right: 0, bottom: 0, left: 0 };
 
 export function TargetView({ targetId, children }: { targetId: TargetId; children: ReactNode }) {
@@ -36,16 +47,47 @@ export function TargetView({ targetId, children }: { targetId: TargetId; childre
   // Once opened, the panel stays mounted so its exit animation can run.
   const [contextSeen, setContextSeen] = useState(false);
   if (contextOpen && !contextSeen) setContextSeen(true);
-  usePreloadWhenIdle(ContextWindowLazy.preload);
+  usePreloadWhenIdle(ContextWindowLazy.preload, EntityListLazy.preload);
+  useEffect(() => prefetchManifests(TARGETS.map((t) => t.id)), []);
+
+  // The manifest is cached by the loader (TargetHost reads the same one),
+  // so the layout knows the target's a11y mode before its code arrives.
+  const [loaded, setLoaded] = useState<TargetManifest | null>(null);
+  useEffect(() => {
+    const abort = new AbortController();
+    loader.manifest(targetId, abort.signal).then(setLoaded, () => {});
+    return () => abort.abort();
+  }, [targetId]);
+  const manifest = loaded?.id === targetId ? loaded : null;
+  const withList = manifest !== null && manifest.a11y !== "full";
+  const [EntityList, setEntityList] = useState<ComponentType<EntityListProps> | null>(null);
+  useEffect(() => {
+    if (!withList || EntityList) return;
+    EntityListLazy.preload().then((C) => setEntityList(() => C), () => {});
+  }, [withList, EntityList]);
+
+  const chromeFocusRef = useRef<((id: string) => void) | null>(null);
+  const listFocus = resolveFocus(search.get(FOCUS_PARAM), ir);
+  const focusFromList = useCallback(
+    (id: string) => {
+      if (chromeFocusRef.current) return chromeFocusRef.current(id);
+      // Target not mounted (loading or failed): the URL still records it,
+      // and a target that mounts later starts there.
+      const params = pickParams(new URLSearchParams(window.location.search), manifest?.urlParams ?? []);
+      window.history.replaceState(null, "", targetHref(targetId, { params, focus: id }));
+    },
+    [manifest, targetId]
+  );
 
   const toggleContext = useCallback(() => setContextOpen((open) => !open), []);
   const closeContext = useCallback(() => setContextOpen(false), []);
 
-  // Desktop: a sidebar over the right edge. Mobile: a sheet over everything.
+  // Desktop: a sidebar over the right edge (over the entity list when there
+  // is one, so the target is not covered). Mobile: a sheet over everything.
   const inset = useMemo<ChromeInset>(() => {
-    if (!contextOpen) return NO_INSET;
+    if (!contextOpen || (isDesktop && withList)) return NO_INSET;
     return { ...NO_INSET, right: isDesktop ? SIDEBAR_WIDTH : window.innerWidth };
-  }, [contextOpen, isDesktop]);
+  }, [contextOpen, isDesktop, withList]);
 
   // ── Share URL: restore visits from ?traversal=a,b,c ────────────────
   const restoredRef = useRef(false);
@@ -66,17 +108,32 @@ export function TargetView({ targetId, children }: { targetId: TargetId; childre
   }, [hasHydrated, search, targetId]);
 
   return (
-    <main id="main-content" className="relative h-screen overflow-hidden" style={{ background: "var(--ink)" }}>
-      <TargetHost targetId={targetId} inset={inset} onTargetFocus={closeContext}>
-        {children}
-      </TargetHost>
+    <main
+      id="main-content"
+      className={cn(
+        "relative bg-[var(--ink)]",
+        withList ? "flex min-h-screen flex-col lg:h-screen lg:flex-row lg:overflow-hidden" : "h-screen overflow-hidden"
+      )}
+    >
+      <div className={cn("relative", withList ? "h-[55vh] min-h-80 shrink-0 lg:h-full lg:min-w-0 lg:flex-1" : "h-full")}>
+        <TargetHost targetId={targetId} inset={inset} onTargetFocus={closeContext} chromeFocusRef={chromeFocusRef}>
+          {children}
+        </TargetHost>
+      </div>
+      {withList && EntityList && (
+        <EntityList
+          focus={listFocus}
+          onFocus={focusFromList}
+          className="border-t border-[var(--line-2)] lg:w-72 lg:shrink-0 lg:border-l lg:border-t-0 lg:pt-12"
+        />
+      )}
 
       {/* Top row: home link and ctx toggle */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between px-5 py-3">
         <Link
           href="/"
           style={{ fontSize: 12, color: "var(--text-faint)", fontFamily: "var(--mono)", transition: "color 150ms" }}
-          className="pointer-events-auto hover:text-[var(--tv-text)]"
+          className="pointer-events-auto whitespace-nowrap hover:text-[var(--tv-text)]"
         >
           ← root
         </Link>

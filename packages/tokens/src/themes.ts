@@ -21,6 +21,13 @@ export const FONTS = {
   brutalist: { mono: '"Courier New", ui-monospace, monospace', serif: '"Courier New", ui-monospace, monospace', label: 'brutalist · heavy mono' },
 } as const;
 
+// Syntax colors per theme mode. CSS gets them as --syntax-*; canvas and
+// WebGL targets get them resolved in ThemeSnapshot.syntax.
+export const SYNTAX = {
+  dark:  { keyword: 'oklch(0.78 0.10 320)', string: 'oklch(0.82 0.10 90)', ident: 'oklch(0.78 0.13 70)', type: 'oklch(0.78 0.10 220)' },
+  light: { keyword: 'oklch(0.42 0.18 320)', string: 'oklch(0.46 0.16 75)', ident: 'oklch(0.46 0.17 50)', type: 'oklch(0.42 0.18 240)' },
+} as const;
+
 export type ThemeName = keyof typeof THEMES;
 export type FontName = keyof typeof FONTS;
 
@@ -63,18 +70,12 @@ export function applyTheme(themeName: ThemeName, fontName: FontName) {
   root.style.setProperty('--mono', F.mono);
   root.style.setProperty('--serif', F.serif);
 
-  // Syntax highlight colors — darker/more saturated for light themes (WCAG AA)
-  if (T.mode === 'dark') {
-    root.style.setProperty('--syntax-keyword', 'oklch(0.78 0.10 320)');
-    root.style.setProperty('--syntax-string',  'oklch(0.82 0.10 90)');
-    root.style.setProperty('--syntax-ident',   'oklch(0.78 0.13 70)');
-    root.style.setProperty('--syntax-type',    'oklch(0.78 0.10 220)');
-  } else {
-    root.style.setProperty('--syntax-keyword', 'oklch(0.42 0.18 320)');
-    root.style.setProperty('--syntax-string',  'oklch(0.46 0.16 75)');
-    root.style.setProperty('--syntax-ident',   'oklch(0.46 0.17 50)');
-    root.style.setProperty('--syntax-type',    'oklch(0.42 0.18 240)');
-  }
+  // Syntax highlight colors: darker and more saturated for light themes (WCAG AA)
+  const S = SYNTAX[T.mode];
+  root.style.setProperty('--syntax-keyword', S.keyword);
+  root.style.setProperty('--syntax-string',  S.string);
+  root.style.setProperty('--syntax-ident',   S.ident);
+  root.style.setProperty('--syntax-type',    S.type);
 
   saveTheme(themeName, fontName);
 }

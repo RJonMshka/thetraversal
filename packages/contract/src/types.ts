@@ -105,6 +105,12 @@ export interface ThemeSnapshot {
   font: string;
   /** Resolved values for canvas/WebGL targets that cannot read CSS vars per frame. */
   colors: { bg: string; card: string; text: string; mute: string; accent: string; line: string };
+  /**
+   * Syntax colors (the --syntax-* vars), for targets that color by category.
+   * Optional so a target built against an older shell still mounts: fall back
+   * to `colors` when it is missing. Added in Phase 5, not a breaking change.
+   */
+  syntax?: { keyword: string; string: string; ident: string; type: string };
 }
 
 /** CSS px of the target's root covered by shell chrome (e.g. the context window). */

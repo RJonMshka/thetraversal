@@ -355,3 +355,70 @@ Best practices dropped from 96 to 93 on every page because of the report-only CS
 - Separate deploys: PR #7 changed only `targets/ast/package.json` (1.0.0 → 1.0.1). Production built only `thetraversal-t-ast`; the shell's deploy for that commit was skipped by its ignore step, and `thetraversal.vercel.app/_t/ast/manifest.json` reported 1.0.1 through the existing shell deploy. The reverse holds too: a shell-only merge skipped the target. A branch's first push builds every preview once, because `turbo-ignore` has no earlier deployment on that branch to compare with.
 - Failure drill on a preview: with `TARGET_AST_ORIGIN` set to a nonexistent deployment for the PR #8 branch only, `/t/ast` returned 200, the target failed in under a second with `error[T0004]: target 'ast': manifest.json returned 404`, and the outline kept all 111 links. The variable was removed and the preview redeployed afterwards.
 - CI: all four jobs pass from PR #6 on, including e2e on macOS against the Phase 0 snapshots.
+
+## Phase 5: `three` target
+
+Measured on 2026-10-30, Apple M1, production builds served locally (shell `next start`, both targets `vite preview`).
+
+### three target
+
+- `@tv/target-three` 1.0.0: **169.2 KB gz** in 8 files (three.js is most of `mount`, 141.0; the federation runtime 18.5; `remoteEntry.js` 6.2). Budget 185 KB. No framework: vanilla TypeScript and `three` 0.187.
+- Mount, after a hover prefetch: `mount()` starts ~40 ms after the switcher click, the scene is built ~30 ms later, the first frame lands at ~110 ms (first shader compile ~30 ms on the GPU). Model and layout for the 112-entity IR take under 15 ms.
+- Renders on demand: no frames while idle.
+
+### Warm switch
+
+Timed in the page from the switcher click to `data-target-state="ready"`, after hovering both chips, 10 round trips, Chromium on the GPU (`--use-angle=metal`):
+
+| Switch | p75 | Range |
+|---|---:|---:|
+| `ast` → `three` | 62 ms | 46–119 ms |
+| `three` → `ast` | 36 ms | 17–38 ms |
+
+Focus was preserved on all 20 switches. Exit criterion: p75 under 400 ms.
+
+Default headless Chromium renders WebGL in software (SwiftShader). There the first paint of the canvas costs a ~335 ms main-thread task (compositor readback), and Playwright's own polling added more, which is why a first measurement read ~400 ms. Use the GPU for timings (LLD-04 §7).
+
+### Shell first-load
+
+| Route | Total | App over framework |
+|---|---:|---:|
+| `/t/ast`, `/t/three` (same route) | 180.7 KB gz | 33.4 KB (Phase 4 code: 32.8) |
+| `/` | 175.0 KB gz | 24.3 KB |
+| `/node/*` | 163.0 KB gz | 15.8 KB |
+
+`AccessibleEntityList` loads only for targets with `a11y` `partial`/`decorative`, preloaded when idle. Prefetch and the switcher add 0.6 KB to `/t/*`.
+
+### Lighthouse
+
+Lighthouse 12.8.2, default mobile, headless Chrome, shell on `:3000` with both target builds.
+
+| Page | Perf | A11y | Best practices | SEO | LCP | TBT | CLS |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `/` | 94 | 95 | 93 | 100 | 3.1 s | 14 ms | 0 |
+| `/node/reachble` | 94 | 95 | 93 | 100 | 3.1 s | 12 ms | 0 |
+| `/t/ast` | 92 | 95 | 93 | 100 | 3.4 s | 12 ms | 0 |
+| `/t/three` | 96 | 100 | 93 | 100 | 2.7 s | 62–105 ms | 0 |
+
+Best practices is 93 for the Phase 4 reasons (report-only CSP issues) plus the local-only 404 for `/_vercel/insights/script.js`, which Vercel serves in production. `/t/three` first scored 89: its 11 px scene labels failed the legible-font-size audit on a phone viewport; text in the target is now at least 12 px below 640 px. Accessibility 95 on the other pages is the existing `--text-faint` contrast finding.
+
+### Conformance
+
+- `three`: 14 passed, 0 failed, 2 manual (reduced motion by eye; pointer selection calls `ctx.nav.focus`, which `mount.ts` does on every pick). Remount passes, and after each unmount the root is empty, no rAF is pending, no listeners remain, and the WebGL context is lost.
+- `ast`: unchanged (12 passed, 2 page-lifetime listener warnings).
+- The runner now ignores Chromium's GPU driver notes (`GL Driver Message … GPU stall due to ReadPixels`), which it logs for a bare `gl.clear` canvas with no target code.
+
+### Behavior checks (Playwright against the built app)
+
+- `/t/three?focus=reachble`: list shows Reachble selected. ↑ → `projects`, ↓ → `reachble` (round trip), → → `mfkit`, Esc → `projects`. List click → `resumind`; ← inside the list → `projects` with keyboard focus kept on the tree. Clicking empty canvas steps out to `root`.
+- Switch to `ast` with focus `reachble`: focus kept, zero canvases left on the page.
+- Keyboard-only: every entity is a row in the list's tree; ↑↓←→ Home End reach all 112 and the scene follows.
+
+### Parity and checks
+
+- `pnpm build`, `lint`, `type-check`, `test`, `conformance` pass.
+- Parity: the 12 `/t/ast` snapshots were re-recorded because the switcher now shows (`--target=ast` `--target=three`; the id alone on phones). The diff was the switcher alone. Landing and node snapshots are unchanged. 28 pass.
+
+### Not done yet
+
+- Vercel project `thetraversal-t-three` and `TARGET_THREE_ORIGIN` on the shell project (MIGRATION Phase 5, last step).

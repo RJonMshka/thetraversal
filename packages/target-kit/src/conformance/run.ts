@@ -73,6 +73,7 @@ function serveDist(id: string, dir: string): Plugin {
 }
 
 const MARK = { pass: "✓", fail: "✗", warn: "!", manual: "·" } as const;
+const CHROMIUM_GL_NOTE = /^\[\.WebGL-0x[0-9a-f]+\]GL Driver Message /;
 
 async function main() {
   const { dir, manifest } = findTarget(process.cwd());
@@ -105,7 +106,12 @@ async function main() {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     const console: string[] = [];
     page.on("console", (m) => {
-      if (m.type() === "error" || m.type() === "warning") console.push(`[${m.type()}] ${m.text()}`);
+      if (m.type() !== "error" && m.type() !== "warning") return;
+      // Headless Chromium logs its own GPU driver notes for any WebGL canvas
+      // (e.g. "GPU stall due to ReadPixels" from compositor readback, even
+      // for a bare gl.clear). They are not the target's output.
+      if (CHROMIUM_GL_NOTE.test(m.text())) return;
+      console.push(`[${m.type()}] ${m.text()}`);
     });
     page.on("pageerror", (e) => console.push(`[pageerror] ${e.message}`));
     await page.goto(address);

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "cd ../.. && pnpm exec turbo run build --filter=@tv/target-three",
+  "outputDirectory": "dist",
+  "ignoreCommand": "pnpm dlx turbo-ignore@2.11.10 @tv/target-three",
+  "headers": [
+    {
+      "source": "/_t/three/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/_t/three/(manifest.json|mf-manifest.json|remoteEntry.js)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=60, stale-while-revalidate=600" }]
+    }
+  ]
+}

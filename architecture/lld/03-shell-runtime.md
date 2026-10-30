@@ -60,6 +60,13 @@ As built in Phase 3 (one local target, no switching yet):
 - `TargetHost` unmounts a target after React's commit (a React target cannot unmount its own root mid-render) and starts the next mount only once the previous one has fully unmounted.
 - `?remount=1` (development builds only) shows a button that unmounts and remounts the target in place.
 
+Phase 5 (second target, `three`):
+
+- `chrome/AccessibleEntityList.tsx`: every entity in `contains` order as a WAI-ARIA tree (flat rows with `aria-level`, roving tabindex). ↑↓ move, ← / Esc / Backspace parent, → first child, Home/End, Enter opens `/node/<id>`. Each move changes focus, so the target follows along. It reads focus from the URL and writes it through `TargetHost`'s `chromeFocusRef` (`source: "shell-chrome"`); if no target is mounted it replaces the URL directly, and a target that mounts later starts there.
+- `TargetView` asks the loader for the manifest (cached, the same request `TargetHost` makes) so it knows `a11y` before the target's code arrives. For `partial`/`decorative` it lays out the list beside the stage: a 288 px right column on desktop, below a 55vh stage on phones. The list's code is preloaded when idle and rendered from the resolved module, not `lazy()` + Suspense, whose reveal React throttles by ~300 ms.
+- With the list on desktop, the context window opens over the list rather than the target, so `ctx.inset` stays zero.
+- `platform/prefetch.ts`: §11 as built, below.
+
 ## 3. Registry
 
 ```ts
@@ -228,6 +235,8 @@ The host removes the outline after the target signals ready. Effects: crawlers a
 3. Skip steps 1-2 when `navigator.connection.saveData` or `effectiveType` is `2g`/`slow-2g`.
 4. Never prefetch a target whose hardware capability probe failed.
 
+As built in Phase 5 (`platform/prefetch.ts`): steps 1, 3 and 4, and step 2 for the switcher (pointer enter or keyboard focus on a chip). Step 2 goes further than a `modulepreload` of the remote entry: it also calls `loader.load()`, which downloads and evaluates the exposed module without mounting it, so the switch only has to mount. The "2 s on a node" trigger is not built. Warm switch p75 locally: 62 ms to `three`, 36 ms to `ast` (baseline.md "Phase 5").
+
 ## 12. Chrome placement
 
 | Component | Today | After |
@@ -235,7 +244,8 @@ The host removes the outline after the target signals ready. Effects: crawlers a
 | `TokenStream` | `/tree` page | AST target only (it is a lexer view of the career) |
 | `ContextWindow` | `/tree` page | Shell, cross-target, visible on every `/t/*` route |
 | `TraversalModeSelector` | Tree page | AST target |
-| `TargetSwitcher` | (new) | Shell, same visual language as the mode selector: `--target=ast` |
+| `TargetSwitcher` | (new) | Shell, same visual language as the mode selector: `--target=ast` (the id alone below 640 px) |
+| `AccessibleEntityList` | (new, Phase 5) | Shell, beside targets with `a11y` `partial` or `decorative` |
 | `FocusManager`, `EasterEggOverlays`, `ThemeInitializer` | Layout | Shell, unchanged |
 
 Phase 3 layout convention. The AST draws the whole screen, header included, so its pages match the old `/tree` pixel for pixel. The shell overlays its chrome on top: the `← root` link and the `ctx` toggle sit in the AST's top row, where the AST leaves invisible stand-ins of the same size, and the context window opens below the AST's header, whose height is the `--tv-chrome-top` token in `@tv/tokens/tokens.css`. The shell reports the area its open panel covers as `ctx.inset` / `chrome:inset`, and closes the panel when a target moves focus. The switcher renders nothing while only one target is registered.

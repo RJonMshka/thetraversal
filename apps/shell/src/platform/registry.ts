@@ -2,7 +2,7 @@
 // Ids are permanent URL segments. The shell knows targets by id only;
 // where their code comes from is the loader's business.
 
-export const TARGETS = [{ id: "ast", default: true }] as const satisfies readonly {
+export const TARGETS = [{ id: "ast", default: true }, { id: "three" }] as const satisfies readonly {
   id: string;
   default?: true;
 }[];

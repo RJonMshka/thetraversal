@@ -11,9 +11,9 @@ The medium is the message: the site is a compiler. Content is the source, `packa
 ## 2. Current phase
 
 ```
-PHASE: 4 complete  (the AST is its own workspace and Vercel project, targets/ast → thetraversal-t-ast,
-          loaded by the shell through Module Federation from /_t/ast/; see architecture/baseline.md
-          "Phase 4"). Next: Phase 5.
+PHASE: 5 in progress  (targets/three built and conformant, exit criteria met locally; see
+          architecture/baseline.md "Phase 5"). Left: Vercel project thetraversal-t-three and
+          TARGET_THREE_ORIGIN on the shell. Mark complete once production serves /t/three.
 ```
 
 The repo moves toward the end-state layout one phase at a time. **Only the structure for completed phases exists.** Do not create folders for a later phase unless the task is that phase. Phase definitions and exit criteria: `architecture/MIGRATION.md`.

@@ -1,0 +1,33 @@
+{
+  "name": "@tv/target-three",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tv-dev",
+    "dev:standalone": "vite --configLoader runner --mode standalone",
+    "build": "vite build --configLoader runner",
+    "preview": "vite preview --configLoader runner",
+    "conformance": "tv-conformance",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "@tv/contract": "workspace:*",
+    "@tv/ir": "workspace:*",
+    "@tv/target-kit": "workspace:*",
+    "@tv/tokens": "workspace:*",
+    "@tv/tsconfig": "workspace:*",
+    "@types/node": "^25.5.0",
+    "@types/three": "0.187.0",
+    "eslint": "^9.39.5",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.1",
+    "vite": "^8.0.1",
+    "vitest": "^4.1.0"
+  }
+}
