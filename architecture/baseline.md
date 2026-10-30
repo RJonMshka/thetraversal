@@ -176,3 +176,51 @@ The production project (`thetraversal`) now has root directory `apps/shell` and 
 - `PARITY_BASE_URL=https://thetraversal.vercel.app pnpm exec playwright test`: 28 parity snapshots passed.
 
 All Phase 1 exit criteria are met. The temporary `thetraversal-phase1` project is still connected to the repo and can be deleted.
+
+## Phase 2 (2026-10-29)
+
+Branch: `platform/phase-2`. Content compiles from `content/` into the IR (`@tv/ir`); `apps/shell/src/data` is a facade over it, and `/node` pages render compiled HTML bodies. Same machine and Next.js 16.2.1. All commands run from the repo root.
+
+### Build
+
+- `pnpm build` (`@tv/ir#build` → `@tv/shell#build`): passes.
+- Statically generated `/node/*` pages: **112** (same as Phase 1).
+- IR: 112 entities, 125 edges (contains + `implements` + derived `uses`), 30 bodies (26 node prose, 4 essays). `graph.json` is **12.1 KB** gzipped (budget 60 KB). Draft projects are no longer shipped.
+
+### First-load JS (gzipped)
+
+| Route | KB gz | Chunks |
+|---|---:|---:|
+| `/` | 268.8 | 14 |
+| `/tree` | 273.0 | 15 |
+| `/node/reachble` | 246.5 | 12 |
+| `/node/rewiring-the-interface` | 246.5 | 12 |
+| `/node/timeline-0` | 246.5 | 12 |
+
+`/` +3.6 KB and `/tree` +2.4 KB versus Phase 1: the graph JSON plus the IR client replace the hand-written registries. Zod is not in any client chunk. Node pages +0.2 KB.
+
+### Lighthouse
+
+Same setup as Phase 1. Three runs each; performance varied 91–93 on `/` and 93–97 on `/node/reachble` on the same build, so the first run is recorded.
+
+| Page | Perf | A11y | Best practices | SEO | LCP | TBT | CLS |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `/` | 91 | 95 | 96 | 100 | 3.6 s | 10 ms | 0 |
+| `/node/reachble` | 93 | 95 | 96 | 100 | 3.2 s | 10 ms | 0 |
+
+Same failing audits as Phase 1: `color-contrast`, `largest-contentful-paint` (deferred), and the local-only `errors-in-console`.
+
+### Parity
+
+- Golden test (`apps/shell/src/__tests__/ir-parity.test.ts`): the IR projected to an AST equalled the legacy tree with `toStrictEqual`, inline bodies included, at `41286ae`. The legacy registries were then deleted and the test now checks projection invariants.
+- `pnpm e2e`: 28 parity snapshots passed. No snapshot was re-recorded.
+- Full-page screenshots of all 112 `/node/*` pages × 2 themes × 2 viewports against a production build of `main` (`bdafe56`): **448 byte-identical, 0 different**, including the essays with highlighted code. Run both before and after the legacy deletion.
+
+### Other checks
+
+- `pnpm lint`: 0 problems. `pnpm type-check`: passes. `pnpm test`: `@tv/ir` 2 files, 13 tests; `@tv/shell` 2 files, 38 tests; all pass.
+
+### Notes
+
+- Removed from the shell: `next-mdx-remote`, `gray-matter`, `remark-gfm`, `rehype-pretty-code`, `shiki` (the last three now belong to `@tv/ir`), `src/lib/mdx.ts`, `mdx-components.tsx`, `src/data/legacy/`.
+- `apps/shell/vercel.json` builds through Turbo (`pnpm exec turbo run build --filter=@tv/shell` from the repo root) so the IR is compiled before `next build`. Not yet verified on a Vercel preview.

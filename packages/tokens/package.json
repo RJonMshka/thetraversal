@@ -1,0 +1,17 @@
+{
+  "name": "@tv/tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./prose.css": "./prose.css"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@tv/tsconfig": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

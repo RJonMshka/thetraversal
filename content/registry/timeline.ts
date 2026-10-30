@@ -1,8 +1,8 @@
-import type { ASTNode } from "@/lib/ast-types";
+import type { SourceEntity } from "@tv/ir";
 
-// ── Timeline data ──────────────────────────────────────────────────────
-// Timeline entries are ArrayExpression items — ordered, indexed, sequential.
-// The timeline is a VariableDeclaration containing an ArrayExpression.
+// ── Timeline ───────────────────────────────────────────────────────────
+// timeline ─▶ roles (ordered) ─▶ role × TIMELINE_ENTRIES. Entry order is
+// the order the journey reads in.
 //
 // Source: docs/CONTENT-v2.md §4.
 
@@ -59,57 +59,42 @@ const TIMELINE_ENTRIES: TimelineEntry[] = [
   },
 ];
 
-// Convert timeline entries to AST nodes
-function timelineToNode(entry: TimelineEntry): ASTNode {
-  return {
-    id: `timeline-${entry.index}`,
-    type: "StringLiteral",
-    label: `${entry.organization}`,
-    slug: `timeline-${entry.index}`,
-    glowColor: "--ctp-teal",
-    content: {
-      summary: entry.summary,
-      body: entry.body,
-    },
-    meta: {
-      date: entry.date,
-      tags: entry.isCurrent ? ["current"] : [],
-    },
-  } satisfies ASTNode;
+function roleId(entry: TimelineEntry): string {
+  return `timeline-${entry.index}`;
 }
 
-// The array expression containing all timeline entries
-export const TIMELINE_ARRAY_NODE = {
-  id: "timeline-entries",
-  type: "ArrayExpression",
-  label: "Journey",
-  slug: "timeline-entries",
-  glowColor: "--ctp-teal",
-  content: {
-    summary: "Publicis Sapient → UIC → Airblox → Capital One.",
-    body: "A chronological traversal through industry, graduate school, and back to production. Each entry is an element in an ever-growing array.",
-  },
-  children: TIMELINE_ENTRIES.map(timelineToNode),
-  meta: {
-    tags: ["timeline"],
-  },
-} satisfies ASTNode;
+function roleEntity(entry: TimelineEntry): SourceEntity {
+  return {
+    id: roleId(entry),
+    kind: "role",
+    label: entry.organization,
+    summary: entry.summary,
+    excerpt: entry.body,
+    tags: entry.isCurrent ? ["current"] : [],
+    date: entry.date,
+  };
+}
 
-// The variable declaration wrapping the array
-export const TIMELINE_NODE = {
-  id: "timeline",
-  type: "VariableDeclaration",
-  label: "Timeline",
-  slug: "timeline",
-  glowColor: "--ctp-teal",
-  content: {
+export const TIMELINE: SourceEntity[] = [
+  {
+    id: "timeline",
+    kind: "timeline",
+    label: "Timeline",
     summary: "const journey: Experience[] — the ordered sequence of where I've been.",
-    body: "Career as an array — indexed, ordered, iterable. Each element builds on the last. The current index keeps incrementing.",
-  },
-  children: [TIMELINE_ARRAY_NODE],
-  meta: {
+    excerpt: "Career as an array — indexed, ordered, iterable. Each element builds on the last. The current index keeps incrementing.",
     tags: ["timeline", "career"],
+    children: ["timeline-entries"],
   },
-} satisfies ASTNode;
+  {
+    id: "timeline-entries",
+    kind: "roles",
+    label: "Journey",
+    summary: "Publicis Sapient → UIC → Airblox → Capital One.",
+    excerpt: "A chronological traversal through industry, graduate school, and back to production. Each entry is an element in an ever-growing array.",
+    tags: ["timeline"],
+    children: TIMELINE_ENTRIES.map(roleId),
+  },
+  ...TIMELINE_ENTRIES.map(roleEntity),
+];
 
 export { TIMELINE_ENTRIES };

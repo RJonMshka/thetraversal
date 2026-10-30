@@ -1,11 +1,28 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
-    "build": { "dependsOn": ["^build"], "outputs": [".next/**", "!.next/cache/**"] },
-    "dev": { "cache": false, "persistent": true },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    },
+    "@tv/ir#build": {
+      "inputs": ["src/**", "package.json", "../../content/**"],
+      "outputs": ["dist/**", "../../apps/shell/public/ir/**"]
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
     "lint": {},
-    "type-check": { "dependsOn": ["^build"] },
-    "test": { "dependsOn": ["^build"] },
-    "//#parity": { "cache": false }
+    "type-check": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"]
+    },
+    "//#parity": {
+      "cache": false
+    }
   }
 }

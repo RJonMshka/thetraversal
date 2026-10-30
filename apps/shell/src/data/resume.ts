@@ -1,31 +1,10 @@
-import type { ASTNode } from "@/lib/ast-types";
-
-// ── Resume Node ────────────────────────────────────────────────────────
-// Lives under the Identity node as an ImportDeclaration.
-// Semantically: import resume from "./rajat-kumar.pdf"
-// The resume is an external artifact being imported into the AST.
+// ── Resume text ────────────────────────────────────────────────────────
+// Terminal copy for the `cat resume` easter egg. The resume entity itself
+// lives in content/registry/resume.ts; the download files live in
+// public/resume/.
 
 export const RESUME_PDF_URL = "/resume/Rajat_Kumar_Resume.pdf";
 export const RESUME_DOCX_URL = "/resume/Rajat_Kumar_Resume.docx";
-
-export const RESUME_NODE = {
-  id: "resume",
-  type: "ImportDeclaration",
-  label: "Resume",
-  slug: "resume",
-  glowColor: "--ctp-yellow",
-  content: {
-    summary: 'import resume from "./Rajat-Kumar.pdf"',
-    body: "View or download resume in PDF/DOCX format.",
-  },
-  meta: {
-    tags: ["resume", "identity"],
-    links: [
-      { label: "Download PDF", url: RESUME_PDF_URL },
-      { label: "Download DOCX", url: RESUME_DOCX_URL },
-    ],
-  },
-} satisfies ASTNode;
 
 // ── Plain-text resume for `cat resume` command ─────────────────────────
 export const RESUME_TEXT_LINES = [

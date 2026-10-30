@@ -18,7 +18,7 @@ const THEMES = ["mint", "paper"] as const;
 for (const theme of THEMES) {
   test.describe(`theme: ${theme}`, () => {
     test.beforeEach(async ({ page }) => {
-      // Same key and shape as saveTheme() in src/lib/themes.ts.
+      // Same key and shape as saveTheme() in @tv/tokens (packages/tokens/src/themes.ts).
       await page.addInitScript((t) => {
         localStorage.setItem("tv.theme.cmd", JSON.stringify({ theme: t, font: "mono" }));
       }, theme);

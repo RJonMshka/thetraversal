@@ -1,8 +1,8 @@
-import type { ASTNode } from "@/lib/ast-types";
+import type { SourceEntity } from "@tv/ir";
 
-// ── Skill data ─────────────────────────────────────────────────────────
-// Skills are ObjectExpression nodes — key-value structures.
-// Each skill item is a StringLiteral leaf, individually traversable.
+// ── Skills ─────────────────────────────────────────────────────────────
+// Each category is a skill-cluster; each item is an individually
+// addressable skill leaf.
 //
 // Source: docs/CONTENT-v2.md §6. Categories and membership come straight
 // from that file. There is deliberately no proficiency percentage here:
@@ -157,8 +157,6 @@ const SKILL_CATEGORIES: SkillCategory[] = [
   },
 ];
 
-// ── Skill nodes for the AST ────────────────────────────────────────────
-
 function slugify(value: string): string {
   return value
     .toLowerCase()
@@ -166,43 +164,51 @@ function slugify(value: string): string {
     .replace(/^-|-$/g, "");
 }
 
-function skillToNode(name: string, category: SkillCategory): ASTNode {
-  const slug = `${category.id}-${slugify(name)}`;
+function categoryTags(category: SkillCategory): string[] {
+  return category.label.toLowerCase().split(" & ");
+}
 
+function skillId(name: string, category: SkillCategory): string {
+  return `${category.id}-${slugify(name)}`;
+}
+
+function skillEntity(name: string, category: SkillCategory): SourceEntity {
   return {
-    id: slug,
-    type: "StringLiteral",
+    id: skillId(name, category),
+    kind: "skill",
     label: name,
-    slug,
-    glowColor: "--ctp-mauve",
-    content: {
-      summary: `${name} · ${category.label.toLowerCase()}`,
-      body: `${name} sits in the ${category.label} layer of the stack.\n\n${category.body}`,
-    },
-    meta: {
-      tags: ["skill", ...category.label.toLowerCase().split(" & ")],
-    },
+    summary: `${name} · ${category.label.toLowerCase()}`,
+    excerpt: `${name} sits in the ${category.label} layer of the stack.\n\n${category.body}`,
+    tags: ["skill", ...categoryTags(category)],
   };
 }
 
-function categoryToNode(category: SkillCategory): ASTNode {
+function clusterEntity(category: SkillCategory): SourceEntity {
   return {
     id: category.id,
-    type: "ObjectExpression",
+    kind: "skill-cluster",
     label: category.label,
-    slug: category.id,
-    glowColor: "--ctp-mauve",
-    content: {
-      summary: category.summary,
-      body: category.body,
-    },
-    children: category.items.map((item) => skillToNode(item, category)),
-    meta: {
-      tags: ["skills", ...category.label.toLowerCase().split(" & ")],
-    },
+    summary: category.summary,
+    excerpt: category.body,
+    tags: ["skills", ...categoryTags(category)],
+    children: category.items.map((item) => skillId(item, category)),
   };
 }
 
-export const SKILL_NODES: ASTNode[] = SKILL_CATEGORIES.map(categoryToNode);
+export const SKILLS: SourceEntity[] = [
+  {
+    id: "skills",
+    kind: "section",
+    label: "Skills",
+    summary: "The object expression: what I know and where I've used it.",
+    excerpt: "Skills as key-value pairs, grouped the way the work actually groups. No proficiency scores — a percentage next to a language name is a number nobody can check.",
+    tags: ["skills"],
+    children: SKILL_CATEGORIES.map((c) => c.id),
+  },
+  ...SKILL_CATEGORIES.flatMap((category) => [
+    clusterEntity(category),
+    ...category.items.map((item) => skillEntity(item, category)),
+  ]),
+];
 
 export { SKILL_CATEGORIES };

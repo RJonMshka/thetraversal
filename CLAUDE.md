@@ -11,8 +11,8 @@ The medium is the message: the site is a compiler. Content is the source, `packa
 ## 2. Current phase
 
 ```
-PHASE: 1 complete  (app lives in apps/shell as @tv/shell, pnpm workspace + Turborepo at root;
-          production deploys from apps/shell, see architecture/baseline.md "Phase 1"). Next: Phase 2.
+PHASE: 2 complete  (content compiles from content/ into the IR via packages/ir; apps/shell/src/data
+          is a facade over it; see architecture/baseline.md "Phase 2"). Next: Phase 3.
 ```
 
 The repo moves toward the end-state layout one phase at a time. **Only the structure for completed phases exists.** Do not create folders for a later phase unless the task is that phase. Phase definitions and exit criteria: `architecture/MIGRATION.md`.
@@ -21,7 +21,7 @@ The repo moves toward the end-state layout one phase at a time. **Only the struc
 |---|---|
 | 0 | Single app at root: `src/app`, `src/components`, `src/data`, `src/content` |
 | 1 | App moved to `apps/shell/` unchanged; pnpm workspace + Turborepo at root |
-| 2 | `packages/ir` + `content/` added; `apps/shell/src/data/index.ts` is a facade over the IR |
+| 2 | `packages/ir` + `content/` added; `apps/shell/src/data/index.ts` is a facade over the IR; `packages/tokens` started (themes + `prose.css`) |
 | 3 | `packages/contract`, `packages/tokens`; AST runs as a local target in `apps/shell/src/targets/ast/` |
 | 4+ | `targets/<id>/` workspaces, deployed separately |
 
@@ -49,13 +49,13 @@ Breaking any of these breaks the project.
 - Never use relative `../../` imports inside a workspace. Use `@/` inside `apps/shell`, package names (`@tv/ir`) across workspaces.
 
 **Files you do not touch**
-- `apps/shell/src/content/**/*.mdx` (later `content/mdx/**`): essay and node prose. Only edit when the task is explicitly a content change from Rajat.
+- `content/mdx/**/*.mdx`: essay and node prose. Only edit when the task is explicitly a content change from Rajat.
 - `apps/shell/public/resume/*`: download artifacts.
 - `docs/*`: local, gitignored editorial notes. Read `docs/CONTENT-v2.md` only when the task is a content sync.
 - `pnpm-lock.yaml` by hand.
 
 **Styling**
-- Never hardcode colors. Use theme variables (`--ink`, `--ink-2`, `--tv-text`, `--text-mute`, `--text-faint`, `--line`, `--accent`, `--syntax-*`) or their Tailwind aliases (`ctp-*` utilities map onto them in `globals.css`). Theme values live in `apps/shell/src/lib/themes.ts` (later `packages/tokens`).
+- Never hardcode colors. Use theme variables (`--ink`, `--ink-2`, `--tv-text`, `--text-mute`, `--text-faint`, `--line`, `--accent`, `--syntax-*`) or their Tailwind aliases (`ctp-*` utilities map onto them in `globals.css`). Theme values live in `packages/tokens/src/themes.ts` (`@tv/tokens`; `@/lib/themes` re-exports it until Phase 3).
 - No CSS modules, styled-components, or inline `style={{}}` except computed values from D3, Framer Motion, or canvas/WebGL.
 - Known debt: `apps/shell/src/components/ast/ASTNode.tsx` has a hex `GLOW_COLORS` map that bypasses themes. Do not copy the pattern; it is removed in Phase 3.
 
@@ -91,7 +91,7 @@ pnpm conformance                           # target contract tests (Phase 4+)
 
 ## 6. Stack
 
-Shell: Next.js 16 (App Router, Turbopack), React 19, TypeScript strict, Tailwind v4, Zustand, Framer Motion, D3 (layout only), MDX via next-mdx-remote (until Phase 2 moves MDX compilation into the IR build), Shiki, Vercel Analytics.
+Shell: Next.js 16 (App Router, Turbopack), React 19, TypeScript strict, Tailwind v4, Zustand, Framer Motion, D3 (layout only), Vercel Analytics. MDX is compiled to sanitized HTML at IR build time (`@mdx-js/mdx`, `remark-gfm`, `rehype-pretty-code` + Shiki in `packages/ir`); the shell renders bodies with `@tv/tokens/prose.css`.
 Platform: pnpm workspaces, Turborepo, `@module-federation/runtime` in the shell, `@module-federation/vite` in targets, Zod for IR and manifest schemas, Vitest, Playwright.
 
 ## 7. Invariants to preserve through every phase
@@ -131,7 +131,6 @@ Platform: pnpm workspaces, Turborepo, `@module-federation/runtime` in the shell,
 
 Projects follow the publication policy: only entries with a publicly verifiable artifact are published; everything else stays fully written with its flag off. Nothing is deleted from a registry.
 
-- Phase 0-1: registries are `apps/shell/src/data/*.ts` (`PROJECT_REGISTRY` with `publish` flags).
 - Phase 2+: registries are `content/registry/*.ts` with `status: "published" | "draft"`, compiled by `pnpm --filter @tv/ir build`, which must pass its integrity checks.
 
 ## 11. Definition of done for any task

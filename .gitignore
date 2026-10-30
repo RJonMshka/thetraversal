@@ -153,3 +153,6 @@ docs/*
 
 # turborepo
 .turbo/
+
+# IR build output (pnpm --filter @tv/ir build)
+apps/shell/public/ir/

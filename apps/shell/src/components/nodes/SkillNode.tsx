@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { ASTNode } from "@/lib/ast-types";
+import { NodeBody, hasNodeBody } from "@/components/shared/NodeBody";
 
 interface SkillNodeProps {
   node: ASTNode;
+  bodyHtml?: string;
 }
 
-export function SkillNode({ node }: SkillNodeProps) {
+export function SkillNode({ node, bodyHtml }: SkillNodeProps) {
   const children = node.children ?? [];
-  const bodyParagraphs = node.content?.body?.split("\n\n").filter(Boolean) ?? [];
 
   return (
     <article className="space-y-8">
@@ -34,14 +35,8 @@ export function SkillNode({ node }: SkillNodeProps) {
       </header>
 
       {/* Description */}
-      {bodyParagraphs.length > 0 && (
-        <div className="pl-6 space-y-4">
-          {bodyParagraphs.map((paragraph, i) => (
-            <p key={i} className="text-ctp-text text-sm leading-7">
-              {paragraph}
-            </p>
-          ))}
-        </div>
+      {hasNodeBody({ html: bodyHtml, text: node.content?.body }) && (
+        <NodeBody html={bodyHtml} text={node.content?.body} className="pl-6 space-y-4" />
       )}
 
       {/* Keys of the object expression — each one traversable */}

@@ -1,0 +1,4 @@
+{
+  "extends": "@tv/tsconfig/base.json",
+  "include": ["src/**/*.ts"]
+}

@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { ASTNode } from "@/lib/ast-types";
+import { NodeBody, hasNodeBody } from "@/components/shared/NodeBody";
 
 interface ConnectNodeProps {
   node: ASTNode;
+  bodyHtml?: string;
 }
 
 // ── Icon components (simple SVG) ───────────────────────────────────────
@@ -40,9 +42,8 @@ function getIcon(label: string) {
   return null;
 }
 
-export function ConnectNode({ node }: ConnectNodeProps) {
+export function ConnectNode({ node, bodyHtml }: ConnectNodeProps) {
   const children = node.children ?? [];
-  const bodyParagraphs = node.content?.body?.split("\n\n").filter(Boolean) ?? [];
 
   return (
     <article className="space-y-8">
@@ -70,14 +71,8 @@ export function ConnectNode({ node }: ConnectNodeProps) {
       </header>
 
       {/* Description */}
-      {bodyParagraphs.length > 0 && (
-        <div className="space-y-4">
-          {bodyParagraphs.map((paragraph, i) => (
-            <p key={i} className="text-ctp-text text-sm leading-7">
-              {paragraph}
-            </p>
-          ))}
-        </div>
+      {hasNodeBody({ html: bodyHtml, text: node.content?.body }) && (
+        <NodeBody html={bodyHtml} text={node.content?.body} className="space-y-4" />
       )}
 
       {/* Connect links as named exports */}
