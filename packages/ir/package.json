@@ -28,6 +28,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@tv/content": "workspace:*",
     "@tv/tsconfig": "workspace:*",
     "@types/hast": "^3.0.5",
     "@types/node": "^25.5.0",

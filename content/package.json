@@ -1,0 +1,6 @@
+{
+  "name": "@tv/content",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Portfolio source: registries and MDX, compiled by @tv/ir. A package only so Turbo, turbo-ignore and Vercel see content edits as changes to @tv/ir and everything built from it."
+}

@@ -17,7 +17,7 @@ thetraversal/
     tokens/                   # @tv/tokens: themes.ts, tokens.css, prose.css
     target-kit/               # @tv/target-kit: dev harness + conformance tests
     tsconfig/                 # shared tsconfig bases
-  content/                    # registries + MDX (LLD-01)
+  content/                    # @tv/content: registries + MDX (LLD-01), a dependency of @tv/ir
   architecture/               # HLD, LLDs, MIGRATION.md
   CLAUDE.md
   package.json                # private, scripts call turbo
@@ -35,6 +35,7 @@ packages:
   - apps/*
   - targets/*
   - packages/*
+  - content
 ```
 
 ```json
@@ -59,6 +60,7 @@ The blocks above are the end state. The repo only carries config for completed p
 - `turbo.json` has `build`, `dev`, `lint`, `type-check`, `test`, plus a root task `//#parity` that `pnpm e2e` runs (Playwright from the root `e2e/`, which builds and starts `@tv/shell`). `conformance` arrives with Phase 4.
 - Phase 2 adds `@tv/ir#build`. The IR compiler writes `apps/shell/public/ir/v1`, outside its own package, so that path is listed in the IR task's outputs: Turbo restores it on a cache hit (verified), and the shell's own `build` no longer needs `public/ir/**`. `dev` depends on `^build` so the shell boots with an IR, and `@tv/ir#dev` watches `content/`.
 - Because Vercel's root directory is `apps/shell`, `next build` alone would run without the IR. `apps/shell/vercel.json` sets `buildCommand` to `cd ../.. && pnpm exec turbo run build --filter=@tv/shell`.
+- `content/` is the workspace package `@tv/content` (no scripts, no dependencies), and `@tv/ir` depends on it. Without that, Turbo's change detection, and `turbo-ignore` on Vercel, saw a content-only commit as affecting nothing and skipped the shell deploy.
 - Phase 4 adds `targets/*` to the workspace and the `conformance` task (no cache: it drives a browser). `pnpm e2e` starts the AST target's build on 5101 next to the shell.
 
 Package naming: `@tv/*` for internal packages, `@tv/target-<id>` for targets, `@tv/shell` for the app. All `"private": true`.
@@ -154,7 +156,7 @@ Targets deploy their `dist/` under a `_t/<id>/` prefix (Vercel `outputDirectory`
 
 Each project:
 - Install command: `pnpm install --frozen-lockfile` (run from repo root; Vercel handles monorepo root detection).
-- Ignored Build Step: `npx turbo-ignore` so a commit only rebuilds affected projects. A change in `packages/contract` correctly rebuilds everything. As built, each project's `vercel.json` sets `ignoreCommand` to `pnpm dlx turbo-ignore@2.11.10 <package>` (pnpm only, CLAUDE.md §4); the shell has it too, so a commit that touches only a target skips the shell deploy.
+- Ignored Build Step: `npx turbo-ignore` so a commit only rebuilds affected projects. On a branch's first push it has no previous deployment to compare with, so every project builds a preview once. A change in `packages/contract` correctly rebuilds everything. As built, each project's `vercel.json` sets `ignoreCommand` to `pnpm dlx turbo-ignore@2.11.10 <package>` (pnpm only, CLAUDE.md §4); the shell has it too, so a commit that touches only a target skips the shell deploy.
 - Headers (`vercel.json` in each target):
   - `/_t/<id>/assets/*`: `Cache-Control: public, max-age=31536000, immutable`
   - `/_t/<id>/(manifest|mf-manifest).json` and `remoteEntry.js`: `Cache-Control: public, max-age=60, stale-while-revalidate=600`

@@ -2,6 +2,7 @@ packages:
   - apps/*
   - targets/*
   - packages/*
+  - content
 
 # Next's own .d.ts files resolve `react` by walking up from node_modules/.pnpm.
 # Without @types/react at the root they fall back to untyped JS and React
