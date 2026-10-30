@@ -193,7 +193,8 @@ Lighthouse CI on `/` and `/node/reachble` with the thresholds already in `CLAUDE
 | `targets/*` | `next`, `next/*`, `@tv/shell`, any path into `apps/` |
 | `packages/*` | `react`, `next`, anything under `apps/` or `targets/` (except `target-kit` may import `react` for its harness UI) |
 | `apps/shell/src/platform/**` | Any `targets/*` package (shell knows targets only by id) |
-| Phase 3 only: `apps/shell/src/targets/ast/**` | `next/*`, `@/data`, `@/hooks/useTraversalState` |
+| Phase 3 only: `apps/shell/src/targets/ast/**` | `next`, `next/*`, and every `@/` path outside `@/targets/ast/` (the AST has its own `cn` and `useIsDesktop`) |
+| Phase 3 only: `apps/shell/src/platform/**` except `loader/local.ts` | `@/targets/*` |
 
 ## 9. Local dev
 

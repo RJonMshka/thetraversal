@@ -3,9 +3,9 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useAstNav } from "@/targets/ast/nav";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from "@/targets/ast/lib/cn";
 import { useAst } from "@/targets/ast/store";
-import { useIsDesktop } from "@/hooks/useMediaQuery";
+import { useIsDesktop } from "@/targets/ast/hooks/useIsDesktop";
 import { useAstData } from "@/targets/ast/data";
 import type { TokenStreamEntry } from "@/targets/ast/lib/ast-types";
 

@@ -110,7 +110,7 @@ Steps
 - [x] `ContextWindow` moves to shell chrome and reads the shell store. Shell-store entries store `kind` instead of `ASTNodeType` + `glowColor`.
 - [x] Shell stops depending on AST vocabulary. Today `components/nodes/*`, `ContextWindow`, `NodeShell`, and `app/node/[slug]/page.tsx` import `@/lib/ast-types`, and `IdentityNode`, `ContextWindow`, `ASTMobileTree` import `@/lib/glow`. Convert the node components to take `Entity` props and dispatch on `kind`. Add `apps/shell/src/lib/kind-accent.ts` (kind → accent token) for shell chrome; the AST keeps its own glow mapping in its projection.
 - [x] Retire the `@/data` facade: remaining shell consumers (landing `getNodeCount`/`getTreeMaxDepth`, `sitemap.ts`, node pages, `easter-eggs.ts`) use the `IRClient` directly. `traversal.ts` and its test move with the AST target.
-- [ ] Add the Phase 3 lint boundary (LLD-04 §8) on `src/targets/ast/**`.
+- [x] Add the Phase 3 lint boundary (LLD-04 §8) on `src/targets/ast/**`.
 - [ ] Audit moved AST code for `document`/`window` use and portals. Scope listeners to the shadow root host or `ctx.signal`, and make sure all are removed on unmount. (`ReadingProgress` is used by node pages and stays in the shell.)
 
 Exit criteria

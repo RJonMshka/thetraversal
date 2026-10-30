@@ -9,7 +9,7 @@ import { NodeInspector } from "@/targets/ast/components/NodeInspector";
 import { TokenStream } from "@/targets/ast/components/TokenStream";
 import { useAstData } from "@/targets/ast/data";
 import { useAst } from "@/targets/ast/store";
-import { cn } from "@/lib/utils";
+import { cn } from "@/targets/ast/lib/cn";
 
 // ── AstApp ─────────────────────────────────────────────────────────────
 // The AST target's whole surface: header, mode views, inspector, token
