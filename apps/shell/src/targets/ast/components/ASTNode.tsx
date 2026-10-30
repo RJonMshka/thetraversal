@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { motion } from "framer-motion";
+import { glowValue } from "@/targets/ast/lib/glow";
 import type { LayoutNode } from "@/targets/ast/hooks/useASTLayout";
 import type { TraversalMode } from "@/targets/ast/lib/ast-types";
 import {
@@ -43,30 +44,6 @@ const TYPE_ABBREV: Record<string, string> = {
   TypeAnnotation: "TYPE",
 };
 
-// ── Glow color resolver ────────────────────────────────────────────────
-
-const GLOW_COLORS: Record<string, string> = {
-  "--ctp-text": "#cdd6f4",
-  "--ctp-yellow": "#f9e2af",
-  "--ctp-peach": "#fab387",
-  "--ctp-mauve": "#cba6f7",
-  "--ctp-teal": "#94e2d5",
-  "--ctp-lavender": "#b4befe",
-  "--ctp-green": "#a6e3a1",
-  "--ctp-red": "#f38ba8",
-  "--ctp-blue": "#89b4fa",
-  "--ctp-sky": "#89dceb",
-  "--ctp-pink": "#f5c2e7",
-  "--ctp-rosewater": "#f5e0dc",
-  "--ctp-flamingo": "#f2cdcd",
-  "--ctp-maroon": "#eba0ac",
-  "--ctp-sapphire": "#74c7ec",
-};
-
-function resolveGlowColor(glowColor: string): string {
-  return GLOW_COLORS[glowColor] ?? "#cdd6f4";
-}
-
 // ── Component ──────────────────────────────────────────────────────────
 
 export function ASTNode({
@@ -82,7 +59,7 @@ export function ASTNode({
 }: ASTNodeProps) {
   const isLeaf = !node.hasChildren;
   const isRoot = node.depth === 0;
-  const glowHex = resolveGlowColor(node.glowColor);
+  const glow = glowValue(node.glowColor);
   const typeAbbrev = TYPE_ABBREV[node.type] ?? node.type;
   const filterId = `glow-${node.slug}`;
 
@@ -190,7 +167,7 @@ export function ASTNode({
             dx="0"
             dy="0"
             stdDeviation={isFocused ? "5" : "1.5"}
-            floodColor={glowHex}
+            style={{ floodColor: glow }}
             floodOpacity={isFocused ? "0.45" : "0.06"}
           />
         </filter>

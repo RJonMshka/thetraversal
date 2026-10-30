@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { glowTint, glowValue } from "@/targets/ast/lib/glow";
 import type { LayoutNode } from "@/targets/ast/hooks/useASTLayout";
 import type { TraversalMode } from "@/targets/ast/lib/ast-types";
 import { NODE_WIDTH } from "@/targets/ast/lib/node-dimensions";
@@ -20,29 +21,6 @@ interface NodeContentPopoverProps {
 
 const POPOVER_WIDTH = 260;
 const POPOVER_OFFSET_X = 16; // gap between node edge and popover
-
-// Hex values for glow colors (mirrors ASTNode.tsx)
-const GLOW_COLORS: Record<string, string> = {
-  "--ctp-text": "#cdd6f4",
-  "--ctp-yellow": "#f9e2af",
-  "--ctp-peach": "#fab387",
-  "--ctp-mauve": "#cba6f7",
-  "--ctp-teal": "#94e2d5",
-  "--ctp-lavender": "#b4befe",
-  "--ctp-green": "#a6e3a1",
-  "--ctp-red": "#f38ba8",
-  "--ctp-blue": "#89b4fa",
-  "--ctp-sky": "#89dceb",
-  "--ctp-pink": "#f5c2e7",
-  "--ctp-rosewater": "#f5e0dc",
-  "--ctp-flamingo": "#f2cdcd",
-  "--ctp-maroon": "#eba0ac",
-  "--ctp-sapphire": "#74c7ec",
-};
-
-function resolveGlowColor(glowColor: string): string {
-  return GLOW_COLORS[glowColor] ?? "#cdd6f4";
-}
 
 // ── Popover content derivation ─────────────────────────────────────────
 
@@ -70,12 +48,12 @@ export function NodeContentPopover({
   // tree-space → screen-space: screenX = treeX * k + tx
   let screenX = 0;
   let screenY = 0;
-  let glowHex = "#cdd6f4";
+  let glowColor = "--ctp-text";
 
   if (node && svgRect) {
     screenX = node.x * transform.k + transform.x;
     screenY = node.y * transform.k + transform.y;
-    glowHex = resolveGlowColor(node.glowColor);
+    glowColor = node.glowColor;
   }
 
   // Half the node width in screen pixels
@@ -134,9 +112,9 @@ export function NodeContentPopover({
                 maxHeight: "320px",
                 overflowY: "auto",
                 background: "var(--color-ctp-mantle)",
-                border: `1px solid ${glowHex}`,
+                border: `1px solid ${glowValue(glowColor)}`,
                 borderRadius: "8px",
-                boxShadow: `0 0 20px 0 ${glowHex}33, 0 4px 24px rgba(0,0,0,0.5)`,
+                boxShadow: `0 0 20px 0 ${glowTint(glowColor, 20)}, 0 4px 24px rgba(0,0,0,0.5)`,
                 padding: "12px 14px",
                 fontFamily: "var(--font-mono)",
                 fontSize: "11px",
@@ -148,12 +126,12 @@ export function NodeContentPopover({
               {/* Node label header */}
               <div
                 style={{
-                  color: glowHex,
+                  color: glowValue(glowColor),
                   fontWeight: 700,
                   fontSize: "12px",
                   marginBottom: "8px",
                   letterSpacing: "0.03em",
-                  borderBottom: `1px solid ${glowHex}22`,
+                  borderBottom: `1px solid ${glowTint(glowColor, 13)}`,
                   paddingBottom: "6px",
                 }}
               >
@@ -179,7 +157,7 @@ export function NodeContentPopover({
                   <div
                     style={{
                       height: "1px",
-                      background: `${glowHex}1a`,
+                      background: glowTint(glowColor, 10),
                       marginBottom: "8px",
                     }}
                   />
@@ -201,7 +179,7 @@ export function NodeContentPopover({
                 style={{
                   marginTop: "10px",
                   paddingTop: "6px",
-                  borderTop: `1px solid ${glowHex}22`,
+                  borderTop: `1px solid ${glowTint(glowColor, 13)}`,
                   color: "var(--color-ctp-overlay0)",
                   fontSize: "9.5px",
                   letterSpacing: "0.04em",

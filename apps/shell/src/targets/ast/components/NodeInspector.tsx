@@ -3,31 +3,7 @@
 import { NodeLink } from "@/targets/ast/nav";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAstData } from "@/targets/ast/data";
-
-// ── Glow resolution ────────────────────────────────────────────────────
-// Maps the AST node's glowColor CSS-var name → hex for inline styling.
-
-const GLOW_HEX: Record<string, string> = {
-  "--ctp-text":      "#e6e4dd",
-  "--ctp-yellow":    "#f9e2af",
-  "--ctp-peach":     "#fab387",
-  "--ctp-mauve":     "#cba6f7",
-  "--ctp-teal":      "#94e2d5",
-  "--ctp-lavender":  "#b4befe",
-  "--ctp-green":     "#a6e3a1",
-  "--ctp-red":       "#f38ba8",
-  "--ctp-blue":      "#89b4fa",
-  "--ctp-sky":       "#89dceb",
-  "--ctp-pink":      "#f5c2e7",
-  "--ctp-rosewater": "#f5e0dc",
-  "--ctp-flamingo":  "#f2cdcd",
-  "--ctp-maroon":    "#eba0ac",
-  "--ctp-sapphire":  "#74c7ec",
-};
-
-function resolveGlow(glowColor: string): string {
-  return GLOW_HEX[glowColor] ?? "var(--accent)";
-}
+import { glowValue } from "@/targets/ast/lib/glow";
 
 // ── Props ──────────────────────────────────────────────────────────────
 
@@ -268,7 +244,7 @@ export function NodeInspector({ slug, onClose }: NodeInspectorProps) {
                       rel="noopener noreferrer"
                       style={{
                         fontSize: 11,
-                        color: resolveGlow(node.glowColor),
+                        color: glowValue(node.glowColor),
                         textDecoration: "underline",
                         textUnderlineOffset: 3,
                         opacity: 0.8,

@@ -26,3 +26,28 @@ const DEFAULT_GLOW: GlowClasses = { border: "border-ctp-text/20", text: "text-ct
 export function getGlowClasses(glowColor: string): GlowClasses {
   return GLOW_COLOR_MAP[glowColor] ?? DEFAULT_GLOW;
 }
+
+// ── Glow as a theme-aware CSS color ────────────────────────────────────
+// For inline SVG and computed styles (filters, popover borders). Each
+// glow name resolves to the semantic theme token it stands for, so the
+// AST follows the active theme instead of fixed Catppuccin hex values.
+
+const GLOW_TOKEN: Record<string, string> = {
+  "--ctp-text": "var(--tv-text)",
+  "--ctp-yellow": "var(--syntax-string)",
+  "--ctp-peach": "var(--syntax-ident)",
+  "--ctp-mauve": "var(--syntax-keyword)",
+  "--ctp-teal": "var(--syntax-type)",
+  "--ctp-blue": "var(--syntax-type)",
+  "--ctp-lavender": "var(--accent)",
+  "--ctp-green": "var(--accent)",
+};
+
+export function glowValue(glowColor: string): string {
+  return GLOW_TOKEN[glowColor] ?? "var(--tv-text)";
+}
+
+/** The glow color at `percent` opacity. */
+export function glowTint(glowColor: string, percent: number): string {
+  return `color-mix(in srgb, ${glowValue(glowColor)} ${percent}%, transparent)`;
+}
