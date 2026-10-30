@@ -115,7 +115,7 @@ Targets request changes; the shell decides and broadcasts. This keeps back/forwa
 
 | Attribute | Target |
 |---|---|
-| Shell initial JS | < 150 KB gzipped, excluding any target |
+| Shell initial JS | ≤ 185 KB gzipped per route, of which ≤ 35 KB shell app code over the framework baseline; excluding any target (was < 150 KB until Phase 4 measured the Next 16 + React 19 floor at ~150 KB) |
 | IR graph | < 60 KB gzipped (bodies lazy) |
 | Target switch, warm | p75 < 400 ms input to visible |
 | Target switch, cold | p75 < 1500 ms on 4G |

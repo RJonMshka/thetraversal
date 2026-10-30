@@ -37,8 +37,9 @@ jobs:
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm turbo run build --filter="...[$BASE]"
-      # Shell first-load JS, reported (the 150 KB budget is not enforced yet).
-      - run: test -d apps/shell/.next && pnpm measure:first-load || echo "shell not rebuilt"
+      # Shell first-load budget (CLAUDE.md §8): total ≤ 185 KB, app ≤ 35 KB gz per route.
+      - run: |
+          if [ -d apps/shell/.next ]; then pnpm measure:first-load --enforce; else echo "shell not rebuilt"; fi
 
   conformance:
     runs-on: ubuntu-latest

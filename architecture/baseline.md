@@ -275,7 +275,7 @@ Same setup as Phase 2.
 - Shell chrome is overlaid on the AST (LLD-03 §12): the AST keeps invisible stand-ins for `← root` and `ctx`, and its header height is `--tv-chrome-top` in `tokens.css`. The target switcher renders nothing until a second target is registered.
 - The landing preview label still reads `// preview · /tree` so the landing snapshot is unchanged; the link under it goes to `/t/ast`.
 
-## Phase 4 (2026-10-30, in progress)
+## Phase 4 (2026-10-30)
 
 Branch: `platform/phase-4`. The AST is its own workspace, `targets/ast` (`@tv/target-ast`), built with Vite and `@module-federation/vite` into `dist/_t/ast/`, and loaded by the shell at runtime from `/_t/ast/` (rewritten to `TARGET_AST_ORIGIN`, default `localhost:5101`). Measured locally against production builds of both; the Vercel projects do not exist yet.
 
@@ -303,7 +303,13 @@ Framer Motion is now out of first-load JS. The three shell components that use i
 | `/t/ast` | 222.2 | **180.0** |
 | `/node/*` | 203.0 | **163.0** |
 
-What is left is mostly the framework (~150 KB). Meeting 150 KB still needs a decision: a budget defined relative to the framework, or moving off client-side App Router hydration.
+What is left is mostly the framework. The budget is now per route: total ≤ 185 KB, and ≤ 35 KB of shell app code over the framework baseline (the chunks Next loads for `/_not-found`, 150.7 KB). `pnpm measure:first-load --enforce` checks both and CI runs it.
+
+| Route | Total | App over framework |
+|---|---:|---:|
+| `/` | 175.0 | 24.3 |
+| `/t/ast` | 180.0 | 32.8 |
+| `/node/*` | 163.0 | 15.8 |
 
 ### AST target
 
@@ -342,8 +348,10 @@ Best practices dropped from 96 to 93 on every page because of the report-only CS
 - CSP (report-only): no violations from loading or running the target. 7 (`/`), 34 (`/t/ast`) and 11 (`/node/reachble`) violations, all Next inline scripts.
 - `pnpm lint`, `pnpm type-check`: pass. `pnpm test`: `@tv/contract` 31, `@tv/ir` 13, `@tv/target-kit` 2, `@tv/target-ast` 38, `@tv/shell` 10; all pass. The AST's 37 tests moved with it from the shell.
 
-### Not done in this branch
+### Deployed (Vercel)
 
-- Vercel projects, `TARGET_AST_ORIGIN`, and the preview failure drill.
-- The first CI run on GitHub.
-- Shell first-load under 150 KB (see above; 163–180 KB after lazy Framer).
+- `thetraversal-t-ast` (root `targets/ast`) serves `https://thetraversal-t-ast.vercel.app/_t/ast/`; the shell's `TARGET_AST_ORIGIN` points at it for Production and Preview. Production `/t/ast` mounts the AST in ~1.3 s with no console errors; `/tree?mode=eval` is a 308 to `/t/ast?mode=eval`.
+- Two fixes found on the first deploys: `TARGET_*_ORIGIN` must be declared in `turbo.json`, or Turbo's strict env mode hides it from `next build` and the rewrite falls back to `localhost` (PR "pass TARGET_*_ORIGIN through Turbo"); and `content/` became the workspace package `@tv/content`, because content-only commits were invisible to `turbo-ignore` and would have skipped the shell deploy (PR #8).
+- Separate deploys: PR #7 changed only `targets/ast/package.json` (1.0.0 → 1.0.1). Production built only `thetraversal-t-ast`; the shell's deploy for that commit was skipped by its ignore step, and `thetraversal.vercel.app/_t/ast/manifest.json` reported 1.0.1 through the existing shell deploy. The reverse holds too: a shell-only merge skipped the target. A branch's first push builds every preview once, because `turbo-ignore` has no earlier deployment on that branch to compare with.
+- Failure drill on a preview: with `TARGET_AST_ORIGIN` set to a nonexistent deployment for the PR #8 branch only, `/t/ast` returned 200, the target failed in under a second with `error[T0004]: target 'ast': manifest.json returned 404`, and the outline kept all 111 links. The variable was removed and the preview redeployed afterwards.
+- CI: all four jobs pass from PR #6 on, including e2e on macOS against the Phase 0 snapshots.
