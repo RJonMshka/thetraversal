@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import type { ASTNode } from "@/targets/ast/lib/ast-types";
+import type { Entity } from "@tv/ir";
 import { NodeBody } from "@/components/shared/NodeBody";
 
 interface ProjectNodeProps {
-  node: ASTNode;
+  entity: Entity;
   bodyHtml?: string;
 }
 
-export function ProjectNode({ node, bodyHtml }: ProjectNodeProps) {
-  const params = node.meta?.params ?? [];
-  const tags = node.meta?.tags ?? [];
-  const links = node.meta?.links ?? [];
+export function ProjectNode({ entity, bodyHtml }: ProjectNodeProps) {
+  const params = entity.stack;
+  const tags = entity.tags;
+  const links = entity.links;
 
   return (
     <article className="space-y-8">
@@ -19,7 +19,7 @@ export function ProjectNode({ node, bodyHtml }: ProjectNodeProps) {
       <header className="space-y-3">
         <div className="font-mono">
           <span className="text-ctp-mauve">function</span>{" "}
-          <span className="text-ctp-peach text-xl font-bold">{node.label}</span>
+          <span className="text-ctp-peach text-xl font-bold">{entity.label}</span>
           <span className="text-ctp-overlay1">(</span>
           {params.map((param, i) => (
             <span key={param}>
@@ -32,15 +32,15 @@ export function ProjectNode({ node, bodyHtml }: ProjectNodeProps) {
         </div>
 
         {/* Summary as a comment inside the function */}
-        {node.content?.summary && (
+        {entity.summary && (
           <p className="text-ctp-subtext0 text-sm font-mono pl-6">
-            {"// "}{node.content.summary}
+            {"// "}{entity.summary}
           </p>
         )}
       </header>
 
       {/* Body content — indented to look like function body */}
-      <NodeBody html={bodyHtml} text={node.content?.body} className="pl-6 space-y-4" />
+      <NodeBody html={bodyHtml} text={entity.excerpt} className="pl-6 space-y-4" />
 
       {/* Tech stack tags */}
       {tags.length > 0 && (

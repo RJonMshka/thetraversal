@@ -1,29 +1,18 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import type { ASTNode } from "@/targets/ast/lib/ast-types";
+import type { Entity } from "@tv/ir";
+import { KIND_KEYWORD } from "@/lib/kind-label";
 import { NodeBody, hasNodeBody } from "@/components/shared/NodeBody";
 
 interface GenericNodeProps {
-  node: ASTNode;
+  entity: Entity;
   bodyHtml?: string;
 }
 
-// ── Type label map ─────────────────────────────────────────────────────
-const TYPE_KEYWORDS: Record<string, string> = {
-  BlockStatement: "block",
-  StringLiteral: "literal",
-  ImportDeclaration: "import",
-  TypeAnnotation: "type",
-  ExpressionStatement: "expression",
-  VariableDeclaration: "const",
-  ArrayExpression: "array",
-  RootNode: "root",
-};
-
-export function GenericNode({ node, bodyHtml }: GenericNodeProps) {
-  const keyword = TYPE_KEYWORDS[node.type] ?? node.type.toLowerCase();
-  const tags = node.meta?.tags ?? [];
-  const links = node.meta?.links ?? [];
+export function GenericNode({ entity, bodyHtml }: GenericNodeProps) {
+  const keyword = KIND_KEYWORD[entity.kind];
+  const tags = entity.tags;
+  const links = entity.links;
 
   return (
     <article className="space-y-8">
@@ -31,19 +20,19 @@ export function GenericNode({ node, bodyHtml }: GenericNodeProps) {
       <header className="space-y-3">
         <div className="font-mono">
           <span className="text-ctp-mauve">{keyword}</span>{" "}
-          <span className="text-ctp-text text-xl font-bold">{node.label}</span>
+          <span className="text-ctp-text text-xl font-bold">{entity.label}</span>
         </div>
 
-        {node.content?.summary && (
+        {entity.summary && (
           <p className="text-ctp-subtext0 text-sm font-mono">
-            {"// "}{node.content.summary}
+            {"// "}{entity.summary}
           </p>
         )}
       </header>
 
       {/* Body content */}
-      {hasNodeBody({ html: bodyHtml, text: node.content?.body }) && (
-        <NodeBody html={bodyHtml} text={node.content?.body} className="space-y-4" />
+      {hasNodeBody({ html: bodyHtml, text: entity.excerpt }) && (
+        <NodeBody html={bodyHtml} text={entity.excerpt} className="space-y-4" />
       )}
 
       {/* Tags */}

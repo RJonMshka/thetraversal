@@ -1,16 +1,16 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { ASTNode } from "@/targets/ast/lib/ast-types";
+import type { Entity } from "@tv/ir";
 import { NodeBody } from "@/components/shared/NodeBody";
 
 interface ResumeNodeProps {
-  node: ASTNode;
+  entity: Entity;
   bodyHtml?: string;
 }
 
-export function ResumeNode({ node, bodyHtml }: ResumeNodeProps) {
-  const links = node.meta?.links ?? [];
+export function ResumeNode({ entity, bodyHtml }: ResumeNodeProps) {
+  const links = entity.links;
   const pdfLink = links.find((l) => l.url.endsWith(".pdf"));
   const docxLink = links.find((l) => l.url.endsWith(".docx"));
 
@@ -25,9 +25,9 @@ export function ResumeNode({ node, bodyHtml }: ResumeNodeProps) {
           <span className="text-ctp-green">&quot;./rajat-kumar.pdf&quot;</span>
         </div>
 
-        {node.content?.summary && (
+        {entity.summary && (
           <p className="text-ctp-subtext0 text-sm font-mono">
-            {"// "}{node.content.summary}
+            {"// "}{entity.summary}
           </p>
         )}
       </header>
@@ -129,8 +129,8 @@ export function ResumeNode({ node, bodyHtml }: ResumeNodeProps) {
       )}
 
       {/* Body content */}
-      {(bodyHtml || node.content?.body) && (
-        <NodeBody html={bodyHtml} text={node.content?.body} className="space-y-4" />
+      {(bodyHtml || entity.excerpt) && (
+        <NodeBody html={bodyHtml} text={entity.excerpt} className="space-y-4" />
       )}
     </article>
   );

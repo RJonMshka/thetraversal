@@ -2,26 +2,28 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import type { ASTNode } from "@/targets/ast/lib/ast-types";
+import type { Entity } from "@tv/ir";
 import { NodeBody, hasNodeBody } from "@/components/shared/NodeBody";
 
 interface TimelineNodeProps {
-  node: ASTNode;
+  entity: Entity;
+  /** The roles, oldest first. */
+  entries: Entity[];
   bodyHtml?: string;
 }
 
 // ── Timeline Entry ─────────────────────────────────────────────────────
 interface TimelineEntryProps {
-  entry: ASTNode;
+  entry: Entity;
   index: number;
   isLast: boolean;
 }
 
 function TimelineEntry({ entry, index, isLast }: TimelineEntryProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const isCurrent = entry.meta?.tags?.includes("current") ?? false;
-  const date = entry.meta?.date;
-  const bodyParagraphs = entry.content?.body?.split("\n\n").filter(Boolean) ?? [];
+  const isCurrent = entry.tags.includes("current");
+  const date = entry.date;
+  const bodyParagraphs = entry.excerpt?.split("\n\n").filter(Boolean) ?? [];
 
   return (
     <div className="relative flex gap-4">
@@ -65,9 +67,9 @@ function TimelineEntry({ entry, index, isLast }: TimelineEntryProps) {
           <h3 className="text-ctp-text font-mono font-medium text-sm group-hover:text-ctp-teal transition-colors">
             {entry.label}
           </h3>
-          {entry.content?.summary && (
+          {entry.summary && (
             <p className="text-ctp-subtext0 text-xs mt-1">
-              {entry.content.summary}
+              {entry.summary}
             </p>
           )}
         </button>
@@ -87,13 +89,7 @@ function TimelineEntry({ entry, index, isLast }: TimelineEntryProps) {
   );
 }
 
-export function TimelineNode({ node, bodyHtml }: TimelineNodeProps) {
-  // For the VariableDeclaration wrapper, show the ArrayExpression children
-  // For the ArrayExpression itself, show the StringLiteral entries
-  const entries = node.type === "VariableDeclaration"
-    ? (node.children?.[0]?.children ?? [])
-    : (node.children ?? []);
-
+export function TimelineNode({ entity, entries, bodyHtml }: TimelineNodeProps) {
   return (
     <article className="space-y-8">
       {/* Variable declaration header */}
@@ -106,16 +102,16 @@ export function TimelineNode({ node, bodyHtml }: TimelineNodeProps) {
           <span className="text-ctp-overlay1">{" = ["}</span>
         </div>
 
-        {node.content?.summary && (
+        {entity.summary && (
           <p className="text-ctp-subtext0 text-sm font-mono pl-6">
-            {"// "}{node.content.summary}
+            {"// "}{entity.summary}
           </p>
         )}
       </header>
 
       {/* Description */}
-      {hasNodeBody({ html: bodyHtml, text: node.content?.body }) && (
-        <NodeBody html={bodyHtml} text={node.content?.body} className="pl-6 space-y-4" />
+      {hasNodeBody({ html: bodyHtml, text: entity.excerpt }) && (
+        <NodeBody html={bodyHtml} text={entity.excerpt} className="pl-6 space-y-4" />
       )}
 
       {/* Timeline entries */}

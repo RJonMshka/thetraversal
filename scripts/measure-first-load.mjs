@@ -8,7 +8,7 @@ import path from "node:path";
 const NEXT_DIR = path.resolve(process.argv[2] ?? ".next");
 const ROUTES = {
   "/": "index.html",
-  "/tree": "tree.html",
+  "/t/ast": "t/ast.html",
   "/node/reachble": "node/reachble.html",
   "/node/rewiring-the-interface": "node/rewiring-the-interface.html",
   "/node/timeline-0": "node/timeline-0.html",
