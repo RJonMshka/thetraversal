@@ -4,7 +4,9 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Cursor } from "@/components/landing/Cursor";
 import { ParseAnimation } from "@/components/landing/ParseAnimation";
-import { getNodeCount, getTreeMaxDepth } from "@/data";
+import { irStats } from "@/platform/ir";
+
+const STATS = irStats();
 
 const MODES = [
   { label: "— lex",   href: "/t/ast?mode=lex"   },
@@ -61,8 +63,8 @@ function TreeSneakPeek() {
           }}
         >
           <span style={{ width: 5, height: 5, borderRadius: 999, background: ACCENT, display: "inline-block" }} />
-          <span style={{ color: ACCENT }}>{getNodeCount()} nodes</span>
-          <span>· depth {getTreeMaxDepth()}</span>
+          <span style={{ color: ACCENT }}>{STATS.entities} nodes</span>
+          <span>· depth {STATS.maxDepth}</span>
         </span>
       </div>
 

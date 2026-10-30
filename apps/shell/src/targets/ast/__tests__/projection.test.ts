@@ -3,7 +3,6 @@ import { Graph, createIRClient } from "@tv/ir";
 import graph from "@tv/ir/dist/graph.json";
 import type { ASTNode } from "@/targets/ast/lib/ast-types";
 import { toAST } from "@/targets/ast/projection";
-import { getAST } from "@/data";
 
 // ── IR projection invariants (LLD-01 §8) ───────────────────────────────
 // Phase 2's golden test compared this projection with the hand-written
@@ -50,9 +49,5 @@ describe("IR projection", () => {
         expect(n.glowColor).toBe(n.children[0].glowColor);
       }
     }
-  });
-
-  it("the @/data facade serves the projected tree", () => {
-    expect(getAST()).toStrictEqual(ast);
   });
 });
