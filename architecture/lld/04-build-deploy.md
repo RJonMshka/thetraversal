@@ -159,7 +159,7 @@ Each project:
   - `/_t/<id>/assets/*`: `Cache-Control: public, max-age=31536000, immutable`
   - `/_t/<id>/(manifest|mf-manifest).json` and `remoteEntry.js`: `Cache-Control: public, max-age=60, stale-while-revalidate=600`
 
-Shell env vars per environment: `TARGET_<ID>_ORIGIN`. Preview deployments of the shell point at production targets by default. To test a target preview end to end, set the env var on a shell preview branch.
+Shell env vars per environment: `TARGET_<ID>_ORIGIN`. They must be declared in `turbo.json` (`build.env: ["TARGET_*_ORIGIN"]`): Turbo 2 runs tasks in strict env mode, so an undeclared variable never reaches `next build` and the rewrite silently falls back to `localhost`, which Vercel refuses to proxy (`DNS_HOSTNAME_RESOLVED_PRIVATE`). Declaring it also puts it in the build's cache key. Preview deployments of the shell point at production targets by default. To test a target preview end to end, set the env var on a shell preview branch.
 
 Moving the existing project's root directory to `apps/shell` happens at the Phase 1 merge. Do it on a preview first: create a temporary Vercel project pointed at the branch with root `apps/shell`, confirm, then change the real project's setting and merge in the same window.
 

@@ -3,6 +3,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": ["TARGET_*_ORIGIN"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "@tv/ir#build": {
