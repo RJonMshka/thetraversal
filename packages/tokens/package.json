@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./tokens.css": "./tokens.css",
     "./prose.css": "./prose.css"
   },
   "scripts": {
@@ -13,5 +14,9 @@
   "devDependencies": {
     "@tv/tsconfig": "workspace:*",
     "typescript": "^5.9.3"
-  }
+  },
+  "dependencies": {
+    "@tv/contract": "workspace:*"
+  },
+  "sideEffects": ["*.css"]
 }
