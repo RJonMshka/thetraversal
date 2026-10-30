@@ -165,9 +165,9 @@ Steps
 - [x] Lifecycle: renders on demand (no idle loop); `suspend` cancels the pending frame; `unmount` disposes geometries, materials, renderer, and forces context loss.
 - [x] Shell: `AccessibleEntityList` rendered beside partial targets, synced with focus (right column on desktop, below a 55vh stage on phones). It moves focus through `TargetHost` with `source: "shell-chrome"`.
 - [x] Switcher shows `--target=ast` and `--target=three` (the id alone on phones); hover or keyboard focus prefetches the target's code.
-- [ ] Vercel project `thetraversal-t-three`, root `targets/three` (`targets/three/vercel.json` holds build, ignore step and headers). Set `TARGET_THREE_ORIGIN` on the shell project for Production and Preview. Until then, production `/t/three` falls back to the outline with `T0004`.
+- [x] Vercel project `thetraversal-t-three`, root `targets/three` (`targets/three/vercel.json` holds build, ignore step and headers). `TARGET_THREE_ORIGIN` set on the shell project for Production and Preview.
 
-Exit criteria (met locally; see baseline.md "Phase 5")
+Exit criteria (all met; see baseline.md "Phase 5")
 - Switch ast ⇄ three preserves focus both ways; warm switch p75 under 400 ms locally with prefetch. (62 ms to `three`, 36 ms to `ast`, Apple M1 GPU.)
 - Conformance passes, including remount and zero canvases after unmount.
 - Keyboard-only user can traverse every entity via the accessible list while `three` is active.

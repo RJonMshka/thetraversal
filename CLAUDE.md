@@ -11,9 +11,9 @@ The medium is the message: the site is a compiler. Content is the source, `packa
 ## 2. Current phase
 
 ```
-PHASE: 5 in progress  (targets/three built and conformant, exit criteria met locally; see
-          architecture/baseline.md "Phase 5"). Left: Vercel project thetraversal-t-three and
-          TARGET_THREE_ORIGIN on the shell. Mark complete once production serves /t/three.
+PHASE: 5 complete  (second target, vanilla three.js: targets/three → thetraversal-t-three, loaded
+          from /_t/three/; the shell shows the accessible entity list beside it; see
+          architecture/baseline.md "Phase 5"). Next: Phase 6.
 ```
 
 The repo moves toward the end-state layout one phase at a time. **Only the structure for completed phases exists.** Do not create folders for a later phase unless the task is that phase. Phase definitions and exit criteria: `architecture/MIGRATION.md`.

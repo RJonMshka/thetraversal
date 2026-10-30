@@ -419,6 +419,8 @@ Best practices is 93 for the Phase 4 reasons (report-only CSP issues) plus the l
 - `pnpm build`, `lint`, `type-check`, `test`, `conformance` pass.
 - Parity: the 12 `/t/ast` snapshots were re-recorded because the switcher now shows (`--target=ast` `--target=three`; the id alone on phones). The diff was the switcher alone. Landing and node snapshots are unchanged. 28 pass.
 
-### Not done yet
+### Deployed (Vercel)
 
-- Vercel project `thetraversal-t-three` and `TARGET_THREE_ORIGIN` on the shell project (MIGRATION Phase 5, last step).
+- `thetraversal-t-three` (root `targets/three`) serves `https://thetraversal-t-three.vercel.app/_t/three/`; the shell's `TARGET_THREE_ORIGIN` points at it for Production and Preview. Merged in PR #10.
+- Production `/t/three?focus=reachble`: mounts cold in ~1.3 s, the list shows all 112 entities, ↑ moves focus to `projects`, switching to `ast` keeps focus, no console errors (CSP report-only notes aside).
+- CI on PR #10: `check`, `build`, `conformance` (both targets) and `e2e` pass; all three Vercel previews built.
