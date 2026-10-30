@@ -1,8 +1,6 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
-import { useCallback, useState, useEffect, useRef } from "react";
-import Link from "next/link";
+import { useCallback, useState, useEffect, useRef, type ReactNode } from "react";
 import { ASTCanvasLazy } from "@/targets/ast/components/ASTCanvasLazy";
 import { ASTMobileTree } from "@/targets/ast/components/ASTMobileTree";
 import { ASTLexView } from "@/targets/ast/components/ASTLexView";
@@ -13,7 +11,8 @@ import { TokenStream } from "@/targets/ast/components/TokenStream";
 import { ContextWindow } from "@/components/chrome/ContextWindow";
 import { useTraversalState } from "@/hooks/useTraversalState";
 
-import { getAST, findNodeBySlug } from "@/data";
+import { getAST } from "@/data";
+import { useAstNav } from "@/targets/ast/nav";
 import { cn } from "@/lib/utils";
 import type { TraversalMode } from "@/targets/ast/lib/ast-types";
 
@@ -21,17 +20,22 @@ import type { TraversalMode } from "@/targets/ast/lib/ast-types";
 // The AST target's whole surface: header, mode views, inspector, token
 // stream. Rendered by /tree until it mounts through the target contract.
 
-export function AstApp() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+interface AstAppProps {
+  /** Target-owned URL params (manifest.urlParams). */
+  params: Readonly<Record<string, string>>;
+  /** The "← root" link at the top left; the host provides it. */
+  home: ReactNode;
+}
+
+export function AstApp({ params, home }: AstAppProps) {
+  const nav = useAstNav();
 
   // ── Mode sync (URL ↔ store) ────────────────────────────────────────
-  const urlMode = searchParams.get("mode") as TraversalMode | null;
+  const urlMode = (params.mode ?? null) as TraversalMode | null;
   const hasHydrated = useTraversalState((s) => s.hasHydrated);
   const storeMode = useTraversalState((s) => s.currentMode);
   const setStoreMode = useTraversalState((s) => s.setMode);
-  const visitNode = useTraversalState((s) => s.visitNode);
-  const contextWindow = useTraversalState((s) => s.contextWindow);
+    const contextWindow = useTraversalState((s) => s.contextWindow);
 
   // Resolve mode: URL param wins, then hydrated store, then fallback.
   // Before hydration, use "parse" as the stable default (matches SSR).
@@ -47,22 +51,22 @@ export function AstApp() {
     if (!hasHydrated || hasSyncedMode.current) return;
     hasSyncedMode.current = true;
     if (!validUrlMode && storeMode !== "parse") {
-      router.replace(`/tree?mode=${storeMode}`, { scroll: false });
+      nav.setParam("mode", storeMode);
     }
-  }, [hasHydrated, validUrlMode, storeMode, router]);
+  }, [hasHydrated, validUrlMode, storeMode, nav]);
 
   const [selectedNodeSlug, setSelectedNodeSlug] = useState<string | null>(null);
 
   const handleModeChange = useCallback(
     (mode: TraversalMode) => {
       setStoreMode(mode);
-      router.replace(`/tree?mode=${mode}`, { scroll: false });
+      nav.setParam("mode", mode);
       // Close node inspector when leaving parse mode (it's parse-only)
       if (mode !== "parse") {
         setSelectedNodeSlug(null);
       }
     },
-    [setStoreMode, router]
+    [setStoreMode, nav]
   );
 
   // ── Context window panel state ─────────────────────────────────────
@@ -84,31 +88,6 @@ export function AstApp() {
     hasHydrated && contextWindow.length > 0
       ? contextWindow[contextWindow.length - 1].slug
       : null;
-
-  // ── Share URL: restore visited nodes from query param ─────────────
-  const hasRestoredTraversal = useRef(false);
-
-  useEffect(() => {
-    if (!hasHydrated || hasRestoredTraversal.current) return;
-    const traversalParam = searchParams.get("traversal");
-    if (!traversalParam) return;
-
-    hasRestoredTraversal.current = true;
-
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("traversal");
-    const newUrl = params.toString() ? `/tree?${params.toString()}` : "/tree";
-    router.replace(newUrl, { scroll: false });
-
-    const slugs = traversalParam.split(",").filter(Boolean);
-    for (const slug of slugs) {
-      const result = findNodeBySlug(slug);
-      if (result) {
-        const { node } = result;
-        visitNode(node.slug, node.label, node.type, node.glowColor);
-      }
-    }
-  }, [hasHydrated, searchParams, router, visitNode]);
 
   const modeSubtitle: Record<string, string> = {
     lex:   "words · the portfolio as a stream of tokens",
@@ -132,13 +111,7 @@ export function AstApp() {
       >
         {/* Row 1: Navigation + mode selector + ctx toggle */}
         <div className="flex items-center justify-between px-5 py-3">
-          <Link
-            href="/"
-            style={{ fontSize: 12, color: "var(--text-faint)", fontFamily: "var(--mono)", transition: "color 150ms" }}
-            className="hover:text-[var(--tv-text)]"
-          >
-            ← root
-          </Link>
+          {home}
 
           {/* Desktop: full mode selector inline */}
           <div className={cn("hidden lg:block transition-opacity duration-150", hasHydrated ? "opacity-100" : "opacity-0")}>

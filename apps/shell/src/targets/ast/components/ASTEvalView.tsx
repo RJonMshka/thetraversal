@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { NodeLink } from "@/targets/ast/nav";
 import { motion } from "framer-motion";
 import { getAST } from "@/data";
 import type { ASTNodeType } from "@/targets/ast/lib/ast-types";
@@ -91,8 +91,8 @@ export function ASTEvalView() {
       }}
     >
       {/* ── Hero: root node ─────────────────────────────────────────── */}
-      <Link
-        href={`/node/${ast.slug}`}
+      <NodeLink
+        id={ast.slug}
         style={{
           display: "block",
           padding: "36px 44px",
@@ -154,7 +154,7 @@ export function ASTEvalView() {
           <span>CHICAGO · IL</span>
           <span style={{ color: "var(--accent)" }}>● shipping</span>
         </div>
-      </Link>
+      </NodeLink>
 
       {/* ── Section cards ───────────────────────────────────────────── */}
       <div
@@ -165,9 +165,9 @@ export function ASTEvalView() {
         }}
       >
         {children.map((child) => (
-          <Link
+          <NodeLink
             key={child.id}
-            href={`/node/${child.slug}`}
+            id={child.slug}
             style={{
               display: "flex",
               flexDirection: "column",
@@ -250,7 +250,7 @@ export function ASTEvalView() {
                 {child.children.length === 1 ? "child" : "children"}
               </div>
             )}
-          </Link>
+          </NodeLink>
         ))}
       </div>
     </motion.div>

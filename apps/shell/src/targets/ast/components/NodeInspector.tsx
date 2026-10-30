@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { NodeLink } from "@/targets/ast/nav";
 import { motion, AnimatePresence } from "framer-motion";
 import { findNodeBySlug } from "@/data";
 
@@ -296,9 +296,9 @@ export function NodeInspector({ slug, onClose }: NodeInspectorProps) {
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                   {node.children.map((child) => (
-                    <Link
+                    <NodeLink
                       key={child.id}
-                      href={`/node/${child.slug}`}
+                      id={child.slug}
                       style={{
                         display: "flex",
                         alignItems: "center",
@@ -321,15 +321,15 @@ export function NodeInspector({ slug, onClose }: NodeInspectorProps) {
                         {child.type.replace(/Node|Declaration|Expression|Statement/, "").toUpperCase() || child.type.slice(0, 3).toUpperCase()}
                       </span>
                       {child.label}
-                    </Link>
+                    </NodeLink>
                   ))}
                 </div>
               </div>
             )}
 
             {/* Open button */}
-            <Link
-              href={`/node/${node.slug}`}
+            <NodeLink
+              id={node.slug}
               style={{
                 display: "block",
                 marginTop: 24,
@@ -344,7 +344,7 @@ export function NodeInspector({ slug, onClose }: NodeInspectorProps) {
               }}
             >
               → open node
-            </Link>
+            </NodeLink>
           </div>
         </motion.aside>
       )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useLayoutEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useAstNav } from "@/targets/ast/nav";
 import { zoom as d3Zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom";
 import { select } from "d3-selection";
 import "d3-transition"; // Augments d3-selection with .transition()
@@ -107,7 +107,7 @@ const NO_EXPANDED_NODES: string[] = [];
 
 export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
   const ast = getAST();
-  const router = useRouter();
+  const nav = useAstNav();
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
@@ -230,9 +230,9 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
       if (node) {
         visitNode(slug, node.label, node.type, node.glowColor);
       }
-      router.push(`/node/${slug}`);
+      nav.open(slug);
     },
-    [nodes, visitNode, router]
+    [nodes, visitNode, nav]
   );
 
   // Handle node hover

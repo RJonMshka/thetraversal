@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useAstNav } from "@/targets/ast/nav";
 import { motion } from "framer-motion";
 import { getFlatNodes } from "@/data";
 import type { ASTNodeType } from "@/targets/ast/lib/ast-types";
@@ -60,7 +60,7 @@ function displayText(type: ASTNodeType, label: string): string {
 // ── Component ──────────────────────────────────────────────────────────
 
 export function ASTLexView() {
-  const router = useRouter();
+  const nav = useAstNav();
   const nodes = getFlatNodes();
 
   return (
@@ -104,7 +104,7 @@ export function ASTLexView() {
           return (
             <button
               key={`${node.id}-${i}`}
-              onClick={() => router.push(`/node/${node.slug}`)}
+              onClick={() => nav.open(node.slug)}
               style={{
                 display: "inline-flex",
                 alignItems: "center",

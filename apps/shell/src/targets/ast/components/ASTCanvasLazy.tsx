@@ -1,13 +1,14 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import { lazy, Suspense, useSyncExternalStore } from "react";
 import type { TraversalMode } from "@/targets/ast/lib/ast-types";
 
-const ASTCanvasDynamic = dynamic(
-  () => import("@/targets/ast/components/ASTCanvas").then((mod) => ({ default: mod.ASTCanvas })),
-  {
-    ssr: false,
-    loading: () => (
+const ASTCanvas = lazy(() =>
+  import("@/targets/ast/components/ASTCanvas").then((mod) => ({ default: mod.ASTCanvas }))
+);
+
+function CanvasSkeleton() {
+  return (
       <div className="w-full h-full flex items-center justify-center bg-ctp-base">
         <div className="text-center">
           <div className="text-ctp-overlay2 text-xs font-mono animate-pulse mb-2">
@@ -44,9 +45,14 @@ const ASTCanvasDynamic = dynamic(
           </svg>
         </div>
       </div>
-    ),
-  }
-);
+  );
+}
+
+// The canvas measures the DOM, so it renders only in the browser.
+const noop = () => () => {};
+function useIsClient(): boolean {
+  return useSyncExternalStore(noop, () => true, () => false);
+}
 
 interface ASTCanvasLazyProps {
   mode: TraversalMode;
@@ -54,5 +60,11 @@ interface ASTCanvasLazyProps {
 }
 
 export function ASTCanvasLazy({ mode, onNodeSelect }: ASTCanvasLazyProps) {
-  return <ASTCanvasDynamic mode={mode} onNodeSelect={onNodeSelect} />;
+  const isClient = useIsClient();
+  if (!isClient) return <CanvasSkeleton />;
+  return (
+    <Suspense fallback={<CanvasSkeleton />}>
+      <ASTCanvas mode={mode} onNodeSelect={onNodeSelect} />
+    </Suspense>
+  );
 }

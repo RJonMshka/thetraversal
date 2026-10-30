@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
+import { NodeLink } from "@/targets/ast/nav";
 import { useTraversalState } from "@/hooks/useTraversalState";
 import { getGlowClasses } from "@/targets/ast/lib/glow";
 import { cn } from "@/lib/utils";
@@ -155,8 +155,8 @@ function MobileTreeNode({ node, mode, depth }: MobileTreeNodeProps) {
         )}
 
         {/* Label — links to node detail page */}
-        <Link
-          href={`/node/${node.slug}`}
+        <NodeLink
+          id={node.slug}
           onClick={handleVisit}
           className={cn(
             "flex-1 min-w-0 font-mono text-sm truncate transition-colors duration-150",
@@ -165,7 +165,7 @@ function MobileTreeNode({ node, mode, depth }: MobileTreeNodeProps) {
           )}
         >
           {node.label}
-        </Link>
+        </NodeLink>
 
         {/* Visited indicator */}
         {isVisited && (
@@ -213,8 +213,8 @@ function MobileTreeNode({ node, mode, depth }: MobileTreeNodeProps) {
               style={{ marginLeft: `${depth * 16 + 36}px` }}
             >
               <p className="line-clamp-3">{node.content?.body}</p>
-              <Link
-                href={`/node/${node.slug}`}
+              <NodeLink
+                id={node.slug}
                 className={cn(
                   "inline-block mt-1 text-[11px]",
                   glow.text,
@@ -222,7 +222,7 @@ function MobileTreeNode({ node, mode, depth }: MobileTreeNodeProps) {
                 )}
               >
                 Read more &rarr;
-              </Link>
+              </NodeLink>
             </div>
           </motion.div>
         )}

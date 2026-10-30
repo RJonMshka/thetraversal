@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAstNav } from "@/targets/ast/nav";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useTraversalState } from "@/hooks/useTraversalState";
@@ -351,7 +351,7 @@ function DriftStream({
 // ── TokenStream ────────────────────────────────────────────────────────
 
 export function TokenStream({ activeSlug, visible = true }: TokenStreamProps) {
-  const router = useRouter();
+  const nav = useAstNav();
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeTokenRef = useRef<HTMLDivElement>(null);
   const isVisited = useTraversalState((s) => s.isVisited);
@@ -391,9 +391,9 @@ export function TokenStream({ activeSlug, visible = true }: TokenStreamProps) {
 
   const handleTokenClick = useCallback(
     (slug: string) => {
-      router.push(`/node/${slug}`);
+      nav.open(slug);
     },
-    [router]
+    [nav]
   );
 
   // Shared token rendering
