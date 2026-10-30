@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@tv/contract": "workspace:*",
     "@tv/ir": "workspace:*",
     "@tv/tokens": "workspace:*",
     "@vercel/analytics": "^2.0.1",
