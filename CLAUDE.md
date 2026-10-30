@@ -11,8 +11,9 @@ The medium is the message: the site is a compiler. Content is the source, `packa
 ## 2. Current phase
 
 ```
-PHASE: 3 complete  (the AST runs as a local target in apps/shell/src/targets/ast, mounted at /t/ast
-          through @tv/contract only; see architecture/baseline.md "Phase 3"). Next: Phase 4.
+PHASE: 4 in progress  (the AST is its own workspace, targets/ast, loaded by the shell through Module
+          Federation from /_t/ast/; see architecture/baseline.md "Phase 4"). Open: Vercel projects and
+          the preview failure drill, the first CI run, and the shell's 150 KB first-load budget.
 ```
 
 The repo moves toward the end-state layout one phase at a time. **Only the structure for completed phases exists.** Do not create folders for a later phase unless the task is that phase. Phase definitions and exit criteria: `architecture/MIGRATION.md`.
@@ -46,7 +47,7 @@ Breaking any of these breaks the project.
 **Tooling**
 - Only `pnpm`. Never `npm` or `yarn`.
 - Never use `any` or `@ts-ignore` without a comment explaining why.
-- Never use relative `../../` imports inside a workspace. Use `@/` inside `apps/shell`, package names (`@tv/ir`) across workspaces.
+- Never use relative `../../` imports inside a workspace. Use `@/` inside `apps/shell` and inside each target (`@/` is the target's `src/`), package names (`@tv/ir`) across workspaces.
 
 **Files you do not touch**
 - `content/mdx/**/*.mdx`: essay and node prose. Only edit when the task is explicitly a content change from Rajat.
@@ -84,8 +85,8 @@ pnpm e2e:update                            # re-record snapshots (only when a vi
 pnpm measure:first-load                    # first-load JS per route, from apps/shell/.next (run after build)
 pnpm --filter @tv/shell dev                # shell only
 pnpm --filter @tv/ir build                 # recompile content into the IR
-pnpm --filter @tv/target-<id> dev:standalone   # target in the harness (Phase 4+)
-pnpm conformance                           # target contract tests (Phase 4+)
+pnpm --filter @tv/target-<id> dev:standalone   # target alone in the target-kit harness, hot reload
+pnpm conformance                           # build every target, then its contract + budget checks in Chromium
 ```
 
 ## 6. Stack

@@ -55,6 +55,7 @@ As built in Phase 3 (one local target, no switching yet):
 
 - `platform/ir.ts` holds the shell's `IRClient` singleton (server components, chrome, every context).
 - `platform/host/lifecycle.ts` is the framework-free mount sequence (§6 timeouts, checks, `guard`), unit-tested without a browser. `transition.ts` (switching between two live targets), `prefetch.ts`, `telemetry.ts` and `AccessibleEntityList.tsx` arrive with the phases that need them.
+- Phase 4: `loader/local.ts` and `src/targets/` are gone. `loader/mf.ts` is the only strategy, and the AST is `targets/ast` (`@tv/target-ast`), loaded from `/_t/ast/`.
 - `chrome/TargetView.tsx` is the client frame of `/t/[target]`: it composes `TargetHost` with the shell chrome and restores shared traversals (`?traversal=a,b,c`).
 - `TargetHost` unmounts a target after React's commit (a React target cannot unmount its own root mid-render) and starts the next mount only once the previous one has fully unmounted.
 - `?remount=1` (development builds only) shows a button that unmounts and remounts the target in place.
@@ -116,6 +117,14 @@ Verify `registerRemotes` and `loadRemote` signatures against the installed `@mod
 Checks run between `manifest` and `load`, in this order, each mapping to a code from LLD-02 §8: contract version, IR range (`satisfiesRange(ir.version.schema, m.ir)`), hardware capabilities.
 
 Manifests are cached in memory for the page lifetime and requested with `cache: "no-cache"` so a redeployed target is picked up on next visit.
+
+As built in Phase 4 against `@module-federation/runtime` 2.9.2:
+
+- `createInstance({ name: "tv_shell", remotes: [] })` instead of the global `init`, created on first load. The runtime is imported dynamically, so it is not in any route's first-load JS.
+- Remotes are registered once as `{ name, entry: "/_t/<id>/remoteEntry.js", type: "module" }` and loaded with `loadRemote("tv_<id>/mount")`. The runtime imports ESM entries with a plain `import()`; no `eval` or `new Function` is involved.
+- The lifecycle's one retry (§6, LLD-02 §6) re-registers the remote with `force: true` and a `?r=<timestamp>` cache-buster.
+- A failed manifest request is dropped from the cache so the next mount asks again. Any non-200 or invalid manifest is `T0004`.
+- `prefetch()` adds a `modulepreload` link for the remote entry; nothing calls it until the prefetch policy (§11) lands.
 
 ## 5. Context construction
 

@@ -130,19 +130,19 @@ Prompt for Claude Code
 **Goal:** the AST target builds and deploys independently, loaded at runtime from its own Vercel project.
 
 Steps
-- [ ] Create `packages/target-kit`: standalone harness and conformance runner (LLD-02 §7, LLD-04 §7).
-- [ ] `git mv apps/shell/src/targets/ast targets/ast`. New `package.json` (`@tv/target-ast`), `vite.config.ts` with `@module-federation/vite`, `base: "/_t/ast/"`, port 5101 (LLD-04 §3). Tailwind v4 via `@tailwindcss/vite`.
-- [ ] Add `target.config.ts` and the postbuild that writes `manifest.json` (`a11y: "full"`, `motion: "reduced-variant"`, `urlParams: ["mode"]`, budget from baseline tree-page JS).
-- [ ] Shell: add `loader/mf.ts`, switch `ast` to `mf`, keep `local.ts` deleted after this phase. Add rewrites (LLD-04 §4).
-- [ ] Vercel project `thetraversal-t-ast`, root `targets/ast`, `turbo-ignore`, cache headers. Set `TARGET_AST_ORIGIN` on the shell project.
-- [ ] CSP in report-only mode (LLD-04 §6).
-- [ ] CI: conformance job and e2e job (LLD-04 §7).
-- [ ] Failure drill: point `TARGET_AST_ORIGIN` at a dead URL on a preview. Expect the outline, a `T0004` diagnostic, and no blank page.
+- [x] Create `packages/target-kit`: standalone harness and conformance runner (LLD-02 §7, LLD-04 §7). Also holds `tvTarget()`, the Vite plugin set every target uses (LLD-04 §3).
+- [x] `git mv apps/shell/src/targets/ast targets/ast`. New `package.json` (`@tv/target-ast`), `vite.config.ts` with `@module-federation/vite`, `base: "/_t/ast/"`, port 5101 (LLD-04 §3). Tailwind v4 via `@tailwindcss/vite`. (Moved to `targets/ast/src/`; the shared Tailwind theme moved from the shell's `globals.css` to `@tv/tokens/tailwind.css`.)
+- [x] Add `target.config.ts` and the postbuild that writes `manifest.json` (`a11y: "full"`, `motion: "reduced-variant"`, `urlParams: ["mode"]`, budget from baseline tree-page JS). (`tvTarget()` emits it during the build instead of a postbuild script. Budget 180 KB: the AST now bundles its own React and Framer, see baseline.md "Phase 4".)
+- [x] Shell: add `loader/mf.ts`, switch `ast` to `mf`, keep `local.ts` deleted after this phase. Add rewrites (LLD-04 §4).
+- [ ] Vercel project `thetraversal-t-ast`, root `targets/ast`, `turbo-ignore`, cache headers. Set `TARGET_AST_ORIGIN` on the shell project. (`targets/ast/vercel.json` holds the build, ignore step and headers; the projects and env var are set up by hand.)
+- [x] CSP in report-only mode (LLD-04 §6).
+- [x] CI: conformance job and e2e job (LLD-04 §7). (`.github/workflows/ci.yml`; not yet run on GitHub.)
+- [ ] Failure drill: point `TARGET_AST_ORIGIN` at a dead URL on a preview. Expect the outline, a `T0004` diagnostic, and no blank page. (Passes locally with the target server stopped; the preview run waits for the Vercel projects.)
 
 Exit criteria
 - A commit touching only `targets/ast` deploys only `thetraversal-t-ast`, and production picks it up without a shell deploy.
 - Conformance passes. Parity snapshots pass on `/t/ast`.
-- Shell first-load JS drops below 150 KB gzipped; AST target within its budget.
+- Shell first-load JS drops below 150 KB gzipped; AST target within its budget. (Not reachable in this phase: React DOM and the Next runtime alone are ~150 KB. See baseline.md "Phase 4".)
 - Failure drill passes.
 
 Prompt for Claude Code

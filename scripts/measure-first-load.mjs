@@ -23,8 +23,13 @@ for (const [route, file] of Object.entries(ROUTES)) {
     continue;
   }
   const html = readFileSync(htmlPath, "utf8");
+  // Legacy polyfills load only in browsers without module support, so
+  // modern browsers never download them; they are not first-load JS.
+  const noModule = new Set(
+    [...html.matchAll(/<script[^>]*src="\/_next\/(static\/[^"]+?\.js)"[^>]*noModule[^>]*>/gi)].map((m) => m[1]),
+  );
   const srcs = new Set(
-    [...html.matchAll(/\/_next\/(static\/[^"'\s]+?\.js)/g)].map((m) => m[1]),
+    [...html.matchAll(/\/_next\/(static\/[^"'\s]+?\.js)/g)].map((m) => m[1]).filter((src) => !noModule.has(src)),
   );
   let gz = 0;
   for (const src of srcs) {
