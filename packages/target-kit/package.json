@@ -1,0 +1,41 @@
+{
+  "name": "@tv/target-kit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./config": "./src/config.ts",
+    "./harness": "./src/harness/harness.ts",
+    "./vite": "./src/vite.ts"
+  },
+  "bin": {
+    "tv-conformance": "./bin/conformance.mjs",
+    "tv-dev": "./bin/dev.mjs"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@module-federation/runtime": "2.9.2",
+    "@module-federation/vite": "1.23.5",
+    "@tv/contract": "workspace:*",
+    "@tv/ir": "workspace:*",
+    "@tv/tokens": "workspace:*",
+    "playwright": "^1.64.1",
+    "tsx": "^4.23.15"
+  },
+  "peerDependencies": {
+    "vite": "^8.0.1"
+  },
+  "devDependencies": {
+    "@tv/tsconfig": "workspace:*",
+    "@types/node": "^25.5.0",
+    "eslint": "^9.39.5",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.1",
+    "vite": "^8.0.1",
+    "vitest": "^4.1.0"
+  }
+}
