@@ -8,9 +8,10 @@
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
     "test": "turbo run test",
+    "conformance": "turbo run conformance",
     "e2e": "turbo run //#parity",
     "parity": "playwright test",
-    "e2e:update": "playwright test --update-snapshots",
+    "e2e:update": "turbo run build --filter=@tv/shell --filter=@tv/target-ast && playwright test --update-snapshots",
     "measure:first-load": "node scripts/measure-first-load.mjs apps/shell/.next"
   },
   "packageManager": "pnpm@10.32.1",

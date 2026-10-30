@@ -21,7 +21,12 @@
     "test": {
       "dependsOn": ["^build"]
     },
+    "conformance": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
     "//#parity": {
+      "dependsOn": ["@tv/shell#build", "@tv/target-ast#build"],
       "cache": false
     }
   }

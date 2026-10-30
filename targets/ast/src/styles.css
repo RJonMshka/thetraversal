@@ -1,0 +1,17 @@
+/*
+ * The AST's own stylesheet, compiled by @tailwindcss/vite and adopted into
+ * the shadow root (src/styles.ts). Theme tokens are not imported: they are
+ * custom properties on the document's :root and inherit into the root.
+ */
+@import "tailwindcss";
+@import "@tv/tokens/tailwind.css";
+
+/*
+ * Fonts follow the runtime theme: applyTheme() sets --mono and --serif on
+ * :root. Tailwind declares its theme on `:root, :host`, so a plain
+ * --font-mono here would pin the host to the default font.
+ */
+@theme inline {
+  --font-mono: var(--mono);
+  --font-serif: var(--serif);
+}

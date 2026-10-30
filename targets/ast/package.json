@@ -1,0 +1,51 @@
+{
+  "name": "@tv/target-ast",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tv-dev",
+    "dev:standalone": "vite --configLoader runner --mode standalone",
+    "build": "vite build --configLoader runner",
+    "preview": "vite preview --configLoader runner",
+    "conformance": "tv-conformance",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "d3-hierarchy": "^3.1.2",
+    "d3-selection": "^3.0.0",
+    "d3-transition": "^3.0.1",
+    "d3-zoom": "^3.0.0",
+    "framer-motion": "^12.38.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tailwind-merge": "^3.5.0",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.2.2",
+    "@tv/contract": "workspace:*",
+    "@tv/ir": "workspace:*",
+    "@tv/target-kit": "workspace:*",
+    "@tv/tokens": "workspace:*",
+    "@tv/tsconfig": "workspace:*",
+    "@types/d3-hierarchy": "^3.1.7",
+    "@types/d3-selection": "^3.0.11",
+    "@types/d3-transition": "^3.0.9",
+    "@types/d3-zoom": "^3.0.8",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "6.1.2",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.1",
+    "vite": "^8.0.1",
+    "vitest": "^4.1.0"
+  }
+}

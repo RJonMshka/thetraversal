@@ -274,3 +274,63 @@ Same setup as Phase 2.
 - Contract additions made before any target shipped (CONTRACT_VERSION stays 1): `ctx.visited`, `ctx.inset`, bus events `traversal:reset` and `chrome:inset`, manifest `entry.kind: "local"`.
 - Shell chrome is overlaid on the AST (LLD-03 §12): the AST keeps invisible stand-ins for `← root` and `ctx`, and its header height is `--tv-chrome-top` in `tokens.css`. The target switcher renders nothing until a second target is registered.
 - The landing preview label still reads `// preview · /tree` so the landing snapshot is unchanged; the link under it goes to `/t/ast`.
+
+## Phase 4 (2026-10-30, in progress)
+
+Branch: `platform/phase-4`. The AST is its own workspace, `targets/ast` (`@tv/target-ast`), built with Vite and `@module-federation/vite` into `dist/_t/ast/`, and loaded by the shell at runtime from `/_t/ast/` (rewritten to `TARGET_AST_ORIGIN`, default `localhost:5101`). Measured locally against production builds of both; the Vercel projects do not exist yet.
+
+### Build
+
+- `pnpm build`: passes (`@tv/ir`, `@tv/target-ast`, `@tv/shell`). The shell no longer depends on d3.
+
+### First-load JS (gzipped)
+
+`scripts/measure-first-load.mjs` now skips `noModule` scripts: the 38.5 KB legacy polyfill bundle that only browsers without module support download. Earlier phases counted it, so both columns are given.
+
+| Route | KB gz | Old method | Phase 3 (old method) |
+|---|---:|---:|---:|
+| `/` | 224.3 | 262.8 | 268.7 |
+| `/t/ast` | 222.2 | 260.7 | 265.8 |
+| `/node/*` | 203.0 | 241.6 | 247.5 |
+
+The 150 KB exit criterion is not reachable by moving targets out. Of `/t/ast`'s 222 KB, React DOM is 69 KB and the Next runtime about 80 KB, so the framework alone is ~150 KB. Framer Motion adds 41 KB to every page because `EasterEggOverlays` (in the layout) and `ContextWindow` import it, and the shell's own code plus the inlined IR is about 30 KB. Getting under 150 needs a separate decision: lazy-load Framer in the shell, and either raise the budget to fit Next 16 + React 19 or move off client-side App Router hydration.
+
+### AST target
+
+| | KB gz |
+|---|---:|
+| All JS (`dist/_t/ast`, 10 files) | 169.4 |
+| Loaded at mount: `remoteEntry.js` + `mount` chunk + runtime pieces | ~129 |
+| Loaded on desktop after mount: `ASTCanvas` + d3 | ~40 |
+
+Phase 3 loaded 47.3 KB at mount because the AST shared the shell's React and Framer. Under ADR-8 it bundles its own (React DOM ~58 KB, Framer ~38 KB). Budget set to 180 KB; ADR-8 says to revisit sharing with an import map once a second React target exists. The compiled CSS (5.2 KB gz) ships inside the bundle and is adopted into the shadow root.
+
+### Lighthouse
+
+Lighthouse 12.8.2, same setup as Phase 2, against the shell on `:3100` and the AST target's build on `:5101`.
+
+| Page | Perf | A11y | Best practices | SEO | LCP | TBT | CLS |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `/` | 89–92 | 95 | 93 | 100 | 3.4–3.8 s | 60 ms | 0 (one run 0.026) |
+| `/node/reachble` | 91 | 95 | 93 | 100 | 3.5 s | 30 ms | 0 |
+| `/t/ast` | 94 | 95 | 93 | 100 | 3.0 s | 60 ms | 0 |
+
+Best practices dropped from 96 to 93 on every page because of the report-only CSP: Lighthouse's `inspector-issues` audit counts the "Content security policy" issues Chrome raises for Next's inline scripts. It comes back once the policy covers those scripts (LLD-04 §6). `/t/ast` is within Phase 3's range despite the larger target.
+
+### Conformance
+
+`pnpm conformance`: 12 passed, 0 failed, 2 warnings, 1 manual. The warnings are React's `document` `selectionchange` listener and Framer Motion's `window` `resize` listener: each registers once per page and is not added again on remount. A deliberately planted per-mount `window` listener and a `document.body` write both fail the run.
+
+### Parity and checks
+
+- `pnpm e2e` (both servers started from scratch with `CI=1`): 28 snapshots passed, none re-recorded. The AST renders from its own Tailwind build inside the shadow root and matches the Phase 0 `/tree` snapshots.
+- Failure drill, local: with the target server stopped, `/t/ast` keeps the server outline (111 links) and shows `error[T0004]: target 'ast': manifest.json returned 500` within 150 ms.
+- `pnpm dev` path: the shell's rewrite to the target's `tv-dev` server (watch build + preview) mounts the AST; `dev:standalone` mounts, refocuses, re-themes and remounts it in the harness.
+- CSP (report-only): no violations from loading or running the target. 7 (`/`), 34 (`/t/ast`) and 11 (`/node/reachble`) violations, all Next inline scripts.
+- `pnpm lint`, `pnpm type-check`: pass. `pnpm test`: `@tv/contract` 31, `@tv/ir` 13, `@tv/target-kit` 2, `@tv/target-ast` 38, `@tv/shell` 10; all pass. The AST's 37 tests moved with it from the shell.
+
+### Not done in this branch
+
+- Vercel projects, `TARGET_AST_ORIGIN`, and the preview failure drill.
+- The first CI run on GitHub.
+- Shell first-load under 150 KB (see above).

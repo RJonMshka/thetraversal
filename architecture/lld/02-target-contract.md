@@ -1,6 +1,6 @@
 # LLD-02: Target Contract
 
-Package: `packages/contract` (`@tv/contract`). Types plus a few hundred bytes of runtime (`createBus`, `satisfiesRange`). No dependency on React, Next, or any target framework.
+Package: `packages/contract` (`@tv/contract`). Types plus a small runtime (`createBus`, `satisfiesRange`, and since Phase 4 `parseManifest`, a hand-written validator the shell runs on every fetched `manifest.json`). No dependency on React, Next, or any target framework.
 
 This is the most important interface in the system. Treat changes to it like an ABI change.
 
@@ -29,7 +29,7 @@ export interface TargetManifest {
     kind: "mf" | "esm" | "local";   // "local": bundled into the shell (Phase 3 only)
     remote: string;               // MF remote name, e.g. "tv_three"
     expose: string;               // "./mount"
-    url: string;                  // relative to /_t/<id>/, e.g. "mf-manifest.json"
+    url: string;                  // relative to /_t/<id>/; "remoteEntry.js" as built (LLD-04 §3)
   };
   capabilities: Capability[];
   budget: { jsKbGz: number };     // CI fails the target build above this
@@ -198,6 +198,8 @@ A target is conformant when all of these hold. `packages/target-kit` runs them a
 7. If `a11y` is `partial` or `decorative`, calls `ctx.nav.focus` when its own pointer interaction selects an entity, so the shell's accessible list stays in sync.
 8. Bundle under `budget.jsKbGz`.
 9. Works when mounted, unmounted, and mounted again in the same page (no module-level singletons that assume one mount).
+
+For obligation 5, the conformance runner tells apart listeners a framework registers once per page and keeps for its module's lifetime (React's `document` `selectionchange`, Framer Motion's `window` `resize`) from listeners added on every mount. The first kind is a warning, the second a failure (LLD-04 §7). Obligations 6 and 7 are not automated yet.
 
 ## 8. Error codes
 

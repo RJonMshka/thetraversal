@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "cd ../.. && pnpm exec turbo run build --filter=@tv/target-ast",
+  "outputDirectory": "dist",
+  "ignoreCommand": "pnpm dlx turbo-ignore@2.11.10 @tv/target-ast",
+  "headers": [
+    {
+      "source": "/_t/ast/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/_t/ast/(manifest.json|mf-manifest.json|remoteEntry.js)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=60, stale-while-revalidate=600" }]
+    }
+  ]
+}
