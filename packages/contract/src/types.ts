@@ -68,6 +68,8 @@ export interface TargetContext {
   readonly id: string;
   readonly ir: IRClient;
   readonly focus: string | null; // initial focus
+  readonly visited: readonly string[]; // entities visited this session, oldest first
+  readonly inset: ChromeInset; // area of the root covered by shell chrome
   readonly params: Readonly<Record<string, string>>; // only keys in manifest.urlParams
   readonly theme: ThemeSnapshot;
   readonly env: TargetEnv;
@@ -105,6 +107,14 @@ export interface ThemeSnapshot {
   colors: { bg: string; card: string; text: string; mute: string; accent: string; line: string };
 }
 
+/** CSS px of the target's root covered by shell chrome (e.g. the context window). */
+export interface ChromeInset {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
 export interface ScopedStorage {
   get<T>(key: string): T | undefined;
   set<T>(key: string, value: T): void;
@@ -123,7 +133,9 @@ export type ShellEvent =
   | { type: "entity:visited"; id: string }
   | { type: "theme:changed"; theme: ThemeSnapshot }
   | { type: "target:changed"; from: string | null; to: string }
-  | { type: "visibility"; hidden: boolean };
+  | { type: "visibility"; hidden: boolean }
+  | { type: "traversal:reset" } // the visitor cleared their history
+  | { type: "chrome:inset"; inset: ChromeInset };
 
 export type ShellEventType = ShellEvent["type"];
 export type ShellEventOf<T extends ShellEventType> = Extract<ShellEvent, { type: T }>;
