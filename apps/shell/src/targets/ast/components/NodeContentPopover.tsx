@@ -1,9 +1,9 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import type { LayoutNode } from "@/hooks/useASTLayout";
-import type { TraversalMode } from "@/lib/ast-types";
-import { NODE_WIDTH } from "@/lib/node-dimensions";
+import type { LayoutNode } from "@/targets/ast/hooks/useASTLayout";
+import type { TraversalMode } from "@/targets/ast/lib/ast-types";
+import { NODE_WIDTH } from "@/targets/ast/lib/node-dimensions";
 
 // ── Props ──────────────────────────────────────────────────────────────
 

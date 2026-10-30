@@ -1,5 +1,5 @@
 import type { Entity, IRClient, Kind } from "@tv/ir";
-import type { ASTNode, ASTNodeMeta, ASTNodeType } from "@/lib/ast-types";
+import type { ASTNode, ASTNodeMeta, ASTNodeType } from "@/targets/ast/lib/ast-types";
 
 // ── AST projection (LLD-01 §7) ─────────────────────────────────────────
 // The IR is domain-typed; the AST is one way to look at it. Every table

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import type { ASTNode } from "@/lib/ast-types";
+import type { ASTNode } from "@/targets/ast/lib/ast-types";
 import { NodeBody, hasNodeBody } from "@/components/shared/NodeBody";
 
 interface TimelineNodeProps {

@@ -7,9 +7,9 @@ import {
   filterByMode,
   countNodes,
   getMaxDepth,
-} from "@/lib/traversal";
+} from "@/targets/ast/lib/traversal";
 import { getAST } from "@/data";
-import type { ASTNode } from "@/lib/ast-types";
+import type { ASTNode } from "@/targets/ast/lib/ast-types";
 
 // Use the data access layer instead of direct import
 const PORTFOLIO_AST = getAST();

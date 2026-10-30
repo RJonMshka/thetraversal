@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { loadEssay } from "@/lib/content";
 import { ReadingProgress } from "@/components/shared/ReadingProgress";
-import type { ASTNode } from "@/lib/ast-types";
+import type { ASTNode } from "@/targets/ast/lib/ast-types";
 
 interface PhilosophyNodeProps {
   node: ASTNode;

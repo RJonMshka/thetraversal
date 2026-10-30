@@ -11,7 +11,7 @@ import { IdentityNode } from "@/components/nodes/IdentityNode";
 import { ConnectNode } from "@/components/nodes/ConnectNode";
 import { GenericNode } from "@/components/nodes/GenericNode";
 import { ResumeNode } from "@/components/nodes/ResumeNode";
-import type { ASTNode } from "@/lib/ast-types";
+import type { ASTNode } from "@/targets/ast/lib/ast-types";
 
 // ── Static params for SSG ──────────────────────────────────────────────
 export function generateStaticParams() {

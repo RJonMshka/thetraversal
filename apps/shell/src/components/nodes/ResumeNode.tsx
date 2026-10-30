@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { ASTNode } from "@/lib/ast-types";
+import type { ASTNode } from "@/targets/ast/lib/ast-types";
 import { NodeBody } from "@/components/shared/NodeBody";
 
 interface ResumeNodeProps {

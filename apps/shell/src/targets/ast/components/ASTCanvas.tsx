@@ -6,13 +6,13 @@ import { zoom as d3Zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom";
 import { select } from "d3-selection";
 import "d3-transition"; // Augments d3-selection with .transition()
 import { AnimatePresence } from "framer-motion";
-import { useASTLayout } from "@/hooks/useASTLayout";
+import { useASTLayout } from "@/targets/ast/hooks/useASTLayout";
 import { useTraversalState } from "@/hooks/useTraversalState";
-import { useStackOverflow } from "@/hooks/useStackOverflow";
+import { useStackOverflow } from "@/targets/ast/hooks/useStackOverflow";
 import { getAST } from "@/data";
-import { ASTNode } from "@/components/ast/ASTNode";
-import { ASTEdge } from "@/components/ast/ASTEdge";
-import type { TraversalMode, ASTNode as ASTNodeType } from "@/lib/ast-types";
+import { ASTNode } from "@/targets/ast/components/ASTNode";
+import { ASTEdge } from "@/targets/ast/components/ASTEdge";
+import type { TraversalMode, ASTNode as ASTNodeType } from "@/targets/ast/lib/ast-types";
 
 // ── Props ──────────────────────────────────────────────────────────────
 

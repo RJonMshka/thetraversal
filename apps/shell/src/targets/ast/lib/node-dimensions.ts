@@ -1,4 +1,4 @@
-import type { TraversalMode } from "@/lib/ast-types";
+import type { TraversalMode } from "@/targets/ast/lib/ast-types";
 
 // ── Node dimension constants ──────────────────────────────────────────
 // Shared between ASTNode (rendering) and useASTLayout (layout math).

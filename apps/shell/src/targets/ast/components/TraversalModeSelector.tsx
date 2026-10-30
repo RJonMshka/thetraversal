@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { TraversalMode } from "@/lib/ast-types";
+import type { TraversalMode } from "@/targets/ast/lib/ast-types";
 
 interface TraversalModeSelectorProps {
   currentMode: TraversalMode;

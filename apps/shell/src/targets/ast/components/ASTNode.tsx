@@ -2,12 +2,12 @@
 
 import { useCallback } from "react";
 import { motion } from "framer-motion";
-import type { LayoutNode } from "@/hooks/useASTLayout";
-import type { TraversalMode } from "@/lib/ast-types";
+import type { LayoutNode } from "@/targets/ast/hooks/useASTLayout";
+import type { TraversalMode } from "@/targets/ast/lib/ast-types";
 import {
   NODE_WIDTH,
   HEADER_SECTION_HEIGHT,
-} from "@/lib/node-dimensions";
+} from "@/targets/ast/lib/node-dimensions";
 
 // ── Props ──────────────────────────────────────────────────────────────
 

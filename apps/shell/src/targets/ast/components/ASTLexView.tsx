@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { getFlatNodes } from "@/data";
-import type { ASTNodeType } from "@/lib/ast-types";
+import type { ASTNodeType } from "@/targets/ast/lib/ast-types";
 
 // ── Token role → display style ─────────────────────────────────────────
 

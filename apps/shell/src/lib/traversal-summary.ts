@@ -1,4 +1,4 @@
-import type { ContextWindowEntry, ASTNodeType } from "@/lib/ast-types";
+import type { ContextWindowEntry, ASTNodeType } from "@/targets/ast/lib/ast-types";
 import { getSlugDepthMap } from "@/data";
 
 // ── Traversal Summary Generator ────────────────────────────────────────

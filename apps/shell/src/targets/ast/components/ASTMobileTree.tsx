@@ -4,10 +4,10 @@ import { useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useTraversalState } from "@/hooks/useTraversalState";
-import { getGlowClasses } from "@/lib/glow";
+import { getGlowClasses } from "@/targets/ast/lib/glow";
 import { cn } from "@/lib/utils";
-import type { ASTNode } from "@/lib/ast-types";
-import type { TraversalMode } from "@/lib/ast-types";
+import type { ASTNode } from "@/targets/ast/lib/ast-types";
+import type { TraversalMode } from "@/targets/ast/lib/ast-types";
 
 // ── Props ──────────────────────────────────────────────────────────────
 

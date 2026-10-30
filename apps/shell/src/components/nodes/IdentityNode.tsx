@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { getGlowClasses } from "@/lib/glow";
-import type { ASTNode } from "@/lib/ast-types";
+import { getGlowClasses } from "@/targets/ast/lib/glow";
+import type { ASTNode } from "@/targets/ast/lib/ast-types";
 import { NodeBody } from "@/components/shared/NodeBody";
 
 interface IdentityNodeProps {

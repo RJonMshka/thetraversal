@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { getAST } from "@/data";
-import type { ASTNodeType } from "@/lib/ast-types";
+import type { ASTNodeType } from "@/targets/ast/lib/ast-types";
 
 // ── Section glyphs ─────────────────────────────────────────────────────
 // Minimal SVG icons, one per top-level AST node type.

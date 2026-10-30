@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { Graph, createIRClient } from "@tv/ir";
 import graph from "@tv/ir/dist/graph.json";
-import type { ASTNode } from "@/lib/ast-types";
-import { toAST } from "@/data/projection";
+import type { ASTNode } from "@/targets/ast/lib/ast-types";
+import { toAST } from "@/targets/ast/projection";
 import { getAST } from "@/data";
 
 // ── IR projection invariants (LLD-01 §8) ───────────────────────────────

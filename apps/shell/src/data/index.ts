@@ -2,8 +2,8 @@ import type { Graph } from "@tv/ir";
 import { createIRClient } from "@tv/ir/client";
 import irGraph from "@tv/ir/dist/graph.json";
 import irIndex from "@tv/ir/dist/index.json";
-import type { ASTNode, ASTNodeFlat, TokenStreamEntry } from "@/lib/ast-types";
-import { toAST } from "@/data/projection";
+import type { ASTNode, ASTNodeFlat, TokenStreamEntry } from "@/targets/ast/lib/ast-types";
+import { toAST } from "@/targets/ast/projection";
 import {
   findNode,
   flatten,
@@ -11,7 +11,7 @@ import {
   countNodes,
   getMaxDepth,
   filterByMode,
-} from "@/lib/traversal";
+} from "@/targets/ast/lib/traversal";
 
 // ── Data Access Layer ──────────────────────────────────────────────────
 // The single public API for accessing the AST data. All consumers should

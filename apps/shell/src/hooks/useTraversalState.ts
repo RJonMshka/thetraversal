@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { ContextWindowEntry, TraversalMode } from "@/lib/ast-types";
+import type { ContextWindowEntry, TraversalMode } from "@/targets/ast/lib/ast-types";
 
 // ── Traversal State ────────────────────────────────────────────────────
 // Global state for the portfolio traversal experience.

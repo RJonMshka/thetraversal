@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useTraversalState } from "@/hooks/useTraversalState";
-import type { ASTNode, ASTPath } from "@/lib/ast-types";
+import type { ASTNode, ASTPath } from "@/targets/ast/lib/ast-types";
 
 interface NodeShellProps {
   node: ASTNode;

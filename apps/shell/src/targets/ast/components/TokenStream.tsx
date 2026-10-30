@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { useTraversalState } from "@/hooks/useTraversalState";
 import { useIsDesktop } from "@/hooks/useMediaQuery";
 import { getTokens } from "@/data";
-import type { TokenStreamEntry } from "@/lib/ast-types";
+import type { TokenStreamEntry } from "@/targets/ast/lib/ast-types";
 
 // Lazy singleton — computed once on first access, cached for the process.
 const TOKENS = getTokens();

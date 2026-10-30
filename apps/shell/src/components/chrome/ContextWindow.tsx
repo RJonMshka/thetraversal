@@ -4,14 +4,14 @@ import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { getGlowClasses } from "@/lib/glow";
+import { getGlowClasses } from "@/targets/ast/lib/glow";
 import { useTraversalState } from "@/hooks/useTraversalState";
 import { getNodeCount } from "@/data";
 import {
   generateTraversalSummary,
   getTraversalDepth,
 } from "@/lib/traversal-summary";
-import type { ContextWindowEntry, ASTNodeType } from "@/lib/ast-types";
+import type { ContextWindowEntry, ASTNodeType } from "@/targets/ast/lib/ast-types";
 
 // ── Props ──────────────────────────────────────────────────────────────
 

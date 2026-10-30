@@ -1,10 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { TraversalMode } from "@/lib/ast-types";
+import type { TraversalMode } from "@/targets/ast/lib/ast-types";
 
 const ASTCanvasDynamic = dynamic(
-  () => import("@/components/ast/ASTCanvas").then((mod) => ({ default: mod.ASTCanvas })),
+  () => import("@/targets/ast/components/ASTCanvas").then((mod) => ({ default: mod.ASTCanvas })),
   {
     ssr: false,
     loading: () => (
