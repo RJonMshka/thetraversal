@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 
 /**
  * Tracks consecutive clicks on a specific slug. When `threshold` clicks
@@ -16,7 +16,15 @@ export function useStackOverflow(
   const [isOverflowing, setIsOverflowing] = useState(false);
   const clickCountRef = useRef(0);
   const lastClickRef = useRef(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // A target leaves no timers behind when it unmounts (LLD-02 §7).
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    []
+  );
 
   const registerClick = useCallback(
     (slug: string) => {

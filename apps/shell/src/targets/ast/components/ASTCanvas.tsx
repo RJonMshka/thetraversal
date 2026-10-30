@@ -313,6 +313,7 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
     selection.call(zoomBehavior);
 
     return () => {
+      selection.interrupt(); // stop any pan transition and its timer
       selection.on(".zoom", null);
     };
   }, []);
