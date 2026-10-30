@@ -192,7 +192,7 @@ jobs:
     - pnpm turbo run lint type-check test --filter=...[origin/main]
   build:
     - pnpm turbo run build --filter=...[origin/main]
-    - size check: each target dist vs manifest.budget.jsKbGz; shell first-load JS vs 150 KB
+    - size check: each target dist vs manifest.budget.jsKbGz; shell first-load JS ≤ 185 KB, app ≤ 35 KB (CLAUDE.md §8)
     - IR budget enforced inside @tv/ir build
   conformance:   (needs build)
     - for each changed target: @tv/target-kit runs mount → setFocus(every kind) → unmount → mount → unmount
@@ -207,7 +207,7 @@ jobs:
 
 Lighthouse CI on `/` and `/node/reachble` with the thresholds already in `CLAUDE.md`.
 
-As built in Phase 4 (`.github/workflows/ci.yml`): `check`, `build`, `conformance` and `e2e` jobs, filtered by `...[base]` where the doc says `[origin/main]` (the base is the PR base, or the previous commit on a push). `conformance` runs `turbo run conformance`, which builds each affected target first. The size check enforces target budgets inside conformance; the shell's first-load JS is reported, not enforced, until it can meet 150 KB. `e2e` runs on macOS because the parity snapshots were recorded there. Lighthouse CI is not set up yet.
+As built in Phase 4 (`.github/workflows/ci.yml`): `check`, `build`, `conformance` and `e2e` jobs, filtered by `...[base]` where the doc says `[origin/main]` (the base is the PR base, or the previous commit on a push). `conformance` runs `turbo run conformance`, which builds each affected target first. The size check enforces target budgets inside conformance, and the shell's per-route budget in the `build` job (`measure:first-load --enforce`, framework baseline taken from `/_not-found`). `e2e` runs on macOS because the parity snapshots were recorded there. Lighthouse CI is not set up yet.
 
 The conformance runner (`tv-conformance`, run in a target's directory after its build) serves `dist/` with a test page, loads the target through the MF runtime like the shell, and reports: budget, manifest checks, `ready()` once, `setFocus(null)` and every entity, suspend/resume, cleanup after each unmount (root empty, no rAF, no `window`/`document` listeners, workers, WebGL contexts), no writes outside the root, no `/ir/*` fetches, no errors or console warnings. Listeners a framework registers once per page (React's `document` `selectionchange`, Framer Motion's `window` `resize`) are reported as warnings; a listener that is added again on every mount fails. Reduced motion is checked by eye.
 

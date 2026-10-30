@@ -11,9 +11,9 @@ The medium is the message: the site is a compiler. Content is the source, `packa
 ## 2. Current phase
 
 ```
-PHASE: 4 in progress  (the AST is its own workspace, targets/ast, loaded by the shell through Module
-          Federation from /_t/ast/; see architecture/baseline.md "Phase 4"). Open: Vercel projects and
-          the preview failure drill, the first CI run, and the shell's 150 KB first-load budget.
+PHASE: 4 complete  (the AST is its own workspace and Vercel project, targets/ast → thetraversal-t-ast,
+          loaded by the shell through Module Federation from /_t/ast/; see architecture/baseline.md
+          "Phase 4"). Next: Phase 5.
 ```
 
 The repo moves toward the end-state layout one phase at a time. **Only the structure for completed phases exists.** Do not create folders for a later phase unless the task is that phase. Phase definitions and exit criteria: `architecture/MIGRATION.md`.
@@ -107,7 +107,7 @@ Platform: pnpm workspaces, Turborepo, `@module-federation/runtime` in the shell,
 ## 8. Quality bar
 
 - Lighthouse on `/` and `/node/*`: ≥95 performance, 100 accessibility, 100 best practices, 100 SEO.
-- Shell first-load JS < 150 KB gzipped (the current single-app budget was 200 KB; the shell shrinks as targets move out).
+- Shell first-load JS per route ≤ 185 KB gzipped in total, and ≤ 35 KB of shell app code on top of the framework (what Next loads for `/_not-found`: React DOM, the Next runtime, the layout, ~150 KB). `pnpm measure:first-load --enforce` checks both; CI runs it.
 - Each target stays under its manifest `budget.jsKbGz`.
 - `prefers-reduced-motion` respected everywhere. AST uses `role="tree"`/`treeitem`, keyboard Tab/Enter/Arrows, focus rings on `--accent`, WCAG AA contrast.
 - Animations: Framer Motion spring stiffness 120, damping 20. Page and target transitions 200 ms.
