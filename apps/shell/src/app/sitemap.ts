@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
-import { getFlatNodes } from "@/data";
+import { entitiesByDepth } from "@/platform/ir";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://thetraversal.vercel.app";
-  const allNodes = getFlatNodes();
+  const allNodes = entitiesByDepth();
 
   const nodePages: MetadataRoute.Sitemap = allNodes.map((node) => ({
-    url: `${baseUrl}/node/${node.slug}`,
+    url: `${baseUrl}/node/${node.id}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: node.depth === 0 ? 0.8 : node.depth === 1 ? 0.7 : 0.6,
@@ -20,7 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${baseUrl}/tree`,
+      url: `${baseUrl}/t/ast`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.9,

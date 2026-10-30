@@ -1,0 +1,51 @@
+/*
+ * Theme tokens: the default (mint) values of every CSS custom property.
+ * applyTheme() in src/themes.ts overrides them on :root at runtime.
+ * Custom properties inherit into shadow roots, so targets read the same
+ * values with var(--accent) and friends.
+ */
+
+:root {
+  --ink:          #0b0d10;
+  --ink-2:        #0f1216;
+  --ink-3:        #14181d;
+  --paper:        #e8e6df;
+  --line:         rgba(255, 255, 255, 0.07);
+  --line-2:       rgba(255, 255, 255, 0.12);
+  --line-strong:  rgba(255, 255, 255, 0.22);
+  --tv-text:      #e6e4dd;
+  --text-mute:    rgba(230, 228, 221, 0.55);
+  --text-faint:   rgba(230, 228, 221, 0.32);
+  --accent:       oklch(0.82 0.13 160);
+  --accent-dim:   oklch(0.82 0.13 160 / 0.18);
+  --accent-faint: oklch(0.82 0.13 160 / 0.08);
+  --keyword:      oklch(0.78 0.10 320);
+  --string:       oklch(0.82 0.10 90);
+  --comment:      rgba(230, 228, 221, 0.38);
+  --type:         oklch(0.78 0.10 220);
+
+  /* Syntax color tokens (set per-theme by applyTheme) */
+  --syntax-keyword: oklch(0.78 0.10 320);
+  --syntax-string:  oklch(0.82 0.10 90);
+  --syntax-ident:   oklch(0.78 0.13 70);
+  --syntax-type:    oklch(0.78 0.10 220);
+  --mono:         var(--font-mono);
+  --serif:        var(--font-serif);
+  --r-sm:         4px;
+  --r-md:         8px;
+  --r-lg:         12px;
+}
+
+/*
+ * Shell chrome geometry (Phase 3 convention). The AST target's header is
+ * exactly this tall, and the shell opens the context window below it.
+ * Values are the header's natural height in the default font.
+ */
+:root {
+  --tv-chrome-top: 86.16px;
+}
+@media (min-width: 64rem) {
+  :root {
+    --tv-chrome-top: 85.5px;
+  }
+}

@@ -3,21 +3,25 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { useTraversalState } from "@/hooks/useTraversalState";
-import type { ASTNode, ASTPath } from "@/lib/ast-types";
+import { useShellStore } from "@/state/shell-store";
+import type { Entity } from "@tv/ir";
+import { KIND_TAG } from "@/lib/kind-label";
 
 interface NodeShellProps {
-  node: ASTNode;
-  path: ASTPath;
+  entity: Entity;
+  /** Root → this entity. */
+  path: Pick<Entity, "id" | "label">[];
+  /** Ordered contains children. */
+  childEntities: Entity[];
   children: React.ReactNode;
 }
 
-export function NodeShell({ node, path, children }: NodeShellProps) {
-  const visitNode = useTraversalState((s) => s.visitNode);
+export function NodeShell({ entity, path, childEntities, children }: NodeShellProps) {
+  const visit = useShellStore((s) => s.visit);
 
   useEffect(() => {
-    visitNode(node.slug, node.label, node.type, node.glowColor);
-  }, [node.slug, node.label, node.type, node.glowColor, visitNode]);
+    visit({ id: entity.id, label: entity.label, kind: entity.kind });
+  }, [entity.id, entity.label, entity.kind, visit]);
 
   return (
     <main
@@ -37,7 +41,7 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
       >
         {/* Back link */}
         <Link
-          href="/tree"
+          href="/t/ast"
           style={{ fontSize: 12, color: "var(--text-faint)", transition: "color 150ms" }}
           className="hover:text-[var(--tv-text)]"
         >
@@ -56,7 +60,7 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
               <span style={{ color: "var(--text-mute)", marginLeft: 4 }}>→</span>
               {i < path.length - 1 ? (
                 <Link
-                  href={`/node/${segment.slug}`}
+                  href={`/node/${segment.id}`}
                   style={{ color: "var(--text-mute)", transition: "color 150ms", marginLeft: 4 }}
                   className="hover:text-[var(--tv-text)]"
                 >
@@ -77,7 +81,7 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
       {/* ── Node type tag ───────────────────────────────────────────── */}
       <div style={{ padding: "28px 24px 8px", maxWidth: "64rem", margin: "0 auto" }}>
         <div className="flex items-center gap-3">
-          <span className="tv-tag">{node.type}</span>
+          <span className="tv-tag">{KIND_TAG[entity.kind]}</span>
           <span
             style={{
               width: 1,
@@ -87,7 +91,7 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
             }}
           />
           <span style={{ fontSize: 10, color: "var(--text-faint)", letterSpacing: "0.08em" }}>
-            {node.slug}
+            {entity.id}
           </span>
         </div>
       </div>
@@ -98,17 +102,17 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
       </div>
 
       {/* ── Children navigation ─────────────────────────────────────── */}
-      {node.children && node.children.length > 0 && (
+      {childEntities.length > 0 && (
         <div style={{ maxWidth: "64rem", margin: "0 auto", padding: "0 24px 80px" }}>
           <div style={{ borderTop: "1px solid var(--line)", paddingTop: 32 }}>
             <div className="tv-tag" style={{ marginBottom: 16 }}>
-              {"// children ("}{node.children.length}{")"}
+              {"// children ("}{childEntities.length}{")"}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {node.children.map((child) => (
+              {childEntities.map((child) => (
                 <Link
                   key={child.id}
-                  href={`/node/${child.slug}`}
+                  href={`/node/${child.id}`}
                   className="group block transition-all duration-200"
                   style={{
                     padding: "16px",
@@ -118,14 +122,14 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
                   }}
                 >
                   <span className="tv-tag block" style={{ marginBottom: 6 }}>
-                    {child.type}
+                    {KIND_TAG[child.kind]}
                   </span>
                   <span
                     style={{ fontSize: 13, color: "var(--tv-text)", display: "block", fontWeight: 500 }}
                   >
                     {child.label}
                   </span>
-                  {child.content?.summary && (
+                  {child.summary && (
                     <span
                       style={{
                         fontSize: 11,
@@ -136,7 +140,7 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
                       }}
                       className={cn("line-clamp-2")}
                     >
-                      {child.content.summary}
+                      {child.summary}
                     </span>
                   )}
                 </Link>

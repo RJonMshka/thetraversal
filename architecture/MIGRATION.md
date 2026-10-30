@@ -98,22 +98,22 @@ Prompt for Claude Code
 **Goal:** the shell mounts the AST only through the contract. Federation is not involved yet, so contract problems surface without network problems.
 
 Steps
-- [ ] Create `packages/contract` (LLD-02) with types, `createBus`, `satisfiesRange`, error codes.
-- [ ] Finish `packages/tokens`: `tokens.css` holding the variable blocks currently in `globals.css`, plus a `themeSnapshot()` helper. `globals.css` imports it.
-- [ ] Shell platform (LLD-03 §2): `registry.ts` with `ast` only, `loader/local.ts` (dynamic `import()` of an in-bundle module), `host/TargetHost.tsx`, `host/context.ts`, `focus.ts`, `bus.ts`, `capabilities.ts`, `errors.ts`, `chrome/Outline.tsx`, `chrome/TargetSwitcher.tsx` (shows one option for now).
-- [ ] Route `app/t/[target]/page.tsx`. Redirect `/tree` → `/t/ast` (query preserved). Update landing links to `/t/ast?mode=…`.
-- [ ] Split `useTraversalState`: `visitedNodes` and `contextWindow` to `state/shell-store.ts`; `currentMode` and `expandedNodes` into the AST target via `ctx.params` / `ctx.storage`.
-- [ ] Move AST code into `apps/shell/src/targets/ast/`: `components/ast/*`, `TokenStream`, `useASTLayout`, `useStackOverflow`, `node-dimensions.ts`, `glow.ts`, `traversal.ts`, `ast-types.ts`, `projection.ts`, and the body of `app/tree/page.tsx` as `AstApp.tsx`.
-- [ ] Write `targets/ast/mount.ts`: `createRoot(shadowRoot)` rendering `AstApp` with `ctx`. Adopt the AST's compiled CSS into the shadow root.
-- [ ] Replace the 10 `next/link` and 6 `next/navigation` imports inside the moved code with an `AstNav` adapter over `ctx.nav` (`<a href>` with `onClick` → `ctx.nav.focus` or `ctx.nav.open`). Replace `next/dynamic` in `ASTCanvasLazy` with `React.lazy`.
-- [ ] Replace the hex `GLOW_COLORS` map in `ASTNode.tsx` with token variables read through `ctx.theme` or CSS vars.
-- [ ] `ContextWindow` moves to shell chrome and reads the shell store. Shell-store entries store `kind` instead of `ASTNodeType` + `glowColor`.
-- [ ] Shell stops depending on AST vocabulary. Today `components/nodes/*`, `ContextWindow`, `NodeShell`, and `app/node/[slug]/page.tsx` import `@/lib/ast-types`, and `IdentityNode`, `ContextWindow`, `ASTMobileTree` import `@/lib/glow`. Convert the node components to take `Entity` props and dispatch on `kind`. Add `apps/shell/src/lib/kind-accent.ts` (kind → accent token) for shell chrome; the AST keeps its own glow mapping in its projection.
-- [ ] Retire the `@/data` facade: remaining shell consumers (landing `getNodeCount`/`getTreeMaxDepth`, `sitemap.ts`, node pages, `easter-eggs.ts`) use the `IRClient` directly. `traversal.ts` and its test move with the AST target.
-- [ ] Add the Phase 3 lint boundary (LLD-04 §8) on `src/targets/ast/**`.
-- [ ] Audit moved AST code for `document`/`window` use and portals. Scope listeners to the shadow root host or `ctx.signal`, and make sure all are removed on unmount. (`ReadingProgress` is used by node pages and stays in the shell.)
+- [x] Create `packages/contract` (LLD-02) with types, `createBus`, `satisfiesRange`, error codes.
+- [x] Finish `packages/tokens`: `tokens.css` holding the variable blocks currently in `globals.css`, plus a `themeSnapshot()` helper. `globals.css` imports it.
+- [x] Shell platform (LLD-03 §2): `registry.ts` with `ast` only, `loader/local.ts` (dynamic `import()` of an in-bundle module), `host/TargetHost.tsx`, `host/context.ts`, `focus.ts`, `bus.ts`, `capabilities.ts`, `errors.ts`, `chrome/Outline.tsx`, `chrome/TargetSwitcher.tsx` (shows one option for now).
+- [x] Route `app/t/[target]/page.tsx`. Redirect `/tree` → `/t/ast` (query preserved). Update landing links to `/t/ast?mode=…`.
+- [x] Split `useTraversalState`: `visitedNodes` and `contextWindow` to `state/shell-store.ts`; `currentMode` and `expandedNodes` into the AST target via `ctx.params` / `ctx.storage`.
+- [x] Move AST code into `apps/shell/src/targets/ast/`: `components/ast/*`, `TokenStream`, `useASTLayout`, `useStackOverflow`, `node-dimensions.ts`, `glow.ts`, `traversal.ts`, `ast-types.ts`, `projection.ts`, and the body of `app/tree/page.tsx` as `AstApp.tsx`.
+- [x] Write `targets/ast/mount.tsx`: `createRoot(shadowRoot)` rendering `AstApp` with `ctx`. Adopt the AST's compiled CSS into the shadow root.
+- [x] Replace the `next/link` (4 files) and `next/navigation` (4 files) imports inside the moved code with an `AstNav` adapter over `ctx.nav` (`<a href>` with `onClick` → `ctx.nav.focus` or `ctx.nav.open`). Replace `next/dynamic` in `ASTCanvasLazy` with `React.lazy`.
+- [x] Replace the hex `GLOW_COLORS` map in `ASTNode.tsx` with token variables read through `ctx.theme` or CSS vars. (The same map was also copied into `NodeContentPopover.tsx` and `NodeInspector.tsx`; all three now use `glowValue`/`glowTint` in `targets/ast/lib/glow.ts`.)
+- [x] `ContextWindow` moves to shell chrome and reads the shell store. Shell-store entries store `kind` instead of `ASTNodeType` + `glowColor`.
+- [x] Shell stops depending on AST vocabulary. Today `components/nodes/*`, `ContextWindow`, `NodeShell`, and `app/node/[slug]/page.tsx` import `@/lib/ast-types`, and `IdentityNode`, `ContextWindow`, `ASTMobileTree` import `@/lib/glow`. Convert the node components to take `Entity` props and dispatch on `kind`. Add `apps/shell/src/lib/kind-accent.ts` (kind → accent token) for shell chrome; the AST keeps its own glow mapping in its projection.
+- [x] Retire the `@/data` facade: remaining shell consumers (landing `getNodeCount`/`getTreeMaxDepth`, `sitemap.ts`, node pages, `easter-eggs.ts`) use the `IRClient` directly. `traversal.ts` and its test move with the AST target.
+- [x] Add the Phase 3 lint boundary (LLD-04 §8) on `src/targets/ast/**`.
+- [x] Audit moved AST code for `document`/`window` use and portals. Scope listeners to the shadow root host or `ctx.signal`, and make sure all are removed on unmount. (`ReadingProgress` is used by node pages and stays in the shell.) Result: no portals and no writes outside the root; `matchMedia` listeners, the drift `rAF` loop and d3-zoom handlers were already released on unmount; the stack-overflow timer and in-flight d3 pan transitions now are too.
 
-Exit criteria
+Exit criteria (all met; see baseline.md "Phase 3")
 - `/t/ast?mode=lex|parse|eval` matches the Phase 0 `/tree?mode=…` snapshots (allow the URL difference only).
 - `/tree?mode=eval` returns 308 to `/t/ast?mode=eval`.
 - Lint boundary passes: nothing under `targets/ast` imports `next/*`, `@/data`, or the shell store.

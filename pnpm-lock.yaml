@@ -17,6 +17,9 @@ importers:
 
   apps/shell:
     dependencies:
+      '@tv/contract':
+        specifier: workspace:*
+        version: link:../../packages/contract
       '@tv/ir':
         specifier: workspace:*
         version: link:../../packages/ir
@@ -112,6 +115,22 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0(@types/node@25.5.0)(vite@8.0.1(@types/node@25.5.0)(jiti@2.6.1)(tsx@4.23.15)(yaml@2.8.3))
 
+  packages/contract:
+    dependencies:
+      '@tv/ir':
+        specifier: workspace:*
+        version: link:../ir
+    devDependencies:
+      '@tv/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.0(@types/node@25.5.0)(vite@8.0.1(@types/node@25.5.0)(jiti@2.6.1)(tsx@4.23.15)(yaml@2.8.3))
+
   packages/ir:
     dependencies:
       '@mdx-js/mdx':
@@ -159,6 +178,10 @@ importers:
         version: 4.1.0(@types/node@25.5.0)(vite@8.0.1(@types/node@25.5.0)(jiti@2.6.1)(tsx@4.23.15)(yaml@2.8.3))
 
   packages/tokens:
+    dependencies:
+      '@tv/contract':
+        specifier: workspace:*
+        version: link:../contract
     devDependencies:
       '@tv/tsconfig':
         specifier: workspace:*

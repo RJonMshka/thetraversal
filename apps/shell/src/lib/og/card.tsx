@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
-import { THEMES, MINT_ACCENT_SRGB } from "@/lib/themes";
+import { THEMES, MINT_ACCENT_SRGB } from "@tv/tokens";
 
 // Shared renderer for Open Graph cards. next/og (satori) has no access to
 // CSS variables, so colors come from the default mint theme in themes.ts.

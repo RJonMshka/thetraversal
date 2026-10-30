@@ -1,10 +1,10 @@
 import { cn } from "@/lib/utils";
 import { loadEssay } from "@/lib/content";
 import { ReadingProgress } from "@/components/shared/ReadingProgress";
-import type { ASTNode } from "@/lib/ast-types";
+import type { Entity } from "@tv/ir";
 
 interface PhilosophyNodeProps {
-  node: ASTNode;
+  entity: Entity;
   bodyHtml?: string;
 }
 
@@ -36,15 +36,15 @@ function FallbackBody({ html, text }: { html?: string; text: string }) {
   );
 }
 
-export async function PhilosophyNode({ node, bodyHtml }: PhilosophyNodeProps) {
-  const tags = node.meta?.tags ?? [];
-  const date = node.meta?.date;
-  const essayRef = node.content?.deep;
+export async function PhilosophyNode({ entity, bodyHtml }: PhilosophyNodeProps) {
+  const tags = entity.tags;
+  const date = entity.date;
+  const essayRef = entity.essayRef;
 
   // The long-form essay from the IR body store, when the node has one
   const essay = essayRef ? await loadEssay(essayRef) : null;
   const readingTime =
-    essay?.readingMinutes ?? estimateReadingTime(node.content?.body ?? "");
+    essay?.readingMinutes ?? estimateReadingTime(entity.excerpt ?? "");
 
   return (
     <article className="space-y-8">
@@ -55,7 +55,7 @@ export async function PhilosophyNode({ node, bodyHtml }: PhilosophyNodeProps) {
       <header className="space-y-4">
         <div className="font-mono">
           <span className="text-ctp-lavender text-xl font-bold">
-            {node.label.toLowerCase().replace(/\s+/g, "_")}
+            {entity.label.toLowerCase().replace(/\s+/g, "_")}
           </span>
           <span className="text-ctp-overlay1">(</span>
           {tags.slice(0, 3).map((tag, i) => (
@@ -74,9 +74,9 @@ export async function PhilosophyNode({ node, bodyHtml }: PhilosophyNodeProps) {
         </div>
 
         {/* Summary */}
-        {node.content?.summary && (
+        {entity.summary && (
           <p className="text-ctp-subtext0 text-sm font-mono italic">
-            {node.content.summary}
+            {entity.summary}
           </p>
         )}
       </header>
@@ -91,7 +91,7 @@ export async function PhilosophyNode({ node, bodyHtml }: PhilosophyNodeProps) {
           dangerouslySetInnerHTML={{ __html: essay.html }}
         />
       ) : (
-        <FallbackBody html={bodyHtml} text={node.content?.body ?? ""} />
+        <FallbackBody html={bodyHtml} text={entity.excerpt ?? ""} />
       )}
     </article>
   );

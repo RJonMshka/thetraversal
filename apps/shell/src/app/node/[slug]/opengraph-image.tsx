@@ -1,4 +1,5 @@
-import { getFlatNodes, findNodeBySlug } from "@/data";
+import { KIND_TAG } from "@/lib/kind-label";
+import { ir } from "@/platform/ir";
 import { renderOgCard, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og/card";
 
 export const alt = "The Traversal — Rajat Kumar";
@@ -6,7 +7,7 @@ export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
 export function generateStaticParams() {
-  return getFlatNodes().map((node) => ({ slug: node.slug }));
+  return Object.keys(ir.graph.entities).map((slug) => ({ slug }));
 }
 
 const MAX_SUBTITLE = 140;
@@ -17,9 +18,9 @@ function truncate(text: string, max: number) {
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const result = findNodeBySlug(slug);
+  const entity = ir.entity(slug);
 
-  if (!result) {
+  if (!entity) {
     return renderOgCard({
       kicker: "Error",
       title: "Node not found",
@@ -28,11 +29,10 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     });
   }
 
-  const { node } = result;
   return renderOgCard({
-    kicker: node.type,
-    title: node.label,
-    subtitle: truncate(node.content?.summary ?? "Rajat Kumar, senior software engineer.", MAX_SUBTITLE),
-    command: `traverse("${node.slug}")`,
+    kicker: KIND_TAG[entity.kind],
+    title: entity.label,
+    subtitle: truncate(entity.summary, MAX_SUBTITLE),
+    command: `traverse("${entity.id}")`,
   });
 }

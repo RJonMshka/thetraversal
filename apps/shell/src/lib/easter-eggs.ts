@@ -1,4 +1,4 @@
-import { RESUME_TEXT_LINES, RESUME_PDF_URL } from "@/data/resume";
+import { RESUME_TEXT_LINES, RESUME_PDF_URL } from "@/lib/resume-text";
 
 export interface EasterEggAction {
   kind: "download" | "navigate";

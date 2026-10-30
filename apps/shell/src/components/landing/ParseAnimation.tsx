@@ -290,7 +290,7 @@ export function ParseAnimation({ isActive }: ParseAnimationProps) {
                 className="pt-6"
               >
                 <Link
-                  href="/tree"
+                  href="/t/ast"
                   className={cn(
                     "inline-flex items-center gap-2 px-4 py-2",
                     "border border-ctp-surface1 rounded",

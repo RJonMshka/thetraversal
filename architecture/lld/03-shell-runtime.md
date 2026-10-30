@@ -51,6 +51,14 @@ apps/shell/src/
     shell-store.ts             # zustand: visited, contextWindow, theme
 ```
 
+As built in Phase 3 (one local target, no switching yet):
+
+- `platform/ir.ts` holds the shell's `IRClient` singleton (server components, chrome, every context).
+- `platform/host/lifecycle.ts` is the framework-free mount sequence (§6 timeouts, checks, `guard`), unit-tested without a browser. `transition.ts` (switching between two live targets), `prefetch.ts`, `telemetry.ts` and `AccessibleEntityList.tsx` arrive with the phases that need them.
+- `chrome/TargetView.tsx` is the client frame of `/t/[target]`: it composes `TargetHost` with the shell chrome and restores shared traversals (`?traversal=a,b,c`).
+- `TargetHost` unmounts a target after React's commit (a React target cannot unmount its own root mid-render) and starts the next mount only once the previous one has fully unmounted.
+- `?remount=1` (development builds only) shows a button that unmounts and remounts the target in place.
+
 ## 3. Registry
 
 ```ts
@@ -183,6 +191,8 @@ Replace, not push, for focus changes inside a target, so the back button moves b
 | `expandedNodes` | AST target `ctx.storage` |
 | `hasHydrated` pattern | Kept in shell store; targets mount only after hydration, so they never see pre-hydration state |
 
+Shell-store entries are `{ id, label, kind, visitedAt }` under `tv.shell.traversal`. The shell sends each new visit to the mounted target as `entity:visited`, and a cleared history as `traversal:reset` (it also clears the target's `tv.t.<id>.*` storage). The AST keeps its state in one store per mount (`targets/ast/store.ts`), never a module singleton.
+
 ## 9. Server outline
 
 `/t/[target]/page.tsx` renders `<Outline/>` inside the host container:
@@ -218,4 +228,6 @@ The host removes the outline after the target signals ready. Effects: crawlers a
 | `TraversalModeSelector` | Tree page | AST target |
 | `TargetSwitcher` | (new) | Shell, same visual language as the mode selector: `--target=ast` |
 | `FocusManager`, `EasterEggOverlays`, `ThemeInitializer` | Layout | Shell, unchanged |
+
+Phase 3 layout convention. The AST draws the whole screen, header included, so its pages match the old `/tree` pixel for pixel. The shell overlays its chrome on top: the `← root` link and the `ctx` toggle sit in the AST's top row, where the AST leaves invisible stand-ins of the same size, and the context window opens below the AST's header, whose height is the `--tv-chrome-top` token in `@tv/tokens/tokens.css`. The shell reports the area its open panel covers as `ctx.inset` / `chrome:inset`, and closes the panel when a target moves focus. The switcher renders nothing while only one target is registered.
 | `NodeInspector`, `NodeContentPopover` | Tree page | AST target |

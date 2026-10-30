@@ -26,7 +26,7 @@ export interface TargetManifest {
   contract: 1;
   ir: string;                     // semver range of IR schema, e.g. ">=1.0.0 <2.0.0"
   entry: {
-    kind: "mf" | "esm";
+    kind: "mf" | "esm" | "local";   // "local": bundled into the shell (Phase 3 only)
     remote: string;               // MF remote name, e.g. "tv_three"
     expose: string;               // "./mount"
     url: string;                  // relative to /_t/<id>/, e.g. "mf-manifest.json"
@@ -84,6 +84,8 @@ export interface TargetContext {
   readonly id: string;
   readonly ir: IRClient;                         // from @tv/ir
   readonly focus: string | null;                 // initial focus
+  readonly visited: readonly string[];           // entities visited this session, oldest first
+  readonly inset: ChromeInset;                   // area of the root covered by shell chrome
   readonly params: Readonly<Record<string, string>>; // only keys in manifest.urlParams
   readonly theme: ThemeSnapshot;
   readonly env: TargetEnv;
@@ -100,6 +102,8 @@ export interface TargetContext {
   readonly llm?: LLMClient;                      // only with capability "llm"
   readonly data?: { metrics?: MetricsClient };   // only with capability "metrics-read"
 }
+// `llm` and `data` are added to the package with Phases 8 and 6. Adding an
+// optional context field is not a breaking change.
 
 export interface Navigator {
   focus(id: string): void;                       // request focus change; shell updates URL with replace
@@ -124,6 +128,9 @@ export interface ThemeSnapshot {
   colors: { bg: string; card: string; text: string; mute: string; accent: string; line: string };
 }
 
+/** CSS px of the target's root covered by shell chrome (e.g. the context window). */
+export interface ChromeInset { top: number; right: number; bottom: number; left: number }
+
 export interface ScopedStorage {
   get<T>(key: string): T | undefined;
   set<T>(key: string, value: T): void;
@@ -146,7 +153,9 @@ export type ShellEvent =
   | { type: "entity:visited"; id: string }
   | { type: "theme:changed"; theme: ThemeSnapshot }
   | { type: "target:changed"; from: string | null; to: string }
-  | { type: "visibility"; hidden: boolean };
+  | { type: "visibility"; hidden: boolean }
+  | { type: "traversal:reset" }                       // visitor cleared their history
+  | { type: "chrome:inset"; inset: ChromeInset };     // shell chrome opened or closed
 
 export interface Bus {
   on<T extends ShellEvent["type"]>(type: T, fn: (e: Extract<ShellEvent, { type: T }>) => void): () => void;
@@ -154,6 +163,8 @@ export interface Bus {
 ```
 
 The bus is read-only for targets. Every write goes through `nav` or `telemetry`, so the shell sees and validates every request. Subscriptions are tracked per target and force-cleared on unmount, so a leaky target cannot keep receiving events.
+
+`visited` plus `entity:visited` and `traversal:reset` let a target mark what the visitor has seen, including visits made on `/node` pages while it was not mounted. `inset` plus `chrome:inset` tell a target which part of its root is covered by shell chrome (the context window), so it can keep its own content clear of it.
 
 `setFocus` on the handle and `focus:changed` on the bus carry the same information. The handle method exists so simple targets do not need the bus at all.
 

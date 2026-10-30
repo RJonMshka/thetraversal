@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { getGlowClasses } from "@/lib/glow";
-import type { ASTNode } from "@/lib/ast-types";
+import { accentClasses, accentOf } from "@/lib/kind-accent";
+import { KIND_TAG } from "@/lib/kind-label";
+import { ir } from "@/platform/ir";
+import type { Entity } from "@tv/ir";
 import { NodeBody } from "@/components/shared/NodeBody";
 
 interface IdentityNodeProps {
-  node: ASTNode;
+  entity: Entity;
   bodyHtml?: string;
-  siblings?: ASTNode[];
+  siblings?: Entity[];
 }
 
-export function IdentityNode({ node, bodyHtml, siblings = [] }: IdentityNodeProps) {
-  const links = node.meta?.links ?? [];
+export function IdentityNode({ entity, bodyHtml, siblings = [] }: IdentityNodeProps) {
+  const links = entity.links;
 
   return (
     <article className="space-y-8">
@@ -27,9 +29,9 @@ export function IdentityNode({ node, bodyHtml, siblings = [] }: IdentityNodeProp
         </div>
 
         {/* Summary */}
-        {node.content?.summary && (
+        {entity.summary && (
           <p className="text-ctp-subtext0 text-sm font-mono">
-            {"// "}{node.content.summary}
+            {"// "}{entity.summary}
           </p>
         )}
       </header>
@@ -38,7 +40,7 @@ export function IdentityNode({ node, bodyHtml, siblings = [] }: IdentityNodeProp
       <div className="border-t border-ctp-surface0" />
 
       {/* Bio paragraphs */}
-      <NodeBody html={bodyHtml} text={node.content?.body} className="space-y-4 max-w-[65ch]" />
+      <NodeBody html={bodyHtml} text={entity.excerpt} className="space-y-4 max-w-[65ch]" />
 
       {/* External links */}
       {links.length > 0 && (
@@ -65,13 +67,13 @@ export function IdentityNode({ node, bodyHtml, siblings = [] }: IdentityNodeProp
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {siblings
-              .filter((s) => s.slug !== node.slug)
+              .filter((s) => s.id !== entity.id)
               .map((sibling) => {
-                const glow = getGlowClasses(sibling.glowColor);
+                const glow = accentClasses(accentOf(sibling, ir));
                 return (
                   <Link
                     key={sibling.id}
-                    href={`/node/${sibling.slug}`}
+                    href={`/node/${sibling.id}`}
                     className={cn(
                       "group block p-4 rounded-lg border transition-all duration-200",
                       "bg-ctp-surface0/30 hover:bg-ctp-surface0/60",
@@ -81,7 +83,7 @@ export function IdentityNode({ node, bodyHtml, siblings = [] }: IdentityNodeProp
                     )}
                   >
                     <span className="text-[10px] font-mono text-ctp-overlay1 block mb-1">
-                      {sibling.type}
+                      {KIND_TAG[sibling.kind]}
                     </span>
                     <span className={cn(
                       "text-sm font-mono font-medium block",
@@ -89,9 +91,9 @@ export function IdentityNode({ node, bodyHtml, siblings = [] }: IdentityNodeProp
                     )}>
                       {sibling.label}
                     </span>
-                    {sibling.content?.summary && (
+                    {sibling.summary && (
                       <span className="text-xs text-ctp-subtext0 block mt-1 line-clamp-2">
-                        {sibling.content.summary}
+                        {sibling.summary}
                       </span>
                     )}
                   </Link>

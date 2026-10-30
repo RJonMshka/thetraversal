@@ -187,7 +187,7 @@ Targets never construct IR URLs. If the IR location changes, only the shell chan
 ## 7. AST projection (owned by the `ast` target)
 
 ```ts
-// targets/ast/src/projection.ts  (in Phase 2 lives at apps/shell/src/data/projection.ts)
+// targets/ast/src/projection.ts  (Phase 2: apps/shell/src/data/projection.ts; Phase 3: apps/shell/src/targets/ast/projection.ts)
 const AST_TYPE: Record<Kind, ASTNodeType> = {
   root: "RootNode",
   identity: "ProgramNode",

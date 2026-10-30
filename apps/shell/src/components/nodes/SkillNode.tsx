@@ -2,16 +2,17 @@
 
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import type { ASTNode } from "@/lib/ast-types";
+import type { Entity } from "@tv/ir";
 import { NodeBody, hasNodeBody } from "@/components/shared/NodeBody";
 
 interface SkillNodeProps {
-  node: ASTNode;
+  entity: Entity;
+  /** Ordered contains children (the skills). */
+  childEntities: Entity[];
   bodyHtml?: string;
 }
 
-export function SkillNode({ node, bodyHtml }: SkillNodeProps) {
-  const children = node.children ?? [];
+export function SkillNode({ entity, childEntities: children, bodyHtml }: SkillNodeProps) {
 
   return (
     <article className="space-y-8">
@@ -20,23 +21,23 @@ export function SkillNode({ node, bodyHtml }: SkillNodeProps) {
         <div className="font-mono">
           <span className="text-ctp-mauve">const</span>{" "}
           <span className="text-ctp-mauve text-xl font-bold">
-            {node.label.toLowerCase()}
+            {entity.label.toLowerCase()}
           </span>
           <span className="text-ctp-overlay1">: </span>
           <span className="text-ctp-yellow">ObjectExpression</span>
           <span className="text-ctp-overlay1">{" = {"}</span>
         </div>
 
-        {node.content?.summary && (
+        {entity.summary && (
           <p className="text-ctp-subtext0 text-sm font-mono pl-6">
-            {"// "}{node.content.summary}
+            {"// "}{entity.summary}
           </p>
         )}
       </header>
 
       {/* Description */}
-      {hasNodeBody({ html: bodyHtml, text: node.content?.body }) && (
-        <NodeBody html={bodyHtml} text={node.content?.body} className="pl-6 space-y-4" />
+      {hasNodeBody({ html: bodyHtml, text: entity.excerpt }) && (
+        <NodeBody html={bodyHtml} text={entity.excerpt} className="pl-6 space-y-4" />
       )}
 
       {/* Keys of the object expression — each one traversable */}
@@ -49,7 +50,7 @@ export function SkillNode({ node, bodyHtml }: SkillNodeProps) {
             {children.map((child) => (
               <Link
                 key={child.id}
-                href={`/node/${child.slug}`}
+                href={`/node/${child.id}`}
                 className={cn(
                   "px-2.5 py-1 text-xs font-mono rounded",
                   "bg-ctp-surface0 text-ctp-mauve/90 border border-ctp-mauve/20",

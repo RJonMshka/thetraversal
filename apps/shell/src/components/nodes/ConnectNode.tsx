@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import type { ASTNode } from "@/lib/ast-types";
+import type { Entity } from "@tv/ir";
 import { NodeBody, hasNodeBody } from "@/components/shared/NodeBody";
 
 interface ConnectNodeProps {
-  node: ASTNode;
+  entity: Entity;
+  /** Ordered contains children (the channels). */
+  childEntities: Entity[];
   bodyHtml?: string;
 }
 
@@ -42,8 +44,7 @@ function getIcon(label: string) {
   return null;
 }
 
-export function ConnectNode({ node, bodyHtml }: ConnectNodeProps) {
-  const children = node.children ?? [];
+export function ConnectNode({ entity, childEntities: children, bodyHtml }: ConnectNodeProps) {
 
   return (
     <article className="space-y-8">
@@ -63,22 +64,22 @@ export function ConnectNode({ node, bodyHtml }: ConnectNodeProps) {
           <span className="text-ctp-green">&quot;rajat&quot;</span>
         </div>
 
-        {node.content?.summary && (
+        {entity.summary && (
           <p className="text-ctp-subtext0 text-sm font-mono pl-6">
-            {"// "}{node.content.summary}
+            {"// "}{entity.summary}
           </p>
         )}
       </header>
 
       {/* Description */}
-      {hasNodeBody({ html: bodyHtml, text: node.content?.body }) && (
-        <NodeBody html={bodyHtml} text={node.content?.body} className="space-y-4" />
+      {hasNodeBody({ html: bodyHtml, text: entity.excerpt }) && (
+        <NodeBody html={bodyHtml} text={entity.excerpt} className="space-y-4" />
       )}
 
       {/* Connect links as named exports */}
       <div className="space-y-4">
         {children.map((child) => {
-          const url = child.meta?.links?.[0]?.url;
+          const url = child.links[0]?.url;
           const icon = getIcon(child.label);
 
           return (
@@ -113,9 +114,9 @@ export function ConnectNode({ node, bodyHtml }: ConnectNodeProps) {
                     <span className="text-ctp-text">&quot;{child.label}&quot;</span>
                   )}
                 </div>
-                {child.content?.summary && (
+                {child.summary && (
                   <p className="text-xs text-ctp-subtext0 mt-1">
-                    {child.content.summary}
+                    {child.summary}
                   </p>
                 )}
               </div>

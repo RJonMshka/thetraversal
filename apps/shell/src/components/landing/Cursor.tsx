@@ -11,7 +11,7 @@ import {
   parseThemeCmd,
   type ThemeName,
   type FontName,
-} from "@/lib/themes";
+} from "@tv/tokens";
 
 interface HistoryEntry {
   input: string;
