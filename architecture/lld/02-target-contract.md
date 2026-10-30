@@ -126,6 +126,8 @@ export interface ThemeSnapshot {
   font: string;
   /** Resolved values for canvas/WebGL targets that cannot read CSS vars per frame. */
   colors: { bg: string; card: string; text: string; mute: string; accent: string; line: string };
+  /** The --syntax-* colors, for targets that color by category. Optional (Phase 5): fall back to `colors`. */
+  syntax?: { keyword: string; string: string; ident: string; type: string };
 }
 
 /** CSS px of the target's root covered by shell chrome (e.g. the context window). */
@@ -142,6 +144,8 @@ export interface TargetTelemetry {
   event(name: string, props?: Record<string, string | number | boolean>): void;
 }
 ```
+
+`syntax` was added in Phase 5 for the `three` target, which colors entities by category. It is optional, so it is not a breaking change and `CONTRACT_VERSION` stays 1: a target must still mount when a shell does not send it. Values are CSS color strings as `@tv/tokens` writes them (hex, `rgba()`, `oklch()`); WebGL targets convert them themselves.
 
 Why `ShadowRoot` and not `HTMLElement`: isolation is part of the contract, not a convention. Targets attach their own styles with `root.adoptedStyleSheets` or a `<style>` inside the root. Theme tokens are CSS custom properties on `:root`, which inherit into shadow trees, so `var(--accent)` works unchanged.
 

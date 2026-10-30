@@ -154,17 +154,21 @@ Prompt for Claude Code
 
 **Goal:** second target, no React, proves the contract is real.
 
-Steps
-- [ ] Scaffold `targets/three` (vanilla TS, `three`, `d3-force-3d` for layout). Manifest: `capabilities: ["webgl2"]`, `a11y: "partial"`, `motion: "static-fallback"`, `urlParams: []`.
-- [ ] Scene: entities as nodes sized by kind, `contains` edges as faint lines, `implements`/`uses` edges as accent lines. Labels via instanced sprites or a CSS2D layer inside the shadow root.
-- [ ] Focus: camera fly-to over 600 ms (instant with reduced motion); picking calls `ctx.nav.focus`. Double-click or Enter calls `ctx.nav.open`.
-- [ ] Theme: palette from `ctx.theme.colors`, updated in `onTheme`.
-- [ ] Lifecycle: `suspend` stops the render loop; `unmount` disposes geometries, materials, textures, renderer, and forces context loss.
-- [ ] Shell: `AccessibleEntityList` rendered beside partial targets, synced with focus.
-- [ ] Switcher shows `--target=ast` and `--target=three`; prefetch on hover.
+Design: **compiler passes**. One horizontal plane per `contains` depth, root plane on top, seen in a 3/4 view. Chosen from three directions after a clickable mockup with the real IR (112 entities: 1 / 7 / 22 / 82 per plane; every `uses` edge runs plane 2 → 3, `implements` stays inside plane 2). Shape and color carry the category, fill carries group vs item, accent carries focus.
 
-Exit criteria
-- Switch ast ⇄ three preserves focus both ways; warm switch p75 under 400 ms locally with prefetch.
+Steps
+- [x] Scaffold `targets/three` (vanilla TS, `three`). Manifest: `capabilities: ["webgl2"]`, `a11y: "partial"`, `motion: "static-fallback"`, `urlParams: []`, budget 185 KB (169 at Phase 5). Layout is a seeded angular partition plus an in-plane collision pass (`src/layout.ts`), not `d3-force-3d`: y is fixed per plane, so a 3D simulation adds a dependency and nondeterminism for nothing.
+- [x] Scene: entities on their depth's plane, under their parent. Category → shape and syntax color (work: cube, paper slab · skills: icosahedron · career: hex prism · writing: pyramid · identity: tetrahedron); groups are outline only, items filled. `contains` edges faint lines, `uses`/`implements` accent arcs. Labels are a DOM layer inside the shadow root: hubs always, the rest on hover, focus, or as a neighbor of the focus.
+- [x] Focus: camera fly-to over 600 ms (instant with reduced motion); picking calls `ctx.nav.focus`. Double-click, Enter, or the card's `open →` call `ctx.nav.open`. The focus gets a double ring, its path to the root thick tubes with a ring per plane, its plane a thick frame; other planes dim.
+- [x] Navigation (keys work as soon as the page loads, never while focus is in shell chrome): ↑ / Esc / Backspace parent, ↓ child (back to the child you came up from), ← → siblings (wrapping), Enter open, Home root, + / − zoom. Clicking empty space steps out. The focus card shows the path (each ancestor clickable) and a chip per available move, labeled with where it lands.
+- [x] Theme: palette from `ctx.theme.colors` plus the new optional `ctx.theme.syntax` (LLD-02 §4), updated in `onTheme`. oklch values are converted in the target (`src/palette.ts`); three.js cannot parse them.
+- [x] Lifecycle: renders on demand (no idle loop); `suspend` cancels the pending frame; `unmount` disposes geometries, materials, renderer, and forces context loss.
+- [x] Shell: `AccessibleEntityList` rendered beside partial targets, synced with focus (right column on desktop, below a 55vh stage on phones). It moves focus through `TargetHost` with `source: "shell-chrome"`.
+- [x] Switcher shows `--target=ast` and `--target=three` (the id alone on phones); hover or keyboard focus prefetches the target's code.
+- [ ] Vercel project `thetraversal-t-three`, root `targets/three` (`targets/three/vercel.json` holds build, ignore step and headers). Set `TARGET_THREE_ORIGIN` on the shell project for Production and Preview. Until then, production `/t/three` falls back to the outline with `T0004`.
+
+Exit criteria (met locally; see baseline.md "Phase 5")
+- Switch ast ⇄ three preserves focus both ways; warm switch p75 under 400 ms locally with prefetch. (62 ms to `three`, 36 ms to `ast`, Apple M1 GPU.)
 - Conformance passes, including remount and zero canvases after unmount.
 - Keyboard-only user can traverse every entity via the accessible list while `three` is active.
 
