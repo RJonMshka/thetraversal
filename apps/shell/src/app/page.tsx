@@ -7,9 +7,9 @@ import { ParseAnimation } from "@/components/landing/ParseAnimation";
 import { getNodeCount, getTreeMaxDepth } from "@/data";
 
 const MODES = [
-  { label: "— lex",   href: "/tree?mode=lex"   },
-  { label: "— parse", href: "/tree?mode=parse" },
-  { label: "— eval",  href: "/tree?mode=eval"  },
+  { label: "— lex",   href: "/t/ast?mode=lex"   },
+  { label: "— parse", href: "/t/ast?mode=parse" },
+  { label: "— eval",  href: "/t/ast?mode=eval"  },
 ];
 
 // ── Mini-tree sneak peek ───────────────────────────────────────────────
@@ -141,7 +141,7 @@ function TreeSneakPeek() {
         <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text-faint)" }}>
           press <span style={{ color: ACCENT }}>↵</span> to enter
         </span>
-        <Link href="/tree" style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text-mute)" }}>
+        <Link href="/t/ast" style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text-mute)" }}>
           traverse →
         </Link>
       </div>
@@ -285,7 +285,7 @@ export default function LandingPage() {
               type anything and press{" "}
               <span style={{ color: "var(--accent)" }}>enter</span> · or{" "}
               <Link
-                href="/tree"
+                href="/t/ast"
                 style={{
                   color: "var(--text-mute)",
                   textDecoration: "underline",
@@ -347,8 +347,8 @@ export default function LandingPage() {
           >
             An interactive AST-based developer portfolio by Rajat Kumar.
           </p>
-          <a
-            href="/tree"
+          <Link
+            href="/t/ast"
             style={{
               padding: "10px 20px",
               border: "1px solid var(--line-2)",
@@ -356,7 +356,7 @@ export default function LandingPage() {
             }}
           >
             Begin Traversal
-          </a>
+          </Link>
         </div>
       </noscript>
     </main>

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { useTraversalState } from "@/hooks/useTraversalState";
+import { ir } from "@/platform/ir";
+import { useShellStore } from "@/state/shell-store";
 import type { ASTNode, ASTPath } from "@/targets/ast/lib/ast-types";
 
 interface NodeShellProps {
@@ -13,11 +14,12 @@ interface NodeShellProps {
 }
 
 export function NodeShell({ node, path, children }: NodeShellProps) {
-  const visitNode = useTraversalState((s) => s.visitNode);
+  const visit = useShellStore((s) => s.visit);
 
   useEffect(() => {
-    visitNode(node.slug, node.label, node.type, node.glowColor);
-  }, [node.slug, node.label, node.type, node.glowColor, visitNode]);
+    const entity = ir.entity(node.slug);
+    if (entity) visit(entity);
+  }, [node.slug, visit]);
 
   return (
     <main
@@ -37,7 +39,7 @@ export function NodeShell({ node, path, children }: NodeShellProps) {
       >
         {/* Back link */}
         <Link
-          href="/tree"
+          href="/t/ast"
           style={{ fontSize: 12, color: "var(--text-faint)", transition: "color 150ms" }}
           className="hover:text-[var(--tv-text)]"
         >

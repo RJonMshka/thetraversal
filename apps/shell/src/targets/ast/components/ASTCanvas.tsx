@@ -7,9 +7,9 @@ import { select } from "d3-selection";
 import "d3-transition"; // Augments d3-selection with .transition()
 import { AnimatePresence } from "framer-motion";
 import { useASTLayout } from "@/targets/ast/hooks/useASTLayout";
-import { useTraversalState } from "@/hooks/useTraversalState";
+import { useAst } from "@/targets/ast/store";
 import { useStackOverflow } from "@/targets/ast/hooks/useStackOverflow";
-import { getAST } from "@/data";
+import { useAstData } from "@/targets/ast/data";
 import { ASTNode } from "@/targets/ast/components/ASTNode";
 import { ASTEdge } from "@/targets/ast/components/ASTEdge";
 import type { TraversalMode, ASTNode as ASTNodeType } from "@/targets/ast/lib/ast-types";
@@ -102,11 +102,8 @@ function findFirstChildSlug(
 // at its screen position. The visitor's zoom level is sacred; we never
 // change it programmatically.
 
-// Stable empty list so pre-hydration renders don't change hook dependencies.
-const NO_EXPANDED_NODES: string[] = [];
-
 export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
-  const ast = getAST();
+  const { ast } = useAstData();
   const nav = useAstNav();
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
@@ -134,19 +131,13 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
     oldY: number;
   } | null>(null);
 
-  // Zustand state — gate persisted values behind hasHydrated to prevent
-  // SSR hydration mismatches. Before hydration, use empty defaults.
-  const hasHydrated = useTraversalState((s) => s.hasHydrated);
-  const rawExpandedNodes = useTraversalState((s) => s.expandedNodes);
-  const visitNode = useTraversalState((s) => s.visitNode);
-  const toggleExpand = useTraversalState((s) => s.toggleExpand);
-  const rawIsVisited = useTraversalState((s) => s.isVisited);
-
-  // Before hydration, render with empty state (matches SSR output)
-  const expandedNodes = hasHydrated ? rawExpandedNodes : NO_EXPANDED_NODES;
-  const isVisited = hasHydrated
-    ? rawIsVisited
-    : () => false;
+  // The target mounts after the shell has hydrated, so stored state is
+  // already in place on the first render.
+  const expandedNodes = useAst((s) => s.expandedNodes);
+  const toggleExpand = useAst((s) => s.toggleExpand);
+  const requestFocus = useAst((s) => s.requestFocus);
+  const visited = useAst((s) => s.visited);
+  const isVisited = useCallback((slug: string) => visited.includes(slug), [visited]);
 
   // Stack overflow easter egg — 7 rapid clicks on root node
   // (Raised from 5 to 7 so casual expand/collapse clicking doesn't trigger it)
@@ -214,10 +205,10 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
       };
 
       toggleExpand(slug);
-      visitNode(slug, node.label, node.type, node.glowColor);
+      requestFocus(slug);
       onNodeSelect?.(slug);
     },
-    [nodes, toggleExpand, visitNode, registerOverflowClick, onNodeSelect]
+    [nodes, toggleExpand, requestFocus, registerOverflowClick, onNodeSelect]
   );
 
   // ── Handle node navigation (double-click or leaf click) ───────────────
@@ -226,13 +217,10 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
   // by double-click or Ctrl+Enter.
   const handleNodeNavigate = useCallback(
     (slug: string) => {
-      const node = nodes.find((n) => n.slug === slug);
-      if (node) {
-        visitNode(slug, node.label, node.type, node.glowColor);
-      }
+      // The shell records the visit when it opens the page.
       nav.open(slug);
     },
-    [nodes, visitNode, nav]
+    [nav]
   );
 
   // Handle node hover
@@ -332,11 +320,9 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
 
 
   // ── Initial zoom-to-fit ──────────────────────────────────────────────
-  // Wait for both: nodes to exist AND Zustand hydration to complete.
-  // This ensures we fit the tree with the correct expanded state from
-  // sessionStorage, not the empty default state from SSR.
+  // Fit once, with the expanded state restored from ctx.storage.
   useEffect(() => {
-    if (hasInitializedRef.current || nodes.length === 0 || !hasHydrated) return;
+    if (hasInitializedRef.current || nodes.length === 0) return;
 
     const svg = svgRef.current;
     const zoomBehavior = zoomRef.current;
@@ -357,7 +343,7 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
     );
 
     hasInitializedRef.current = true;
-  }, [dimensions, nodes.length, hasHydrated]);
+  }, [dimensions, nodes.length]);
 
   // ── Stabilize viewport after expand/collapse ─────────────────────────
   // When a node is expanded/collapsed, D3 recalculates the entire tree
@@ -431,10 +417,7 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
     }
   }
 
-  // Don't render tree content until hydration completes to prevent
-  // flash of incorrect state (e.g. showing Identity node briefly
-  // before sessionStorage expanded state kicks in).
-  const showTree = hasHydrated;
+  const showTree = true;
 
   const handleSvgClick = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {

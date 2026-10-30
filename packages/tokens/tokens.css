@@ -35,3 +35,17 @@
   --r-md:         8px;
   --r-lg:         12px;
 }
+
+/*
+ * Shell chrome geometry (Phase 3 convention). The AST target's header is
+ * exactly this tall, and the shell opens the context window below it.
+ * Values are the header's natural height in the default font.
+ */
+:root {
+  --tv-chrome-top: 86.16px;
+}
+@media (min-width: 64rem) {
+  :root {
+    --tv-chrome-top: 85.5px;
+  }
+}

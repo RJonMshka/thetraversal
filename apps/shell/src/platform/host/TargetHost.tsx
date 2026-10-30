@@ -49,6 +49,9 @@ export function TargetHost({ targetId, inset, onTargetFocus, children }: TargetH
 
   const stageRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef<MountedTarget | null>(null);
+  // Settles when the previous mount has fully unmounted; the next mount
+  // waits for it so two targets never share the shadow root.
+  const settledRef = useRef<Promise<void>>(Promise.resolve());
   const pendingSourceRef = useRef<FocusSource | null>(null);
   const urlFocusRef = useRef<string | null>(null);
   const paramsRef = useRef<Readonly<Record<string, string>>>({});
@@ -76,64 +79,70 @@ export function TargetHost({ targetId, inset, onTargetFocus, children }: TargetH
     urlFocusRef.current = urlFocus;
     visitEntity(urlFocus);
 
-    void mountTarget({
-      id: targetId,
-      root,
-      loader,
-      ir,
-      bus: shellBus,
-      signal: abort.signal,
-      makeContext: (manifest, lifecycle) => {
-        const params = pickParams(searchNow, manifest.urlParams);
-        paramsRef.current = params;
-        const nav = createNavigator({
-          manifest,
-          ir,
-          search: () => new URLSearchParams(window.location.search),
-          replace: (href) => window.history.replaceState(null, "", href),
-          push: (href) => router.push(href),
-          onFocusRequest: (id, source) => {
-            pendingSourceRef.current = source;
-            onTargetFocusRef.current?.(id);
-          },
-          onOpen: (id) => visitEntity(id),
-        });
-        return buildContext({
-          manifest,
-          ir,
-          // With no focus in the URL, resume where the visitor left off.
-          focus: urlFocus ?? visited.at(-1) ?? null,
-          params,
-          visited: useShellStore.getState().visited.map((v) => v.id),
-          inset: insetRef.current,
-          theme: themeSnapshot(),
-          nav,
-          bus: lifecycle.bus,
-          signal: lifecycle.signal,
-          ready: lifecycle.ready,
-        });
-      },
-    }).then(
-      (mounted) => {
-        mountedRef.current = mounted;
-        setDiagnostic(null);
-        setStatus("ready");
-      },
-      (err: unknown) => {
-        if (abort.signal.aborted) return;
-        const error = toTargetError(err, targetId, "T0005");
-        reportTargetError(error);
-        setDiagnostic(diagnose(error));
-        setStatus("error");
-      }
-    );
+    let mounted: MountedTarget | null = null;
+    const run = settledRef.current.then(() => {
+      if (abort.signal.aborted) return;
+      return mountTarget({
+        id: targetId,
+        root,
+        loader,
+        ir,
+        bus: shellBus,
+        signal: abort.signal,
+        makeContext: (manifest, lifecycle) => {
+          const params = pickParams(searchNow, manifest.urlParams);
+          paramsRef.current = params;
+          const nav = createNavigator({
+            manifest,
+            ir,
+            search: () => new URLSearchParams(window.location.search),
+            replace: (href) => window.history.replaceState(null, "", href),
+            push: (href) => router.push(href),
+            onFocusRequest: (id, source) => {
+              pendingSourceRef.current = source;
+              onTargetFocusRef.current?.(id);
+            },
+            onOpen: (id) => visitEntity(id),
+          });
+          return buildContext({
+            manifest,
+            ir,
+            // With no focus in the URL, resume where the visitor left off.
+            focus: urlFocus ?? visited.at(-1) ?? null,
+            params,
+            visited: useShellStore.getState().visited.map((v) => v.id),
+            inset: insetRef.current,
+            theme: themeSnapshot(),
+            nav,
+            bus: lifecycle.bus,
+            signal: lifecycle.signal,
+            ready: lifecycle.ready,
+          });
+        },
+      }).then(
+        (result) => {
+          mounted = result;
+          mountedRef.current = result;
+          setDiagnostic(null);
+          setStatus("ready");
+        },
+        (err: unknown) => {
+          if (abort.signal.aborted) return;
+          const error = toTargetError(err, targetId, "T0005");
+          reportTargetError(error);
+          setDiagnostic(diagnose(error));
+          setStatus("error");
+        }
+      );
+    });
 
     return () => {
       abort.abort();
-      const mounted = mountedRef.current;
       mountedRef.current = null;
       setStatus("loading");
-      void mounted?.unmount();
+      // Unmount after React finishes this commit (a React target cannot
+      // unmount its root mid-render), then let the next mount proceed.
+      settledRef.current = run.then(() => mounted?.unmount());
     };
     // `router` is stable; the URL is read once per mount on purpose.
     // eslint-disable-next-line react-hooks/exhaustive-deps

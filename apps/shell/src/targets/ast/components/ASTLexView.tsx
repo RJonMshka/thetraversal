@@ -2,7 +2,7 @@
 
 import { useAstNav } from "@/targets/ast/nav";
 import { motion } from "framer-motion";
-import { getFlatNodes } from "@/data";
+import { useAstData } from "@/targets/ast/data";
 import type { ASTNodeType } from "@/targets/ast/lib/ast-types";
 
 // ── Token role → display style ─────────────────────────────────────────
@@ -61,7 +61,7 @@ function displayText(type: ASTNodeType, label: string): string {
 
 export function ASTLexView() {
   const nav = useAstNav();
-  const nodes = getFlatNodes();
+  const { flat: nodes } = useAstData();
 
   return (
     <motion.div

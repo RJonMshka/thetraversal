@@ -1,26 +1,46 @@
-import type { ContextWindowEntry, ASTNodeType } from "@/targets/ast/lib/ast-types";
-import { getSlugDepthMap } from "@/data";
+import type { Kind } from "@tv/ir";
+import { ir } from "@/platform/ir";
+import type { VisitEntry } from "@/state/shell-store";
 
 // ── Traversal Summary Generator ────────────────────────────────────────
-// Generates a natural-language summary based on which node types the
-// visitor has explored. Static logic — fast and predictable.
+// A natural-language summary of which kinds of entity the visitor has
+// explored. Static logic — fast and predictable.
 
-// Map of node type → discovered-aspect phrase generator.
-// Returns null when there's nothing interesting to say for this type.
-const TYPE_PHRASE_MAP: Partial<
-  Record<ASTNodeType, (labels: string[]) => string | null>
-> = {
-  FunctionDeclaration: (labels) => `a builder of ${joinLabels(labels)}`,
-  ObjectExpression: (labels) => `fluent in ${joinLabels(labels)}`,
-  CallExpression: (labels) =>
-    `a thinker who contemplates ${joinLabels(labels)}`,
-  StringLiteral: (labels) =>
-    labels.length > 0 ? `versed in ${joinLabels(labels)}` : null,
-  ArrayExpression: (labels) =>
-    labels.length > 0 ? `a journeyman through ${joinLabels(labels)}` : null,
-  ProgramNode: () => `an identity unfolding`,
-  ExportDeclaration: () => `open to connection`,
+type Facet = "builder" | "fluent" | "thinker" | "identity" | "connect" | "journey" | "versed";
+
+// Containers and the root are not interesting for the phrase.
+const FACET: Record<Kind, Facet | null> = {
+  root: null,
+  identity: "identity",
+  resume: null,
+  education: null,
+  degree: "versed",
+  section: null,
+  project: "builder",
+  paper: "thinker",
+  essays: null,
+  essay: "thinker",
+  "skill-cluster": "fluent",
+  skill: "versed",
+  timeline: null,
+  roles: "journey",
+  role: "versed",
+  connect: "connect",
+  channel: "versed",
 };
+
+const PHRASE: Record<Facet, (labels: string[]) => string | null> = {
+  builder: (labels) => `a builder of ${joinLabels(labels)}`,
+  fluent: (labels) => `fluent in ${joinLabels(labels)}`,
+  thinker: (labels) => `a thinker who contemplates ${joinLabels(labels)}`,
+  identity: () => `an identity unfolding`,
+  connect: () => `open to connection`,
+  journey: (labels) => (labels.length > 0 ? `a journeyman through ${joinLabels(labels)}` : null),
+  versed: (labels) => (labels.length > 0 ? `versed in ${joinLabels(labels)}` : null),
+};
+
+// Most interesting first.
+const ORDER: Facet[] = ["builder", "fluent", "thinker", "identity", "connect", "journey", "versed"];
 
 function joinLabels(labels: string[]): string {
   if (labels.length === 0) return "";
@@ -33,72 +53,37 @@ function joinLabels(labels: string[]): string {
 
 // ── generateTraversalSummary ───────────────────────────────────────────
 // Returns a sentence describing the visitor's traversal.
-// Only fires when >= 8 nodes have been visited.
+// Only fires when >= 8 entities have been visited.
 
-export function generateTraversalSummary(
-  entries: ContextWindowEntry[]
-): string | null {
+export function generateTraversalSummary(entries: VisitEntry[]): string | null {
   if (entries.length < 8) return null;
 
-  // Group visited nodes by type, collecting labels per type
-  const byType = new Map<ASTNodeType, string[]>();
-
+  const byFacet = new Map<Facet, string[]>();
   for (const entry of entries) {
-    // Skip container nodes and root — they aren't interesting for the phrase
-    if (
-      entry.type === "RootNode" ||
-      entry.type === "BlockStatement" ||
-      entry.type === "ExpressionStatement" ||
-      entry.type === "VariableDeclaration" ||
-      entry.type === "ImportDeclaration" ||
-      entry.type === "TypeAnnotation"
-    ) {
-      continue;
-    }
-
-    const existing = byType.get(entry.type) ?? [];
-    existing.push(entry.label);
-    byType.set(entry.type, existing);
+    const facet = FACET[entry.kind];
+    if (!facet) continue;
+    byFacet.set(facet, [...(byFacet.get(facet) ?? []), entry.label]);
   }
 
   const phrases: string[] = [];
-
-  // Build phrases in priority order (most interesting first)
-  const orderedTypes: ASTNodeType[] = [
-    "FunctionDeclaration",
-    "ObjectExpression",
-    "CallExpression",
-    "ProgramNode",
-    "ExportDeclaration",
-    "ArrayExpression",
-    "StringLiteral",
-  ];
-
-  for (const type of orderedTypes) {
-    const labels = byType.get(type);
+  for (const facet of ORDER) {
+    const labels = byFacet.get(facet);
     if (!labels || labels.length === 0) continue;
-    const phraseBuilder = TYPE_PHRASE_MAP[type];
-    if (!phraseBuilder) continue;
-    const phrase = phraseBuilder(labels);
+    const phrase = PHRASE[facet](labels);
     if (phrase) phrases.push(phrase);
   }
 
   if (phrases.length === 0) return null;
-
   return `You've explored Rajat as: ${phrases.join("; ")}.`;
 }
 
 // ── getTraversalDepth ──────────────────────────────────────────────────
-// Returns the maximum depth reached by the visitor, using actual AST
-// depth data rather than heuristics.
+// The deepest entity the visitor reached (root is depth 0).
 
-export function getTraversalDepth(entries: ContextWindowEntry[]): number {
+export function getTraversalDepth(entries: VisitEntry[]): number {
   let maxDepth = 0;
-
   for (const entry of entries) {
-    const depth = getSlugDepthMap().get(entry.slug) ?? 0;
-    maxDepth = Math.max(maxDepth, depth);
+    maxDepth = Math.max(maxDepth, ir.path(entry.id).length - 1);
   }
-
   return maxDepth;
 }

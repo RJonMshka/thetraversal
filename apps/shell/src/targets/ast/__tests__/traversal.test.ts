@@ -8,11 +8,13 @@ import {
   countNodes,
   getMaxDepth,
 } from "@/targets/ast/lib/traversal";
-import { getAST } from "@/data";
+import { Graph, createIRClient } from "@tv/ir";
+import graph from "@tv/ir/dist/graph.json";
 import type { ASTNode } from "@/targets/ast/lib/ast-types";
+import { toAST } from "@/targets/ast/projection";
 
-// Use the data access layer instead of direct import
-const PORTFOLIO_AST = getAST();
+// The tree the AST target renders: the projection of the shipped IR.
+const PORTFOLIO_AST = toAST(createIRClient(Graph.parse(graph), { bodyUrl: () => "" }));
 
 // ── findNode ───────────────────────────────────────────────────────────
 

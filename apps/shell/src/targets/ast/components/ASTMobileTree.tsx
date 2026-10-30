@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NodeLink } from "@/targets/ast/nav";
-import { useTraversalState } from "@/hooks/useTraversalState";
+import { useAst } from "@/targets/ast/store";
 import { getGlowClasses } from "@/targets/ast/lib/glow";
 import { cn } from "@/lib/utils";
 import type { ASTNode } from "@/targets/ast/lib/ast-types";
@@ -67,21 +67,17 @@ function MobileTreeNode({ node, mode, depth }: MobileTreeNodeProps) {
   const glow = getGlowClasses(node.glowColor);
 
   // Zustand selectors
-  const isExpanded = useTraversalState((s) => s.isExpanded(node.slug));
-  const isVisited = useTraversalState((s) => s.isVisited(node.slug));
-  const toggleExpand = useTraversalState((s) => s.toggleExpand);
-  const visitNode = useTraversalState((s) => s.visitNode);
+  const isExpanded = useAst((s) => s.expandedNodes.includes(node.slug));
+  const isVisited = useAst((s) => s.visited.includes(node.slug));
+  const toggleExpand = useAst((s) => s.toggleExpand);
+  const requestFocus = useAst((s) => s.requestFocus);
 
   const typeAbbrev = TYPE_ABBREV[node.type] ?? node.type;
 
   const handleExpand = useCallback(() => {
     toggleExpand(node.slug);
-    visitNode(node.slug, node.label, node.type, node.glowColor);
-  }, [toggleExpand, visitNode, node.slug, node.label, node.type, node.glowColor]);
-
-  const handleVisit = useCallback(() => {
-    visitNode(node.slug, node.label, node.type, node.glowColor);
-  }, [visitNode, node.slug, node.label, node.type, node.glowColor]);
+    requestFocus(node.slug);
+  }, [toggleExpand, requestFocus, node.slug]);
 
   // Content to show based on mode
   const showSummary = mode !== "lex" && isExpanded && node.content?.summary;
@@ -157,7 +153,6 @@ function MobileTreeNode({ node, mode, depth }: MobileTreeNodeProps) {
         {/* Label — links to node detail page */}
         <NodeLink
           id={node.slug}
-          onClick={handleVisit}
           className={cn(
             "flex-1 min-w-0 font-mono text-sm truncate transition-colors duration-150",
             glow.text,
@@ -258,18 +253,6 @@ function MobileTreeNode({ node, mode, depth }: MobileTreeNodeProps) {
 // ── Main Component ─────────────────────────────────────────────────────
 
 export function ASTMobileTree({ ast, mode }: ASTMobileTreeProps) {
-  const hasHydrated = useTraversalState((s) => s.hasHydrated);
-
-  // Don't render persisted expanded state until hydration completes
-  // to avoid SSR/client mismatch.
-  if (!hasHydrated) {
-    return (
-      <div className="flex items-center justify-center h-32 text-ctp-overlay1 font-mono text-sm animate-pulse">
-        loading tree...
-      </div>
-    );
-  }
-
   return (
     <nav
       className="py-3 px-2 overflow-y-auto h-full"

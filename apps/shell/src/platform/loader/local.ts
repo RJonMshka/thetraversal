@@ -11,7 +11,12 @@ interface LocalTarget {
   module: () => Promise<{ default: TargetModule }>;
 }
 
-const LOCAL: Partial<Record<TargetId, LocalTarget>> = {};
+const LOCAL: Partial<Record<TargetId, LocalTarget>> = {
+  ast: {
+    manifest: () => import("@/targets/ast/manifest").then((m) => m.manifest),
+    module: () => import("@/targets/ast/mount"),
+  },
+};
 
 function abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
   if (signal.aborted) return Promise.reject(signal.reason);

@@ -17,7 +17,7 @@ export default function NotFound() {
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
-            href="/tree"
+            href="/t/ast"
             className="inline-flex items-center gap-2 px-4 py-2 border border-ctp-surface1 rounded text-ctp-green hover:border-ctp-green transition-colors text-sm"
           >
             <span className="text-ctp-overlay0">$</span>

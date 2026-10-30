@@ -4,13 +4,10 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { useAstNav } from "@/targets/ast/nav";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useTraversalState } from "@/hooks/useTraversalState";
+import { useAst } from "@/targets/ast/store";
 import { useIsDesktop } from "@/hooks/useMediaQuery";
-import { getTokens } from "@/data";
+import { useAstData } from "@/targets/ast/data";
 import type { TokenStreamEntry } from "@/targets/ast/lib/ast-types";
-
-// Lazy singleton — computed once on first access, cached for the process.
-const TOKENS = getTokens();
 
 // ── Props ──────────────────────────────────────────────────────────────
 
@@ -354,8 +351,8 @@ export function TokenStream({ activeSlug, visible = true }: TokenStreamProps) {
   const nav = useAstNav();
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeTokenRef = useRef<HTMLDivElement>(null);
-  const isVisited = useTraversalState((s) => s.isVisited);
-  const hasHydrated = useTraversalState((s) => s.hasHydrated);
+  const { tokens: TOKENS } = useAstData();
+  const visitedSlugs = useAst((s) => s.visited);
   const isDesktop = useIsDesktop();
 
   // Find active token index for drift stream
@@ -399,7 +396,7 @@ export function TokenStream({ activeSlug, visible = true }: TokenStreamProps) {
   // Shared token rendering
   const tokenElements = TOKENS.map((token, idx) => {
     const isActive = !!(token.slug && token.slug === activeSlug);
-    const visited = !!(hasHydrated && token.slug && isVisited(token.slug));
+    const visited = !!(token.slug && visitedSlugs.includes(token.slug));
 
     return (
       <div

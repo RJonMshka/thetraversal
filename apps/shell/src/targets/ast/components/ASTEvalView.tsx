@@ -2,7 +2,7 @@
 
 import { NodeLink } from "@/targets/ast/nav";
 import { motion } from "framer-motion";
-import { getAST } from "@/data";
+import { useAstData } from "@/targets/ast/data";
 import type { ASTNodeType } from "@/targets/ast/lib/ast-types";
 
 // ── Section glyphs ─────────────────────────────────────────────────────
@@ -74,7 +74,7 @@ function SectionGlyph({ type }: { type: ASTNodeType }) {
 // ── Component ──────────────────────────────────────────────────────────
 
 export function ASTEvalView() {
-  const ast = getAST();
+  const { ast } = useAstData();
   const children = ast.children ?? [];
 
   return (

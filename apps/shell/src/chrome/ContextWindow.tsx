@@ -4,14 +4,11 @@ import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { getGlowClasses } from "@/targets/ast/lib/glow";
-import { useTraversalState } from "@/hooks/useTraversalState";
-import { getNodeCount } from "@/data";
-import {
-  generateTraversalSummary,
-  getTraversalDepth,
-} from "@/lib/traversal-summary";
-import type { ContextWindowEntry, ASTNodeType } from "@/targets/ast/lib/ast-types";
+import type { Kind } from "@tv/ir";
+import { accentClasses, accentOf } from "@/lib/kind-accent";
+import { generateTraversalSummary, getTraversalDepth } from "@/lib/traversal-summary";
+import { ir } from "@/platform/ir";
+import { useShellStore, type VisitEntry } from "@/state/shell-store";
 
 // ── Props ──────────────────────────────────────────────────────────────
 
@@ -24,27 +21,32 @@ interface ContextWindowProps {
   variant?: "sidebar" | "overlay";
 }
 
-// ── Node type icons ────────────────────────────────────────────────────
-// Short monospace symbols conveying AST node type at a glance.
+// ── Kind icons ─────────────────────────────────────────────────────────
+// Short monospace symbols conveying an entity's kind at a glance.
 
-const TYPE_ICON: Partial<Record<ASTNodeType, string>> = {
-  RootNode: "◆",
-  ProgramNode: "◈",
-  BlockStatement: "{ }",
-  FunctionDeclaration: "fn()",
-  ObjectExpression: "{ }",
-  ExpressionStatement: "()",
-  CallExpression: "()",
-  VariableDeclaration: "var",
-  ArrayExpression: "[ ]",
-  ExportDeclaration: "↗",
-  StringLiteral: '""',
-  ImportDeclaration: "↙",
-  TypeAnnotation: ":",
+const KIND_ICON: Record<Kind, string> = {
+  root: "◆",
+  identity: "◈",
+  resume: "↙",
+  education: "↙",
+  degree: '""',
+  section: "{ }",
+  project: "fn()",
+  paper: "()",
+  essays: "()",
+  essay: "()",
+  "skill-cluster": "{ }",
+  skill: '""',
+  timeline: "var",
+  roles: "[ ]",
+  role: '""',
+  connect: "↗",
+  channel: '""',
 };
 
-function getTypeIcon(type: ASTNodeType): string {
-  return TYPE_ICON[type] ?? "·";
+function accentFor(entry: VisitEntry) {
+  const entity = ir.entity(entry.id);
+  return accentClasses(entity ? accentOf(entity, ir) : "text");
 }
 
 // ── Time formatter ─────────────────────────────────────────────────────
@@ -63,20 +65,20 @@ function formatTimestamp(ts: number): string {
 // ── ContextEntry component ─────────────────────────────────────────────
 
 interface ContextEntryProps {
-  entry: ContextWindowEntry;
+  entry: VisitEntry;
   index: number;
   onClick: (slug: string) => void;
 }
 
 function ContextEntry({ entry, index, onClick }: ContextEntryProps) {
-  const glow = getGlowClasses(entry.glowColor);
+  const glow = accentFor(entry);
 
   return (
     <motion.button
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.2, delay: Math.min(index * 0.03, 0.3) }}
-      onClick={() => onClick(entry.slug)}
+      onClick={() => onClick(entry.id)}
       className="w-full flex items-start gap-2 px-3 py-2 rounded text-left transition-colors duration-150 group hover:bg-[var(--ink)]"
     >
       {/* Index */}
@@ -88,7 +90,7 @@ function ContextEntry({ entry, index, onClick }: ContextEntryProps) {
       <span
         className={cn("text-[10px] font-mono shrink-0 mt-0.5 w-8 opacity-70", glow.text)}
       >
-        {getTypeIcon(entry.type)}
+        {KIND_ICON[entry.kind] ?? "·"}
       </span>
 
       {/* Label + timestamp */}
@@ -111,13 +113,11 @@ function ContextEntry({ entry, index, onClick }: ContextEntryProps) {
 
 // ── Share URL helper ───────────────────────────────────────────────────
 
-function buildShareUrl(visitedSlugs: string[]): string {
-  const params = new URLSearchParams({
-    traversal: visitedSlugs.join(","),
-  });
-  const base =
-    typeof window !== "undefined" ? window.location.origin : "";
-  return `${base}/tree?${params.toString()}`;
+function buildShareUrl(visitedIds: string[]): string {
+  const params = new URLSearchParams({ traversal: visitedIds.join(",") });
+  const { origin, pathname } = window.location;
+  const target = pathname.startsWith("/t/") ? pathname : "/t/ast";
+  return `${origin}${target}?${params.toString()}`;
 }
 
 // ── ContextWindow ──────────────────────────────────────────────────────
@@ -128,10 +128,10 @@ export function ContextWindow({
   variant = "sidebar",
 }: ContextWindowProps) {
   const router = useRouter();
-  const contextWindow = useTraversalState((s) => s.contextWindow);
-  const visitedNodes = useTraversalState((s) => s.visitedNodes);
-  const resetTraversal = useTraversalState((s) => s.resetTraversal);
-  const totalNodes = useMemo(() => getNodeCount(), []);
+  const contextWindow = useShellStore((s) => s.visited);
+  const visitedNodes = useMemo(() => contextWindow.map((v) => v.id), [contextWindow]);
+  const resetTraversal = useShellStore((s) => s.reset);
+  const totalNodes = Object.keys(ir.graph.entities).length;
 
   const summary = useMemo(
     () => generateTraversalSummary(contextWindow),
@@ -254,7 +254,7 @@ export function ContextWindow({
                 <div className="space-y-0.5 px-2">
                   {contextWindow.map((entry, i) => (
                     <ContextEntry
-                      key={`${entry.slug}-${entry.visitedAt}`}
+                      key={`${entry.id}-${entry.visitedAt}`}
                       entry={entry}
                       index={i}
                       onClick={handleNodeClick}

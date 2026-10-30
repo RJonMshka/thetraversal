@@ -2,7 +2,7 @@
 
 import { NodeLink } from "@/targets/ast/nav";
 import { motion, AnimatePresence } from "framer-motion";
-import { findNodeBySlug } from "@/data";
+import { useAstData } from "@/targets/ast/data";
 
 // ── Glow resolution ────────────────────────────────────────────────────
 // Maps the AST node's glowColor CSS-var name → hex for inline styling.
@@ -39,7 +39,8 @@ interface NodeInspectorProps {
 // ── Component ──────────────────────────────────────────────────────────
 
 export function NodeInspector({ slug, onClose }: NodeInspectorProps) {
-  const result = slug ? findNodeBySlug(slug) : null;
+  const { find } = useAstData();
+  const result = slug ? find(slug) : null;
   const node = result?.node ?? null;
   const path = result?.path ?? [];
 
