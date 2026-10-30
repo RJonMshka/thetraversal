@@ -293,7 +293,17 @@ Branch: `platform/phase-4`. The AST is its own workspace, `targets/ast` (`@tv/ta
 | `/t/ast` | 222.2 | 260.7 | 265.8 |
 | `/node/*` | 203.0 | 241.6 | 247.5 |
 
-The 150 KB exit criterion is not reachable by moving targets out. Of `/t/ast`'s 222 KB, React DOM is 69 KB and the Next runtime about 80 KB, so the framework alone is ~150 KB. Framer Motion adds 41 KB to every page because `EasterEggOverlays` (in the layout) and `ContextWindow` import it, and the shell's own code plus the inlined IR is about 30 KB. Getting under 150 needs a separate decision: lazy-load Framer in the shell, and either raise the budget to fit Next 16 + React 19 or move off client-side App Router hydration.
+The 150 KB exit criterion is not reachable by moving targets out. Of `/t/ast`'s 222 KB, React DOM is 69 KB and the Next runtime about 80 KB, so the framework alone is ~150 KB. Framer Motion added 41 KB to every page because `EasterEggOverlays` (in the layout) and `ContextWindow` imported it, and the shell's own code plus the inlined IR is about 30 KB.
+
+Framer Motion is now out of first-load JS. The three shell components that use it render nothing until the visitor acts (context window opened, landing prompt run, Konami code or 30 s idle), so they load through `preloadable()` (`src/lib/preloadable.ts`): `React.lazy` plus a preload when the browser is idle, so first use does not wait.
+
+| Route | Before | After lazy Framer |
+|---|---:|---:|
+| `/` | 224.3 | **175.0** |
+| `/t/ast` | 222.2 | **180.0** |
+| `/node/*` | 203.0 | **163.0** |
+
+What is left is mostly the framework (~150 KB). Meeting 150 KB still needs a decision: a budget defined relative to the framework, or moving off client-side App Router hydration.
 
 ### AST target
 
@@ -314,6 +324,9 @@ Lighthouse 12.8.2, same setup as Phase 2, against the shell on `:3100` and the A
 | `/` | 89–92 | 95 | 93 | 100 | 3.4–3.8 s | 60 ms | 0 (one run 0.026) |
 | `/node/reachble` | 91 | 95 | 93 | 100 | 3.5 s | 30 ms | 0 |
 | `/t/ast` | 94 | 95 | 93 | 100 | 3.0 s | 60 ms | 0 |
+| `/`, Framer lazy | 94 | 95 | 93 | 100 | 3.1 s | 40 ms | 0 |
+| `/node/reachble`, Framer lazy | 94 | 95 | 93 | 100 | 3.1 s | 30 ms | 0 |
+| `/t/ast`, Framer lazy | 96 | 95 | 93 | 100 | 2.7 s | 70 ms | 0 |
 
 Best practices dropped from 96 to 93 on every page because of the report-only CSP: Lighthouse's `inspector-issues` audit counts the "Content security policy" issues Chrome raises for Next's inline scripts. It comes back once the policy covers those scripts (LLD-04 §6). `/t/ast` is within Phase 3's range despite the larger target.
 
@@ -333,4 +346,4 @@ Best practices dropped from 96 to 93 on every page because of the report-only CS
 
 - Vercel projects, `TARGET_AST_ORIGIN`, and the preview failure drill.
 - The first CI run on GitHub.
-- Shell first-load under 150 KB (see above).
+- Shell first-load under 150 KB (see above; 163–180 KB after lazy Framer).

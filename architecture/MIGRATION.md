@@ -142,7 +142,7 @@ Steps
 Exit criteria
 - A commit touching only `targets/ast` deploys only `thetraversal-t-ast`, and production picks it up without a shell deploy.
 - Conformance passes. Parity snapshots pass on `/t/ast`.
-- Shell first-load JS drops below 150 KB gzipped; AST target within its budget. (Not reachable in this phase: React DOM and the Next runtime alone are ~150 KB. See baseline.md "Phase 4".)
+- Shell first-load JS drops below 150 KB gzipped; AST target within its budget. (Not reachable in this phase: React DOM and the Next runtime alone are ~150 KB. Lazy-loading Framer Motion brought routes to 163–180 KB. See baseline.md "Phase 4".)
 - Failure drill passes.
 
 Prompt for Claude Code

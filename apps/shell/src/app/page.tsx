@@ -1,12 +1,16 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { Suspense, useState, useCallback } from "react";
 import Link from "next/link";
 import { Cursor } from "@/components/landing/Cursor";
-import { ParseAnimation } from "@/components/landing/ParseAnimation";
+import { preloadable, usePreloadWhenIdle } from "@/lib/preloadable";
 import { irStats } from "@/platform/ir";
 
 const STATS = irStats();
+
+// Shown only after the visitor runs the prompt; its code (and Framer
+// Motion) loads when the page is idle, so it is not first-load JS.
+const Parse = preloadable(() => import("@/components/landing/ParseAnimation").then((m) => m.ParseAnimation));
 
 const MODES = [
   { label: "— lex",   href: "/t/ast?mode=lex"   },
@@ -155,6 +159,7 @@ function TreeSneakPeek() {
 
 export default function LandingPage() {
   const [showAnimation, setShowAnimation] = useState(false);
+  usePreloadWhenIdle(Parse.preload);
 
   const handleNavigate = useCallback(() => {
     setShowAnimation(true);
@@ -167,7 +172,9 @@ export default function LandingPage() {
         className="flex flex-col items-center justify-center min-h-screen"
         style={{ background: "var(--ink)" }}
       >
-        <ParseAnimation isActive />
+        <Suspense fallback={null}>
+          <Parse.Component isActive />
+        </Suspense>
       </main>
     );
   }

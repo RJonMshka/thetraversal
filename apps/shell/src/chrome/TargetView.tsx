@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { ChromeInset } from "@tv/contract";
@@ -10,7 +10,7 @@ import { ir } from "@/platform/ir";
 import { TargetHost } from "@/platform/host/TargetHost";
 import type { TargetId } from "@/platform/registry";
 import { useShellStore } from "@/state/shell-store";
-import { ContextWindow } from "@/chrome/ContextWindow";
+import { preloadable, usePreloadWhenIdle } from "@/lib/preloadable";
 import { TargetSwitcher } from "@/chrome/TargetSwitcher";
 
 // ── /t/[target] frame ──────────────────────────────────────────────────
@@ -20,6 +20,11 @@ import { TargetSwitcher } from "@/chrome/TargetSwitcher";
 // target's header, whose height is the --tv-chrome-top token.
 
 const SIDEBAR_WIDTH = 288; // w-72
+
+// Renders nothing until opened; its code (and Framer Motion) loads when
+// the page is idle, so it is not first-load JS.
+const ContextWindowLazy = preloadable(() => import("@/chrome/ContextWindow").then((m) => m.ContextWindow));
+const ContextWindow = ContextWindowLazy.Component;
 const NO_INSET: ChromeInset = { top: 0, right: 0, bottom: 0, left: 0 };
 
 export function TargetView({ targetId, children }: { targetId: TargetId; children: ReactNode }) {
@@ -28,6 +33,10 @@ export function TargetView({ targetId, children }: { targetId: TargetId; childre
   const hasHydrated = useShellStore((s) => s.hasHydrated);
   const visitedCount = useShellStore((s) => s.visited.length);
   const [contextOpen, setContextOpen] = useState(false);
+  // Once opened, the panel stays mounted so its exit animation can run.
+  const [contextSeen, setContextSeen] = useState(false);
+  if (contextOpen && !contextSeen) setContextSeen(true);
+  usePreloadWhenIdle(ContextWindowLazy.preload);
 
   const toggleContext = useCallback(() => setContextOpen((open) => !open), []);
   const closeContext = useCallback(() => setContextOpen(false), []);
@@ -96,12 +105,20 @@ export function TargetView({ targetId, children }: { targetId: TargetId; childre
             contextOpen ? "pointer-events-auto" : "pointer-events-none"
           )}
         >
-          <ContextWindow isOpen={contextOpen} onClose={closeContext} variant="sidebar" />
+          {contextSeen && (
+            <Suspense fallback={null}>
+              <ContextWindow isOpen={contextOpen} onClose={closeContext} variant="sidebar" />
+            </Suspense>
+          )}
         </div>
         <div
           className={cn("lg:hidden absolute inset-0 z-30", contextOpen ? "pointer-events-auto" : "pointer-events-none")}
         >
-          <ContextWindow isOpen={contextOpen} onClose={closeContext} variant="overlay" />
+          {contextSeen && (
+            <Suspense fallback={null}>
+              <ContextWindow isOpen={contextOpen} onClose={closeContext} variant="overlay" />
+            </Suspense>
+          )}
         </div>
       </div>
     </main>
