@@ -1,13 +1,11 @@
-"use client";
-
 import { useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { NodeLink } from "@/targets/ast/nav";
-import { useAst } from "@/targets/ast/store";
-import { getGlowClasses } from "@/targets/ast/lib/glow";
-import { cn } from "@/targets/ast/lib/cn";
-import type { ASTNode } from "@/targets/ast/lib/ast-types";
-import type { TraversalMode } from "@/targets/ast/lib/ast-types";
+import { NodeLink } from "@/nav";
+import { useAst } from "@/store";
+import { getGlowClasses } from "@/lib/glow";
+import { cn } from "@/lib/cn";
+import type { ASTNode } from "@/lib/ast-types";
+import type { TraversalMode } from "@/lib/ast-types";
 
 // ── Props ──────────────────────────────────────────────────────────────
 

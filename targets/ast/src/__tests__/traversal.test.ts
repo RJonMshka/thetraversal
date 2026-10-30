@@ -7,11 +7,11 @@ import {
   filterByMode,
   countNodes,
   getMaxDepth,
-} from "@/targets/ast/lib/traversal";
+} from "@/lib/traversal";
 import { Graph, createIRClient } from "@tv/ir";
 import graph from "@tv/ir/dist/graph.json";
-import type { ASTNode } from "@/targets/ast/lib/ast-types";
-import { toAST } from "@/targets/ast/projection";
+import type { ASTNode } from "@/lib/ast-types";
+import { toAST } from "@/projection";
 
 // The tree the AST target renders: the projection of the shipped IR.
 const PORTFOLIO_AST = toAST(createIRClient(Graph.parse(graph), { bodyUrl: () => "" }));

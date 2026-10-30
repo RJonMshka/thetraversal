@@ -1,10 +1,8 @@
-"use client";
-
 import { motion, AnimatePresence } from "framer-motion";
-import { glowTint, glowValue } from "@/targets/ast/lib/glow";
-import type { LayoutNode } from "@/targets/ast/hooks/useASTLayout";
-import type { TraversalMode } from "@/targets/ast/lib/ast-types";
-import { NODE_WIDTH } from "@/targets/ast/lib/node-dimensions";
+import { glowTint, glowValue } from "@/lib/glow";
+import type { LayoutNode } from "@/hooks/useASTLayout";
+import type { TraversalMode } from "@/lib/ast-types";
+import { NODE_WIDTH } from "@/lib/node-dimensions";
 
 // ── Props ──────────────────────────────────────────────────────────────
 
@@ -47,12 +45,10 @@ export function NodeContentPopover({
   // Compute screen-space position of the node center
   // tree-space → screen-space: screenX = treeX * k + tx
   let screenX = 0;
-  let screenY = 0;
   let glowColor = "--ctp-text";
 
   if (node && svgRect) {
     screenX = node.x * transform.k + transform.x;
-    screenY = node.y * transform.k + transform.y;
     glowColor = node.glowColor;
   }
 
@@ -96,6 +92,7 @@ export function NodeContentPopover({
           style={{ overflow: "visible", pointerEvents: "none" }}
         >
           {/* `any`: React's div props don't include xmlns, which an HTML child of an SVG foreignObject needs. */}
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <div {...({ xmlns: "http://www.w3.org/1999/xhtml" } as any)}>
             <motion.div
               initial={{ opacity: 0, scale: 0.92, y: -4 }}

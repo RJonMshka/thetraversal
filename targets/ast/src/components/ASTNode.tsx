@@ -1,14 +1,12 @@
-"use client";
-
 import { useCallback } from "react";
 import { motion } from "framer-motion";
-import { glowValue } from "@/targets/ast/lib/glow";
-import type { LayoutNode } from "@/targets/ast/hooks/useASTLayout";
-import type { TraversalMode } from "@/targets/ast/lib/ast-types";
+import { glowValue } from "@/lib/glow";
+import type { LayoutNode } from "@/hooks/useASTLayout";
+import type { TraversalMode } from "@/lib/ast-types";
 import {
   NODE_WIDTH,
   HEADER_SECTION_HEIGHT,
-} from "@/targets/ast/lib/node-dimensions";
+} from "@/lib/node-dimensions";
 
 // ── Props ──────────────────────────────────────────────────────────────
 

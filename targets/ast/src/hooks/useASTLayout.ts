@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { hierarchy, tree as d3Tree } from "d3-hierarchy";
-import type { ASTNode, TraversalMode } from "@/targets/ast/lib/ast-types";
-import { NODE_WIDTH, getNodeHeight } from "@/targets/ast/lib/node-dimensions";
+import type { ASTNode, TraversalMode } from "@/lib/ast-types";
+import { NODE_WIDTH, getNodeHeight } from "@/lib/node-dimensions";
 
 // ── Layout Types ──────────────────────────────────────────────────────
 

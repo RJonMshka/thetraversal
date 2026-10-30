@@ -1,9 +1,7 @@
-"use client";
-
-import { useAstNav } from "@/targets/ast/nav";
+import { useAstNav } from "@/nav";
 import { motion } from "framer-motion";
-import { useAstData } from "@/targets/ast/data";
-import type { ASTNodeType } from "@/targets/ast/lib/ast-types";
+import { useAstData } from "@/data";
+import type { ASTNodeType } from "@/lib/ast-types";
 
 // ── Token role → display style ─────────────────────────────────────────
 

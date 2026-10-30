@@ -1,10 +1,10 @@
 import type { TargetManifest, TargetModule } from "@tv/contract";
 import type { TargetId } from "@/platform/registry";
-import { localLoader } from "@/platform/loader/local";
+import { mfLoader } from "@/platform/loader/mf";
 
 // ── Target loader (LLD-03 §4) ──────────────────────────────────────────
-// Phase 3 loads every target from the shell bundle. Phase 4 adds the
-// Module Federation strategy behind the same interface.
+// Every target is a separate deployment loaded through Module Federation
+// (Phase 4). The interface leaves room for a plain import() strategy.
 
 export interface TargetLoader {
   manifest(id: TargetId, signal: AbortSignal): Promise<TargetManifest>;
@@ -12,4 +12,4 @@ export interface TargetLoader {
   prefetch(m: TargetManifest): void;
 }
 
-export const loader: TargetLoader = localLoader;
+export const loader: TargetLoader = mfLoader;

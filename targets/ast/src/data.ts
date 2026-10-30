@@ -1,10 +1,8 @@
-"use client";
-
 import { createContext, useContext } from "react";
 import type { IRClient } from "@tv/ir";
-import type { ASTNode, ASTNodeFlat, FindNodeResult, TokenStreamEntry } from "@/targets/ast/lib/ast-types";
-import { findNode, flatten, getTokenStream } from "@/targets/ast/lib/traversal";
-import { toAST } from "@/targets/ast/projection";
+import type { ASTNode, ASTNodeFlat, FindNodeResult, TokenStreamEntry } from "@/lib/ast-types";
+import { findNode, flatten, getTokenStream } from "@/lib/traversal";
+import { toAST } from "@/projection";
 
 // ── AST data ───────────────────────────────────────────────────────────
 // The tree the AST renders, projected from ctx.ir once per mount.

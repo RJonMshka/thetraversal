@@ -1,9 +1,7 @@
-"use client";
-
-import { NodeLink } from "@/targets/ast/nav";
+import { NodeLink } from "@/nav";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAstData } from "@/targets/ast/data";
-import { glowValue } from "@/targets/ast/lib/glow";
+import { useAstData } from "@/data";
+import { glowValue } from "@/lib/glow";
 
 // ── Props ──────────────────────────────────────────────────────────────
 

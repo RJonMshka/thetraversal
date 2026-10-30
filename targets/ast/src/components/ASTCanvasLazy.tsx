@@ -1,10 +1,8 @@
-"use client";
-
 import { lazy, Suspense, useSyncExternalStore } from "react";
-import type { TraversalMode } from "@/targets/ast/lib/ast-types";
+import type { TraversalMode } from "@/lib/ast-types";
 
 const ASTCanvas = lazy(() =>
-  import("@/targets/ast/components/ASTCanvas").then((mod) => ({ default: mod.ASTCanvas }))
+  import("@/components/ASTCanvas").then((mod) => ({ default: mod.ASTCanvas }))
 );
 
 function CanvasSkeleton() {

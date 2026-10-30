@@ -1,18 +1,16 @@
-"use client";
-
 import { useRef, useEffect, useLayoutEffect, useState, useCallback } from "react";
-import { useAstNav } from "@/targets/ast/nav";
+import { useAstNav } from "@/nav";
 import { zoom as d3Zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom";
 import { select } from "d3-selection";
 import "d3-transition"; // Augments d3-selection with .transition()
 import { AnimatePresence } from "framer-motion";
-import { useASTLayout } from "@/targets/ast/hooks/useASTLayout";
-import { useAst } from "@/targets/ast/store";
-import { useStackOverflow } from "@/targets/ast/hooks/useStackOverflow";
-import { useAstData } from "@/targets/ast/data";
-import { ASTNode } from "@/targets/ast/components/ASTNode";
-import { ASTEdge } from "@/targets/ast/components/ASTEdge";
-import type { TraversalMode, ASTNode as ASTNodeType } from "@/targets/ast/lib/ast-types";
+import { useASTLayout } from "@/hooks/useASTLayout";
+import { useAst } from "@/store";
+import { useStackOverflow } from "@/hooks/useStackOverflow";
+import { useAstData } from "@/data";
+import { ASTNode } from "@/components/ASTNode";
+import { ASTEdge } from "@/components/ASTEdge";
+import type { TraversalMode, ASTNode as ASTNodeType } from "@/lib/ast-types";
 
 // ── Props ──────────────────────────────────────────────────────────────
 
@@ -154,7 +152,8 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
   // ── Smooth pan to center a node (for explicit navigation) ────────────
   // Used by external navigation (e.g. clicking a token in the stream).
   // NOT used for expand/collapse — those use viewport stabilization instead.
-  const panToNode = useCallback(
+  // Not wired up at the moment; the underscore keeps it out of lint.
+  const _panToNode = useCallback(
     (slug: string) => {
       const svg = svgRef.current;
       const zoomBehavior = zoomRef.current;

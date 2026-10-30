@@ -8,6 +8,7 @@
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
     "test": "turbo run test",
+    "conformance": "turbo run conformance",
     "e2e": "turbo run //#parity",
     "parity": "playwright test",
     "e2e:update": "playwright test --update-snapshots",

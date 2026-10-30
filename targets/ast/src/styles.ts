@@ -1,47 +1,38 @@
+import css from "@/styles.css?inline";
+
 // ── Styles inside the shadow root (LLD-02 §4) ──────────────────────────
-// In Phase 3 the AST's utilities are part of the shell's compiled CSS,
-// so the target adopts a copy of it. Rules on :root are skipped: theme
-// tokens inherit from the document, and Tailwind's `:root, :host` theme
-// block would otherwise reset them on the host (e.g. the chosen font).
-// Phase 4 replaces this with the target's own stylesheet.
+// The AST's compiled Tailwind ships inside its bundle as a string and is
+// adopted into the root it renders in, so nothing is added to the
+// document. Theme tokens inherit from the document's :root.
 
 const HOST_RULES = `
 :host {
   display: block;
-  font-family: var(--font-mono);
+  font-family: var(--mono);
   color: var(--tv-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 `;
 
-function serialize(rules: CSSRuleList): string {
-  let out = "";
-  for (const rule of Array.from(rules)) {
-    if (rule instanceof CSSStyleRule && rule.selectorText.includes(":root")) continue;
-    if (rule instanceof CSSLayerBlockRule) {
-      out += `@layer ${rule.name} {${serialize(rule.cssRules)}}\n`;
-      continue;
-    }
-    out += `${rule.cssText}\n`;
-  }
-  return out;
+/**
+ * `@property` rules do not register from a shadow root's stylesheets, so
+ * Tailwind's `--tw-*` variables (borders, rings, shadows, transforms)
+ * would start out unset. Tailwind already ships a fallback for browsers
+ * without `@property`: initial values on every element, wrapped in an
+ * `@supports` that only matches those browsers. Apply it unconditionally.
+ */
+export function unwrapPropertyFallback(source: string): string {
+  return source.replace(/@supports\s*\(+-webkit-hyphens:\s*none\)[^{]*\{/, "@supports (display: block) {");
 }
 
-function documentCss(): string {
-  let css = "";
-  for (const sheet of Array.from(document.styleSheets)) {
-    try {
-      css += serialize(sheet.cssRules);
-    } catch {
-      // Cross-origin sheets cannot be read; the shell serves none of these.
-    }
-  }
-  return css;
-}
+let shared: CSSStyleSheet | null = null;
 
 export function adoptStyles(root: ShadowRoot): void {
-  const sheet = new CSSStyleSheet();
-  sheet.replaceSync(documentCss() + HOST_RULES);
-  root.adoptedStyleSheets = [sheet];
+  // One parsed sheet per page, reused by every mount.
+  if (!shared) {
+    shared = new CSSStyleSheet();
+    shared.replaceSync(unwrapPropertyFallback(css) + HOST_RULES);
+  }
+  root.adoptedStyleSheets = [shared];
 }

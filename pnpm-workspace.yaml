@@ -1,5 +1,6 @@
 packages:
   - apps/*
+  - targets/*
   - packages/*
 
 # Next's own .d.ts files resolve `react` by walking up from node_modules/.pnpm.

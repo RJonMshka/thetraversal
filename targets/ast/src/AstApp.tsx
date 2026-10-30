@@ -1,15 +1,13 @@
-"use client";
-
-import { ASTCanvasLazy } from "@/targets/ast/components/ASTCanvasLazy";
-import { ASTMobileTree } from "@/targets/ast/components/ASTMobileTree";
-import { ASTLexView } from "@/targets/ast/components/ASTLexView";
-import { ASTEvalView } from "@/targets/ast/components/ASTEvalView";
-import { TraversalModeSelector } from "@/targets/ast/components/TraversalModeSelector";
-import { NodeInspector } from "@/targets/ast/components/NodeInspector";
-import { TokenStream } from "@/targets/ast/components/TokenStream";
-import { useAstData } from "@/targets/ast/data";
-import { useAst } from "@/targets/ast/store";
-import { cn } from "@/targets/ast/lib/cn";
+import { ASTCanvasLazy } from "@/components/ASTCanvasLazy";
+import { ASTMobileTree } from "@/components/ASTMobileTree";
+import { ASTLexView } from "@/components/ASTLexView";
+import { ASTEvalView } from "@/components/ASTEvalView";
+import { TraversalModeSelector } from "@/components/TraversalModeSelector";
+import { NodeInspector } from "@/components/NodeInspector";
+import { TokenStream } from "@/components/TokenStream";
+import { useAstData } from "@/data";
+import { useAst } from "@/store";
+import { cn } from "@/lib/cn";
 
 // ── AstApp ─────────────────────────────────────────────────────────────
 // The AST target's whole surface: header, mode views, inspector, token

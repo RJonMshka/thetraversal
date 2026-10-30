@@ -1,9 +1,7 @@
-"use client";
-
 import { useLayoutEffect } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import type { LayoutEdge } from "@/targets/ast/hooks/useASTLayout";
-import { HEADER_SECTION_HEIGHT } from "@/targets/ast/lib/node-dimensions";
+import { motion, useSpring, useTransform } from "framer-motion";
+import type { LayoutEdge } from "@/hooks/useASTLayout";
+import { HEADER_SECTION_HEIGHT } from "@/lib/node-dimensions";
 
 // ── Props ──────────────────────────────────────────────────────────────
 

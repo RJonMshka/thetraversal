@@ -1,13 +1,11 @@
-"use client";
-
 import { useEffect, useRef, useCallback, useState } from "react";
-import { useAstNav } from "@/targets/ast/nav";
+import { useAstNav } from "@/nav";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/targets/ast/lib/cn";
-import { useAst } from "@/targets/ast/store";
-import { useIsDesktop } from "@/targets/ast/hooks/useIsDesktop";
-import { useAstData } from "@/targets/ast/data";
-import type { TokenStreamEntry } from "@/targets/ast/lib/ast-types";
+import { cn } from "@/lib/cn";
+import { useAst } from "@/store";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
+import { useAstData } from "@/data";
+import type { TokenStreamEntry } from "@/lib/ast-types";
 
 // ── Props ──────────────────────────────────────────────────────────────
 
@@ -170,7 +168,6 @@ function DriftStream({
       }
 
       const contentWidth = inner.scrollWidth / 2; // half because content is doubled
-      const containerWidth = outer.offsetWidth;
 
       if (contentWidth <= 0) {
         rafRef.current = requestAnimationFrame(tick);

@@ -7,34 +7,17 @@ const eslintConfig = [
     settings: { react: { version: "19.2" } },
   },
   {
-    // Phase 3 boundary (LLD-04 §8): the AST reaches the shell only through
-    // its TargetContext, so it can leave for targets/ast in Phase 4.
-    files: ["src/targets/ast/**/*.{ts,tsx}"],
+    // Shell platform code knows targets by id only (LLD-04 §8).
+    files: ["src/platform/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
-          paths: [{ name: "next", message: "Targets never import Next; navigate through ctx.nav." }],
           patterns: [
-            { group: ["next/*"], message: "Targets never import Next; navigate through ctx.nav." },
-            {
-              regex: "^@/(?!targets/ast/)",
-              message: "The AST imports nothing from the shell; everything arrives through ctx.",
-            },
+            { group: ["@tv/target-*"], message: "Shell platform code knows targets by id only." },
+            { regex: "(^|/)targets/", message: "Shell platform code knows targets by id only." },
           ],
         },
-      ],
-    },
-  },
-  {
-    // Shell platform code knows targets by id only. The in-bundle loader
-    // is the Phase 3 exception: it is how a local target is reached.
-    files: ["src/platform/**/*.{ts,tsx}"],
-    ignores: ["src/platform/loader/local.ts"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        { patterns: [{ regex: "^@/targets/", message: "Shell platform code knows targets by id only." }] },
       ],
     },
   },

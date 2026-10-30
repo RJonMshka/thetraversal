@@ -1,9 +1,7 @@
-"use client";
-
 import { createContext, useContext } from "react";
 import { createStore, useStore, type StoreApi } from "zustand";
 import type { ChromeInset, Navigator, ScopedStorage } from "@tv/contract";
-import type { TraversalMode } from "@/targets/ast/lib/ast-types";
+import type { TraversalMode } from "@/lib/ast-types";
 
 // ── AST state (LLD-03 §8) ──────────────────────────────────────────────
 // One store per mount, never a module singleton (LLD-02 §7.9).

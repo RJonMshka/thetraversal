@@ -21,6 +21,10 @@
     "test": {
       "dependsOn": ["^build"]
     },
+    "conformance": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
     "//#parity": {
       "cache": false
     }

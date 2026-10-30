@@ -5,7 +5,7 @@ import type {
   FindNodeResult,
   TokenStreamEntry,
   TraversalMode,
-} from "@/targets/ast/lib/ast-types";
+} from "@/lib/ast-types";
 
 // ── findNode ───────────────────────────────────────────────────────────
 // DFS search returning the node and the path (breadcrumb trail) to it.

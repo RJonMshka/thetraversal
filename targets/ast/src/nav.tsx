@@ -1,5 +1,3 @@
-"use client";
-
 import { createContext, useContext, type AnchorHTMLAttributes, type MouseEvent } from "react";
 import type { Navigator } from "@tv/contract";
 

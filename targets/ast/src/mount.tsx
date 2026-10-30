@@ -2,11 +2,11 @@ import { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { MotionConfig } from "framer-motion";
 import type { TargetModule } from "@tv/contract";
-import { AstApp } from "@/targets/ast/AstApp";
-import { AstDataProvider, createAstData } from "@/targets/ast/data";
-import { AstNavProvider } from "@/targets/ast/nav";
-import { AstStoreProvider, createAstStore, isMode } from "@/targets/ast/store";
-import { adoptStyles } from "@/targets/ast/styles";
+import { AstApp } from "@/AstApp";
+import { AstDataProvider, createAstData } from "@/data";
+import { AstNavProvider } from "@/nav";
+import { AstStoreProvider, createAstStore, isMode } from "@/store";
+import { adoptStyles } from "@/styles";
 
 // ── AST target entry (LLD-02 §3) ───────────────────────────────────────
 // Everything the AST needs arrives through ctx; it renders only inside
