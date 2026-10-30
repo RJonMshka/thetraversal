@@ -98,7 +98,7 @@ Prompt for Claude Code
 **Goal:** the shell mounts the AST only through the contract. Federation is not involved yet, so contract problems surface without network problems.
 
 Steps
-- [ ] Create `packages/contract` (LLD-02) with types, `createBus`, `satisfiesRange`, error codes.
+- [x] Create `packages/contract` (LLD-02) with types, `createBus`, `satisfiesRange`, error codes.
 - [ ] Finish `packages/tokens`: `tokens.css` holding the variable blocks currently in `globals.css`, plus a `themeSnapshot()` helper. `globals.css` imports it.
 - [ ] Shell platform (LLD-03 §2): `registry.ts` with `ast` only, `loader/local.ts` (dynamic `import()` of an in-bundle module), `host/TargetHost.tsx`, `host/context.ts`, `focus.ts`, `bus.ts`, `capabilities.ts`, `errors.ts`, `chrome/Outline.tsx`, `chrome/TargetSwitcher.tsx` (shows one option for now).
 - [ ] Route `app/t/[target]/page.tsx`. Redirect `/tree` → `/t/ast` (query preserved). Update landing links to `/t/ast?mode=…`.

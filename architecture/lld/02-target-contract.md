@@ -26,7 +26,7 @@ export interface TargetManifest {
   contract: 1;
   ir: string;                     // semver range of IR schema, e.g. ">=1.0.0 <2.0.0"
   entry: {
-    kind: "mf" | "esm";
+    kind: "mf" | "esm" | "local";   // "local": bundled into the shell (Phase 3 only)
     remote: string;               // MF remote name, e.g. "tv_three"
     expose: string;               // "./mount"
     url: string;                  // relative to /_t/<id>/, e.g. "mf-manifest.json"
@@ -100,6 +100,8 @@ export interface TargetContext {
   readonly llm?: LLMClient;                      // only with capability "llm"
   readonly data?: { metrics?: MetricsClient };   // only with capability "metrics-read"
 }
+// `llm` and `data` are added to the package with Phases 8 and 6. Adding an
+// optional context field is not a breaking change.
 
 export interface Navigator {
   focus(id: string): void;                       // request focus change; shell updates URL with replace
