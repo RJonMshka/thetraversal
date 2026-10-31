@@ -15,9 +15,12 @@ export interface VisitEntry {
 
 interface ShellState {
   visited: VisitEntry[];
+  /** The target last shown, so /node pages link back to it. Validated by readers. */
+  lastTarget: string | null;
   /** True once sessionStorage has been read; targets mount only after this. */
   hasHydrated: boolean;
   visit: (entity: { id: string; label: string; kind: Kind }) => void;
+  setLastTarget: (id: string) => void;
   reset: () => void;
 }
 
@@ -27,17 +30,21 @@ export const useShellStore = create<ShellState>()(
   persist(
     (set, get) => ({
       visited: [],
+      lastTarget: null,
       hasHydrated: false,
       visit: ({ id, label, kind }) => {
         if (get().visited.some((v) => v.id === id)) return;
         set({ visited: [...get().visited, { id, label, kind, visitedAt: Date.now() }] });
+      },
+      setLastTarget: (id) => {
+        if (get().lastTarget !== id) set({ lastTarget: id });
       },
       reset: () => set({ visited: [] }),
     }),
     {
       name: "tv.shell.traversal",
       storage: createJSONStorage(() => (typeof window === "undefined" ? noStorage : sessionStorage)),
-      partialize: (s) => ({ visited: s.visited }),
+      partialize: (s) => ({ visited: s.visited, lastTarget: s.lastTarget }),
       onRehydrateStorage: () => () => {
         // The store is still being assigned when this runs synchronously.
         queueMicrotask(() => useShellStore.setState({ hasHydrated: true }));

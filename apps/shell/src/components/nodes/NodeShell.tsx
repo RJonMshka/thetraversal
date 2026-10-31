@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { useShellStore } from "@/state/shell-store";
 import type { Entity } from "@tv/ir";
 import { KIND_TAG } from "@/lib/kind-label";
+import { targetHref } from "@/platform/focus";
+import { DEFAULT_TARGET, isTargetId } from "@/platform/registry";
 
 interface NodeShellProps {
   entity: Entity;
@@ -18,6 +20,10 @@ interface NodeShellProps {
 
 export function NodeShell({ entity, path, childEntities, children }: NodeShellProps) {
   const visit = useShellStore((s) => s.visit);
+  // Back to the target the visitor came from, focused on this node. The
+  // server render (and hydration) uses the default target.
+  const lastTarget = useShellStore((s) => s.lastTarget);
+  const backTarget = lastTarget && isTargetId(lastTarget) ? lastTarget : DEFAULT_TARGET;
 
   useEffect(() => {
     visit({ id: entity.id, label: entity.label, kind: entity.kind });
@@ -41,7 +47,7 @@ export function NodeShell({ entity, path, childEntities, children }: NodeShellPr
       >
         {/* Back link */}
         <Link
-          href="/t/ast"
+          href={targetHref(backTarget, { focus: entity.id })}
           style={{ fontSize: 12, color: "var(--text-faint)", transition: "color 150ms" }}
           className="hover:text-[var(--tv-text)]"
         >

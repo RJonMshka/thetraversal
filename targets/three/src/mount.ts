@@ -85,11 +85,12 @@ const target: TargetModule = {
 
     // ── Keys ─────────────────────────────────────────────────────────
     // Work as soon as the page loads (nothing focused) or while focus is
-    // inside this root; never while the visitor is in shell chrome.
+    // inside this root, or on its host (the shell focuses the host after a
+    // target switch); never while the visitor is in shell chrome.
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
       const origin = e.composedPath()[0];
-      const inside = origin instanceof Node && root.contains(origin);
+      const inside = origin instanceof Node && (origin === root.host || root.contains(origin));
       const idle = origin === document.body || origin === document.documentElement || origin === document || origin === window;
       if (!inside && !idle) return;
       if (origin instanceof HTMLButtonElement && (e.key === "Enter" || e.key === " ")) return;

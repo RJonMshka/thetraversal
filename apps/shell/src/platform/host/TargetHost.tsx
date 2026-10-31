@@ -150,6 +150,18 @@ export function TargetHost({ targetId, inset, onTargetFocus, chromeFocusRef, chi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasHydrated, targetId, mountKey]);
 
+  // ── Keyboard focus → target ────────────────────────────────────────
+  // After a switch the route-change focus handler leaves focus on <main>,
+  // which targets treat as shell chrome, so their keys would do nothing
+  // until clicked. When nothing else holds focus, hand it to the stage
+  // (the shadow host): a target counts that as focus inside its root.
+  useEffect(() => {
+    if (status !== "ready") return;
+    const active = document.activeElement;
+    if (active && active !== document.body && active.id !== "main-content") return;
+    stageRef.current?.focus({ preventScroll: true });
+  }, [status, targetId]);
+
   // ── URL → focus and params ─────────────────────────────────────────
   useEffect(() => {
     const mounted = mountedRef.current;
@@ -237,7 +249,14 @@ export function TargetHost({ targetId, inset, onTargetFocus, chromeFocusRef, chi
   return (
     <div className="relative h-full w-full" data-target-host={targetId} data-target-state={status}>
       {status !== "ready" && <div className="absolute inset-0 overflow-y-auto">{children}</div>}
-      <div ref={stageRef} data-target={targetId} className={cn("absolute inset-0", status !== "ready" && "invisible")} />
+      <div
+        ref={stageRef}
+        data-target={targetId}
+        tabIndex={-1}
+        role="region"
+        aria-label={`${targetId} target`}
+        className={cn("absolute inset-0 outline-none", status !== "ready" && "invisible")}
+      />
       {diagnostic && <TargetDiagnostic diagnostic={diagnostic} />}
       {showRemount && (
         <button

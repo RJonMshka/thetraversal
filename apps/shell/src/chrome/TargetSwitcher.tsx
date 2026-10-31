@@ -12,7 +12,8 @@ import { TARGETS, type TargetId } from "@/platform/registry";
 // touch on a chip prefetches that target's code (LLD-03 §11), so the
 // switch only has to mount it.
 
-export function TargetSwitcher({ current }: { current: TargetId }) {
+/** `compact` shows the id alone (the narrow entity-list column). */
+export function TargetSwitcher({ current, compact = false }: { current: TargetId; compact?: boolean }) {
   const search = useSearchParams();
   if (TARGETS.length < 2) return null;
   const focus = search.get(FOCUS_PARAM);
@@ -30,7 +31,7 @@ export function TargetSwitcher({ current }: { current: TargetId }) {
           onFocus={() => id !== current && prefetchTarget(id)}
         >
           {/* Phones show the id alone so the top row fits beside ← root and ctx. */}
-          <span className="hidden sm:inline">--target=</span>
+          {!compact && <span className="hidden sm:inline">--target=</span>}
           {id}
         </Link>
       ))}
