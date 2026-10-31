@@ -64,7 +64,9 @@ Phase 5 (second target, `three`):
 
 - `chrome/AccessibleEntityList.tsx`: every entity in `contains` order as a WAI-ARIA tree (flat rows with `aria-level`, roving tabindex). ↑↓ move, ← / Esc / Backspace parent, → first child, Home/End, Enter opens `/node/<id>`. Each move changes focus, so the target follows along. It reads focus from the URL and writes it through `TargetHost`'s `chromeFocusRef` (`source: "shell-chrome"`); if no target is mounted it replaces the URL directly, and a target that mounts later starts there.
 - `TargetView` asks the loader for the manifest (cached, the same request `TargetHost` makes) so it knows `a11y` before the target's code arrives. For `partial`/`decorative` it lays out the list beside the stage: a 288 px right column on desktop, below a 55vh stage on phones. The list's code is preloaded when idle and rendered from the resolved module, not `lazy()` + Suspense, whose reveal React throttles by ~300 ms.
-- With the list on desktop, the context window opens over the list rather than the target, so `ctx.inset` stays zero.
+- With the list on desktop, the context window opens over the list rather than the target, so `ctx.inset` stays zero. The switcher (ids only) and the ctx toggle sit in the list column's own 48 px header row there, so they never cover the list or the target; without the list, and on phones, they stay in the overlaid top row.
+- Keyboard handoff: on a route change `useFocusOnNavigate` focuses `<main>`, which targets treat as shell chrome. When a target becomes ready and focus is on `<main>` or `<body>`, `TargetHost` focuses the stage (the shadow host, `tabIndex=-1`, `role="region"`), so a target's keys work right after a switch. `three` counts focus on `root.host` as focus inside its root.
+- `/node/[slug]` is shared by every target: its `← tree` link goes back to the last target shown (`lastTarget` in shell state, session-scoped), focused on that node. Default `ast`.
 - `platform/prefetch.ts`: §11 as built, below.
 
 ## 3. Registry

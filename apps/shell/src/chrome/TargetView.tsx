@@ -18,12 +18,14 @@ import { TargetSwitcher } from "@/chrome/TargetSwitcher";
 
 // ── /t/[target] frame ──────────────────────────────────────────────────
 // The target fills the page. Shell chrome is overlaid on it: the home
-// link and ctx toggle sit in the target's top row (the AST leaves
-// same-sized stand-ins), and the context window opens below the
-// target's header, whose height is the --tv-chrome-top token.
+// link, target switcher and ctx toggle sit in the target's top row (the
+// AST leaves same-sized stand-ins), and the context window opens below
+// the target's header, whose height is the --tv-chrome-top token.
 // Targets that are not fully accessible on their own (manifest a11y
 // "partial" or "decorative") get the accessible entity list beside them:
-// a right-hand column on desktop, below a shorter stage on phones.
+// a right-hand column on desktop, below a shorter stage on phones. On
+// desktop the switcher and ctx toggle move into that column's header, so
+// they never sit on top of the list or the target.
 
 const SIDEBAR_WIDTH = 288; // w-72
 
@@ -49,6 +51,8 @@ export function TargetView({ targetId, children }: { targetId: TargetId; childre
   if (contextOpen && !contextSeen) setContextSeen(true);
   usePreloadWhenIdle(ContextWindowLazy.preload, EntityListLazy.preload);
   useEffect(() => prefetchManifests(TARGETS.map((t) => t.id)), []);
+  // /node pages link back to the target the visitor came from.
+  useEffect(() => useShellStore.getState().setLastTarget(targetId), [targetId]);
 
   // The manifest is cached by the loader (TargetHost reads the same one),
   // so the layout knows the target's a11y mode before its code arrives.
@@ -80,6 +84,23 @@ export function TargetView({ targetId, children }: { targetId: TargetId; childre
   );
 
   const toggleContext = useCallback(() => setContextOpen((open) => !open), []);
+  const controls = (compact: boolean) => (
+    <>
+      <TargetSwitcher current={targetId} compact={compact} />
+      <button
+        type="button"
+        onClick={toggleContext}
+        className="tv-chip"
+        data-on={contextOpen ? "true" : undefined}
+        style={{ cursor: "pointer" }}
+        aria-pressed={contextOpen}
+        aria-label={contextOpen ? "Close context window" : "Open context window"}
+      >
+        ctx
+        {visitedCount > 0 && <span style={{ color: "var(--accent)" }}>[{visitedCount}]</span>}
+      </button>
+    </>
+  );
   const closeContext = useCallback(() => setContextOpen(false), []);
 
   // Desktop: a sidebar over the right edge (over the entity list when there
@@ -120,15 +141,15 @@ export function TargetView({ targetId, children }: { targetId: TargetId; childre
           {children}
         </TargetHost>
       </div>
-      {withList && EntityList && (
-        <EntityList
-          focus={listFocus}
-          onFocus={focusFromList}
-          className="border-t border-[var(--line-2)] lg:w-72 lg:shrink-0 lg:border-l lg:border-t-0 lg:pt-12"
-        />
+      {withList && (
+        <div className="flex min-h-0 flex-col border-t border-[var(--line-2)] lg:w-72 lg:shrink-0 lg:border-l lg:border-t-0">
+          {/* Desktop: the column's own header row holds the switcher and ctx. */}
+          <div className="hidden h-12 shrink-0 items-center justify-end gap-2 px-3.5 lg:flex">{controls(true)}</div>
+          {EntityList && <EntityList focus={listFocus} onFocus={focusFromList} className="min-h-0 flex-1" />}
+        </div>
       )}
 
-      {/* Top row: home link and ctx toggle */}
+      {/* Top row: home link, switcher and ctx toggle (in the list column on desktop) */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between px-5 py-3">
         <Link
           href="/"
@@ -137,21 +158,7 @@ export function TargetView({ targetId, children }: { targetId: TargetId; childre
         >
           ← root
         </Link>
-        <div className="pointer-events-auto flex items-center gap-2">
-          <TargetSwitcher current={targetId} />
-          <button
-            type="button"
-            onClick={toggleContext}
-            className="tv-chip"
-            data-on={contextOpen ? "true" : undefined}
-            style={{ cursor: "pointer" }}
-            aria-pressed={contextOpen}
-            aria-label={contextOpen ? "Close context window" : "Open context window"}
-          >
-            ctx
-            {visitedCount > 0 && <span style={{ color: "var(--accent)" }}>[{visitedCount}]</span>}
-          </button>
-        </div>
+        <div className={cn("pointer-events-auto flex items-center gap-2", withList && "lg:hidden")}>{controls(false)}</div>
       </div>
 
       {/* Context window, below the target's header */}
