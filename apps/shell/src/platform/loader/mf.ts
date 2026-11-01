@@ -39,6 +39,8 @@ const manifests = new Map<string, Promise<TargetManifest>>();
 // Remotes whose entry failed to load once: the retry bypasses the cache.
 const failed = new Set<string>();
 const registered = new Set<string>();
+// Target ids whose module loaded (by a prefetch or an earlier mount).
+const loaded = new Set<string>();
 
 async function fetchManifest(id: string, signal: AbortSignal): Promise<TargetManifest> {
   // no-cache: revalidate, so a redeployed target is picked up on the next visit.
@@ -77,12 +79,15 @@ export const mfLoader: TargetLoader = {
       const mod = await abortable(federation.loadRemote<{ default?: TargetModule }>(`${remote}/${expose.replace(/^\.\//, "")}`), signal);
       if (typeof mod?.default?.mount !== "function") throw new TargetError("T0004", m.id, "module has no mount()");
       failed.delete(remote);
+      loaded.add(m.id);
       return mod.default;
     } catch (err) {
       if (!signal.aborted) failed.add(remote);
       throw err;
     }
   },
+
+  isLoaded: (id) => loaded.has(id),
 
   prefetch(m) {
     // A modulepreload hint for the remote entry; the browser dedupes it

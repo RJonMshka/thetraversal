@@ -11,7 +11,8 @@ import { loader } from "@/platform/loader";
 import type { TargetId } from "@/platform/registry";
 import { buildContext, clearScopedStorage } from "@/platform/host/context";
 import { diagnose, reportTargetError, toTargetError, type Diagnostic } from "@/platform/host/errors";
-import { guard, mountTarget, type MountedTarget } from "@/platform/host/lifecycle";
+import { guard, mountTarget, type LoadReport, type MountedTarget } from "@/platform/host/lifecycle";
+import { setActiveTarget, switchEnded, switchStarted, track } from "@/platform/telemetry";
 import { FOCUS_PARAM, createNavigator, pickParams, resolveFocus, targetHref } from "@/platform/focus";
 import { useShellStore } from "@/state/shell-store";
 
@@ -37,6 +38,14 @@ interface TargetHostProps {
 function visitEntity(id: string | null) {
   const entity = id ? ir.entity(id) : undefined;
   if (entity) useShellStore.getState().visit(entity);
+}
+
+/** target_switch (if this mount ends one) and target_load (LLD-05 §1). */
+function reportLoad({ id, version, ...rest }: LoadReport) {
+  const ok = rest.outcome === "ok";
+  if (!ok) setActiveTarget(null);
+  switchEnded(id, ok);
+  track("target_load", { id, ...rest });
 }
 
 function sameParams(a: Readonly<Record<string, string>>, b: Readonly<Record<string, string>>) {
@@ -91,7 +100,10 @@ export function TargetHost({ targetId, inset, onTargetFocus, chromeFocusRef, chi
         ir,
         bus: shellBus,
         signal: abort.signal,
+        onLoad: reportLoad,
         makeContext: (manifest, lifecycle) => {
+          // Events from here on (the target's own marks, its load) carry its id.
+          setActiveTarget(manifest.id, manifest.version);
           const params = pickParams(searchNow, manifest.urlParams);
           paramsRef.current = params;
           const nav = createNavigator({
@@ -105,6 +117,7 @@ export function TargetHost({ targetId, inset, onTargetFocus, chromeFocusRef, chi
               onTargetFocusRef.current?.(id);
             },
             onOpen: (id) => visitEntity(id),
+            onSwitch: (to) => switchStarted(targetId, to),
           });
           return buildContext({
             manifest,
@@ -140,6 +153,7 @@ export function TargetHost({ targetId, inset, onTargetFocus, chromeFocusRef, chi
 
     return () => {
       abort.abort();
+      setActiveTarget(null);
       mountedRef.current = null;
       setStatus("loading");
       // Unmount after React finishes this commit (a React target cannot

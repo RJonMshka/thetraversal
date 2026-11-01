@@ -1,4 +1,6 @@
 import type { NextConfig } from "next";
+import irIndex from "@tv/ir/dist/index.json" with { type: "json" };
+import pkg from "./package.json" with { type: "json" };
 import { TARGETS } from "./src/platform/registry";
 
 // Where each target is deployed (LLD-04 §4). Set TARGET_<ID>_ORIGIN per
@@ -24,6 +26,14 @@ const CSP = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // Common fields of every telemetry event, and the share of tabs that
+  // send (LLD-05 §1, §2). Read at build time.
+  env: {
+    TV_SHELL_VERSION: pkg.version,
+    TV_CONTENT_HASH: irIndex.contentHash,
+    TELEMETRY_SAMPLE: process.env.TELEMETRY_SAMPLE ?? "1",
+  },
+
   // Workspace packages ship TypeScript source.
   transpilePackages: ["@tv/contract", "@tv/ir", "@tv/tokens"],
 

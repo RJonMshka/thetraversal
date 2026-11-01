@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FOCUS_PARAM, targetHref } from "@/platform/focus";
 import { prefetchTarget } from "@/platform/prefetch";
+import { switchStarted } from "@/platform/telemetry";
 import { TARGETS, type TargetId } from "@/platform/registry";
 
 // ── Target switcher (LLD-03 §12) ───────────────────────────────────────
@@ -29,6 +30,7 @@ export function TargetSwitcher({ current, compact = false }: { current: TargetId
           aria-current={id === current ? "page" : undefined}
           onPointerEnter={() => id !== current && prefetchTarget(id)}
           onFocus={() => id !== current && prefetchTarget(id)}
+          onClick={() => switchStarted(current, id)}
         >
           {/* Phones show the id alone so the top row fits beside ← root and ctx. */}
           {!compact && <span className="hidden sm:inline">--target=</span>}

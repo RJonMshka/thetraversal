@@ -1,9 +1,11 @@
 import {
   CONTRACT_VERSION,
   TargetError,
+  isTargetError,
   satisfiesRange,
   type ScopedBus,
   type TargetContext,
+  type TargetErrorCode,
   type TargetHandle,
   type TargetManifest,
 } from "@tv/contract";
@@ -12,6 +14,7 @@ import { missingCapabilities } from "@/platform/capabilities";
 import type { TargetLoader } from "@/platform/loader";
 import type { TargetId } from "@/platform/registry";
 import { reportTargetError, toTargetError } from "@/platform/host/errors";
+import { track } from "@/platform/telemetry";
 
 // ── Mount lifecycle (LLD-02 §6) ────────────────────────────────────────
 // resolving → loading → mounting → ready, with a timeout and an error
@@ -39,6 +42,22 @@ export interface MountOptions {
     lifecycle: { signal: AbortSignal; bus: ScopedBus["bus"]; ready: () => void }
   ): TargetContext;
   timeouts?: Partial<typeof TIMEOUTS>;
+  /** Called once per mount that was not aborted, success or failure (LLD-05 target_load). */
+  onLoad?: (report: LoadReport) => void;
+}
+
+/** Durations in ms; a phase that was not reached is 0. */
+export interface LoadReport {
+  id: string;
+  version: string | null;
+  manifestMs: number;
+  entryMs: number;
+  mountMs: number;
+  readyMs: number;
+  totalMs: number;
+  /** "prefetched": the module was already loaded in this page (prefetch or an earlier mount). */
+  cache: "prefetched" | "cold";
+  outcome: "ok" | TargetErrorCode;
 }
 
 function withTimeout<T>(value: Promise<T> | T, ms: number, onTimeout: () => Error): Promise<T> {
@@ -80,6 +99,44 @@ export function guard(id: string, fn: () => void): void {
 }
 
 export async function mountTarget(opts: MountOptions): Promise<MountedTarget> {
+  const marks: Marks = { start: performance.now(), cache: opts.loader.isLoaded(opts.id) ? "prefetched" : "cold" };
+  const report = (outcome: LoadReport["outcome"]) => {
+    const end = performance.now();
+    const span = (from: number | undefined, to: number | undefined) =>
+      from === undefined || to === undefined ? 0 : Math.round(to - from);
+    opts.onLoad?.({
+      id: opts.id,
+      version: marks.version ?? null,
+      manifestMs: span(marks.start, marks.manifest),
+      entryMs: span(marks.manifest, marks.entry),
+      mountMs: span(marks.entry, marks.mount),
+      readyMs: span(marks.mount, marks.ready),
+      totalMs: span(marks.start, end),
+      cache: marks.cache,
+      outcome,
+    });
+  };
+  try {
+    const mounted = await runMount(opts, marks);
+    report("ok");
+    return mounted;
+  } catch (err) {
+    if (!opts.signal.aborted) report(isTargetError(err) ? err.code : "T0005");
+    throw err;
+  }
+}
+
+interface Marks {
+  start: number;
+  cache: LoadReport["cache"];
+  version?: string;
+  manifest?: number;
+  entry?: number;
+  mount?: number;
+  ready?: number;
+}
+
+async function runMount(opts: MountOptions, marks: Marks): Promise<MountedTarget> {
   const { id, root, loader, ir, signal } = opts;
   const t = { ...TIMEOUTS, ...opts.timeouts };
   const aborted = () => signal.reason ?? new DOMException("Aborted", "AbortError");
@@ -90,6 +147,8 @@ export async function mountTarget(opts: MountOptions): Promise<MountedTarget> {
   ).catch((err: unknown) => {
     throw signal.aborted ? aborted() : toTargetError(err, id, "T0004");
   });
+  marks.version = manifest.version;
+  marks.manifest = performance.now();
   runChecks(id, manifest, ir);
 
   // loading, with one retry
@@ -104,6 +163,7 @@ export async function mountTarget(opts: MountOptions): Promise<MountedTarget> {
       throw signal.aborted ? aborted() : toTargetError(err, id, "T0004");
     });
   if (signal.aborted) throw aborted();
+  marks.entry = performance.now();
 
   // mounting
   const lifetime = new AbortController();
@@ -143,11 +203,15 @@ export async function mountTarget(opts: MountOptions): Promise<MountedTarget> {
     await unmount();
     throw toTargetError(err, id, "T0005");
   }
+  marks.mount = performance.now();
 
   // ready: the shell shows the target anyway after the timeout
   await withTimeout(ready, t.ready, () => new Error("late")).catch(() => {
-    if (!signal.aborted) console.warn(`t.${id}.late_ready`);
+    if (signal.aborted) return;
+    console.warn(`t.${id}.late_ready`);
+    track(`t.${id}.late_ready`);
   });
+  marks.ready = performance.now();
 
   if (signal.aborted) {
     await unmount();

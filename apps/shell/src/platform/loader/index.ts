@@ -10,6 +10,8 @@ export interface TargetLoader {
   manifest(id: TargetId, signal: AbortSignal): Promise<TargetManifest>;
   load(m: TargetManifest, signal: AbortSignal): Promise<TargetModule>;
   prefetch(m: TargetManifest): void;
+  /** The target's module is already downloaded and evaluated in this page. */
+  isLoaded(id: string): boolean;
 }
 
 export const loader: TargetLoader = mfLoader;
