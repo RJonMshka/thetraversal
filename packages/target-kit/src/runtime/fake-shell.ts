@@ -1,6 +1,7 @@
 import {
   TargetError,
   createBus,
+  type MetricsClient,
   type Navigator as TargetNavigator,
   type ScopedStorage,
   type ShellBus,
@@ -9,6 +10,8 @@ import {
   type TargetHandle,
   type TargetManifest,
   type TargetModule,
+  type TelemetryEvent,
+  type TelemetryProps,
 } from "@tv/contract";
 import type { Graph, IRClient } from "@tv/ir";
 import { createIRClient } from "@tv/ir/client";
@@ -67,6 +70,61 @@ function readEnv(reducedMotion: boolean | undefined): TargetEnv {
     viewport: { width: window.innerWidth, height: window.innerHeight, dpr: window.devicePixelRatio || 1 },
     pointer: media("(pointer: coarse)") ? "coarse" : "fine",
     saveData: false,
+  };
+}
+
+// ── Metrics (LLD-05 §5) ────────────────────────────────────────────────
+// For targets that declare "metrics-read": a session that looks like a
+// visitor came from the AST, plus this target's own load once it calls
+// ready(), the way the shell reports it.
+
+function fakeMetrics(manifest: TargetManifest, lifetime: AbortSignal) {
+  const events: TelemetryEvent[] = [];
+  const subscribers = new Set<(e: TelemetryEvent) => void>();
+  const t0 = performance.timeOrigin;
+  const push = (name: string, at: number, target: string | null, props: TelemetryProps) => {
+    const e: TelemetryEvent = Object.freeze({
+      name,
+      ts: Math.round(t0 + at),
+      sid: "f00dfeedcafe0001",
+      target,
+      targetVersion: target === manifest.id ? manifest.version : target ? "1.0.0" : null,
+      shellVersion: "0.0.0-harness",
+      contentHash: "harness",
+      device: "desktop",
+      conn: "4g",
+      props: Object.freeze({ ...props }),
+    });
+    events.push(e);
+    for (const fn of [...subscribers]) fn(e);
+  };
+  const load = (id: string, at: number, cache: string) =>
+    push("target_load", at, id, { id, manifestMs: 18, entryMs: 120, mountMs: 40, readyMs: 22, totalMs: 200, cache, outcome: "ok" });
+
+  push("vital", 90, null, { name: "TTFB", value: 84, rating: "good", route: "/t/ast" });
+  push("ir_ready", 210, null, { ms: 210, bytes: 83_000 });
+  load("ast", 480, "cold");
+  push("vital", 900, "ast", { name: "LCP", value: 640, rating: "good", route: "/t/ast" });
+  push("t.ast.mode", 1400, "ast", { mode: "parse" });
+
+  const client: MetricsClient = {
+    live(fn) {
+      subscribers.add(fn);
+      for (const e of [...events]) fn(e);
+      const off = () => void subscribers.delete(fn);
+      lifetime.addEventListener("abort", off, { once: true });
+      return off;
+    },
+    sending: { on: false, why: "no-ingest" },
+  };
+  return {
+    client,
+    /** The shell reports the switch and the load after the target is ready. */
+    loaded() {
+      const now = performance.now();
+      push("target_switch", now, manifest.id, { from: "ast", to: manifest.id, ms: 160, vt: false });
+      load(manifest.id, now, "prefetched");
+    },
   };
 }
 
@@ -151,6 +209,7 @@ export function createFakeShell(opts: FakeShellOptions): FakeShell {
         },
       };
 
+      const metrics = manifest.capabilities.includes("metrics-read") ? fakeMetrics(manifest, lifetime.signal) : null;
       const params: Record<string, string> = {};
       for (const key of manifest.urlParams) if (key in shell.params) params[key] = shell.params[key];
 
@@ -170,8 +229,10 @@ export function createFakeShell(opts: FakeShellOptions): FakeShell {
         telemetry: { mark: () => {}, event: () => {} },
         ready: () => {
           readyCount += 1;
+          if (readyCount === 1) queueMicrotask(() => metrics?.loaded());
           markReady();
         },
+        ...(metrics && { data: Object.freeze({ metrics: metrics.client }) }),
       });
 
       const handle = await module.mount(root, ctx);

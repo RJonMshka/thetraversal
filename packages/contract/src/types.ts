@@ -62,7 +62,8 @@ export interface TargetHandle {
 
 // ── Context (§4) ───────────────────────────────────────────────────────
 // `llm` and `data.metrics` join the context with their phases (8 and 6),
-// as optional fields, which is not a breaking change.
+// as optional fields, which is not a breaking change. `data.metrics`
+// arrived in Phase 6a.
 
 export interface TargetContext {
   readonly id: string;
@@ -82,6 +83,9 @@ export interface TargetContext {
 
   /** Call once the first meaningful frame is painted. */
   ready(): void;
+
+  /** Only with capability "metrics-read" (LLD-05 §5). */
+  readonly data?: { readonly metrics?: MetricsClient };
 }
 
 export interface Navigator {
@@ -130,6 +134,53 @@ export interface ScopedStorage {
 export interface TargetTelemetry {
   mark(name: string): void; // namespaced as t.<id>.<name>
   event(name: string, props?: Record<string, string | number | boolean>): void;
+}
+
+// ── Telemetry events and the metrics client (LLD-05 §1, §5) ────────────
+
+export type TelemetryProps = Readonly<Record<string, string | number | boolean>>;
+
+/**
+ * One event as the shell records it. Shell events are `ir_ready`,
+ * `target_load`, `target_switch`, `target_error` and `vital`; target
+ * events are `t.<id>.<name>`. No free-text messages: errors carry a code
+ * and a hash of the message.
+ */
+export interface TelemetryEvent {
+  readonly name: string;
+  /** Wall-clock ms (performance.timeOrigin + performance.now()). */
+  readonly ts: number;
+  /** Session hash: per tab, not linkable across days. */
+  readonly sid: string;
+  /** Target active when the event happened, or null (landing, /node pages). */
+  readonly target: string | null;
+  readonly targetVersion: string | null;
+  readonly shellVersion: string;
+  readonly contentHash: string;
+  readonly device: "desktop" | "mobile" | "tablet";
+  /** navigator.connection.effectiveType, or "unknown". */
+  readonly conn: string;
+  readonly props: TelemetryProps;
+}
+
+/** Whether this tab's events leave the browser, and if not, why. */
+export type TelemetrySending =
+  | { readonly on: true }
+  | { readonly on: false; readonly why: "no-ingest" | "privacy" | "sampled-out" };
+
+/**
+ * Given to targets that declare "metrics-read". Phase 6a ships the live
+ * view of this tab's events; `summary()` over the event store joins in
+ * Phase 6b (an added method, not a breaking change).
+ */
+export interface MetricsClient {
+  /**
+   * This tab's events: first every event already recorded (oldest first,
+   * up to the last 200), then each new one as it happens. Returns an
+   * unsubscribe; the shell also unsubscribes on unmount.
+   */
+  live(fn: (e: TelemetryEvent) => void): () => void;
+  readonly sending: TelemetrySending;
 }
 
 // ── Bus (§5) ───────────────────────────────────────────────────────────
