@@ -11,9 +11,10 @@ The medium is the message: the site is a compiler. Content is the source, `packa
 ## 2. Current phase
 
 ```
-PHASE: 5 complete  (second target, vanilla three.js: targets/three → thetraversal-t-three, loaded
-          from /_t/three/; the shell shows the accessible entity list beside it; see
-          architecture/baseline.md "Phase 5"). Next: Phase 6.
+PHASE: 6a complete  (client telemetry pipeline in apps/shell/src/platform/telemetry/ and the
+          `metrics` target: targets/metrics → thetraversal-t-metrics, "This session" panel only; see
+          architecture/lld/05-telemetry.md §8). Next: 6b (store; needs Rajat's decision on HLD
+          open question 2).
 ```
 
 The repo moves toward the end-state layout one phase at a time. **Only the structure for completed phases exists.** Do not create folders for a later phase unless the task is that phase. Phase definitions and exit criteria: `architecture/MIGRATION.md`.

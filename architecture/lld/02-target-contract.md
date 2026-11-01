@@ -103,7 +103,8 @@ export interface TargetContext {
   readonly data?: { metrics?: MetricsClient };   // only with capability "metrics-read"
 }
 // `llm` and `data` are added to the package with Phases 8 and 6. Adding an
-// optional context field is not a breaking change.
+// optional context field is not a breaking change. `data.metrics` is in
+// since Phase 6a: `live()` and `sending` (LLD-05 §5); `summary()` joins in 6b.
 
 export interface Navigator {
   focus(id: string): void;                       // request focus change; shell updates URL with replace
@@ -144,6 +145,8 @@ export interface TargetTelemetry {
   event(name: string, props?: Record<string, string | number | boolean>): void;
 }
 ```
+
+Both become `t.<id>.<name>` events in the shell's pipeline (LLD-05 §1, §8): `mark` also sets a `performance.mark` and carries `ms` since mount began; `event` names must match `[a-z0-9_.:-]{1,48}` and keep at most 8 props.
 
 `syntax` was added in Phase 5 for the `three` target, which colors entities by category. It is optional, so it is not a breaking change and `CONTRACT_VERSION` stays 1: a target must still mount when a shell does not send it. Values are CSS color strings as `@tv/tokens` writes them (hex, `rgba()`, `oklch()`); WebGL targets convert them themselves.
 

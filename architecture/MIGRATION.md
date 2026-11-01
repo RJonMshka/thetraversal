@@ -178,6 +178,23 @@ Exit criteria (all met; see baseline.md "Phase 5")
 
 Follow `lld/05-telemetry.md` §7: 6a client pipeline + `live()` + "This session" panel; 6b ingest, store, summary API, remaining panels, footer disclosure.
 
+### 6a: client pipeline and `metrics` (done)
+
+- [x] Contract: `TelemetryEvent`, `TelemetrySending`, `MetricsClient` (`live()`, `sending`) and optional `ctx.data.metrics`. Optional field, so `CONTRACT_VERSION` stays 1.
+- [x] Shell, first load: `platform/telemetry/index.ts` only records (`track`, active target, switch timing) and queues. Adds 0.7 KB to `/t/*`.
+- [x] Shell, lazy: `platform/telemetry/pipeline.ts` starts when the page is idle (`components/chrome/Telemetry.tsx` in the root layout) or on the first `live()`. Session fields, `sid` (SHA-256 of a per-tab id + UTC date, 16 chars), 200-event ring buffer with replay for live subscribers, batcher (10 s / hidden / 20 events, `sendBeacon` with `fetch` keepalive fallback), web-vitals.
+- [x] Events: `ir_ready` (`platform/ir.ts`), `target_load` (`mountTarget` reports timings per phase through `onLoad`), `target_switch` (switcher chip or `nav.switchTarget` → ready), `target_error` (`reportTargetError`, message hashed), `vital` (TTFB, LCP, INP, CLS), `t.<id>.<name>` from `ctx.telemetry.mark` and `.event`.
+- [x] Privacy and sampling (`platform/telemetry/policy.ts`): GPC or DNT keeps events in the tab; `TELEMETRY_SAMPLE` read at build time. Nothing is sent in 6a: `INGEST_URL` is null until `/api/t` exists.
+- [x] `targets/metrics` (Preact 10, MF `tv_metrics`, port 5103): `capabilities: ["metrics-read"]`, `a11y: "full"`, `motion: "safe"`, budget 60 KB (37.8 at 6a). "This session" table, newest first, with filters, a load breakdown bar, focus handling per LLD-05 §6, and `← <previous target>` / Esc back.
+- [x] Registered in `platform/registry.ts`; the switcher shows `metrics`. Fake shell in `@tv/target-kit` gives metrics targets a scripted session so the harness and conformance run them.
+- [ ] Vercel project `thetraversal-t-metrics`, root `targets/metrics`, and `TARGET_METRICS_ORIGIN` on the shell project (Production and Preview). Must exist before this merges: the shell fetches every registered manifest when idle.
+
+6a exit (met; baseline.md "Phase 6a"): after switching from `ast`, the newest row is the dashboard's own `target_load`, with the `ast → metrics` switch under it.
+
+### 6b: store and summary (not started; needs a decision on HLD open question 2)
+
+- [ ] `/api/t` ingest, store, `GET /api/metrics/summary`, `MetricsClient.summary()`, the remaining panels, footer disclosure.
+
 Exit criteria: dashboard shows the visitor's own load of the dashboard as the latest live event; with the store connected, p75 load per target over 7 days renders from real data.
 
 ---

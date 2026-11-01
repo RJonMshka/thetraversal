@@ -9,7 +9,7 @@ thetraversal/
   targets/
     ast/                      # Vite + @module-federation/vite, React 19
     three/                    # Vite + @module-federation/vite, vanilla three.js
-    metrics/
+    metrics/                  # Vite + @module-federation/vite, Preact 10 (Phase 6a)
     art/
   packages/
     ir/                       # @tv/ir: schema, compiler, IRClient
@@ -152,6 +152,7 @@ Targets deploy their `dist/` under a `_t/<id>/` prefix (Vercel `outputDirectory`
 | `thetraversal` (existing) | `apps/shell` | Next.js | thetraversal.vercel.app |
 | `thetraversal-t-ast` | `targets/ast` | Vite (static) | thetraversal-t-ast.vercel.app |
 | `thetraversal-t-three` | `targets/three` | Vite (static) | … |
+| `thetraversal-t-metrics` | `targets/metrics` | Vite (static) | … (create before merging Phase 6a; `targets/metrics/vercel.json` holds build, ignore step and headers) |
 | … | | | |
 
 Each project:

@@ -41,7 +41,7 @@ apps/shell/src/
     focus.ts                   # URL <-> focus sync, single writer
     prefetch.ts
     capabilities.ts            # webgl/webgl2/offscreen probes, memoized
-    telemetry.ts               # Phase 6
+    telemetry/                 # Phase 6a: index.ts (first load), pipeline.ts (lazy), policy.ts
   chrome/
     TargetSwitcher.tsx         # --target=… flag UI, visual sibling of TraversalModeSelector
     ContextWindow.tsx          # moved from components/chrome, now cross-target
