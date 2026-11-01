@@ -424,3 +424,55 @@ Best practices is 93 for the Phase 4 reasons (report-only CSP issues) plus the l
 - `thetraversal-t-three` (root `targets/three`) serves `https://thetraversal-t-three.vercel.app/_t/three/`; the shell's `TARGET_THREE_ORIGIN` points at it for Production and Preview. Merged in PR #10.
 - Production `/t/three?focus=reachble`: mounts cold in ~1.3 s, the list shows all 112 entities, ↑ moves focus to `projects`, switching to `ast` keeps focus, no console errors (CSP report-only notes aside).
 - CI on PR #10: `check`, `build`, `conformance` (both targets) and `e2e` pass; all three Vercel previews built.
+
+---
+
+## Phase 6a (first-load only, measured afterwards)
+
+MIGRATION and CLAUDE.md pointed here before this section existed. Measured on 2026-11-01 from a production build of `platform/phase-6a` (`8789125`), same machine as Phase 5. Lighthouse was not re-run.
+
+| Route | First-load (KB gz) | Shell app code (KB gz) |
+|---|---|---|
+| `/` | 175.6 | 24.4 |
+| `/t/ast` | 182.4 | 34.8 |
+| `/node/*` | 164.7 | 17.0 |
+
+---
+
+## Phase 6b (store-independent part) and Phase 7
+
+Branches `platform/phase-6b` (on 6a) and `platform/phase-7` (on 6b). Local production builds, 2026-11-01. Not deployed; Lighthouse not re-run.
+
+### Shell first-load
+
+| Route | 6a | 6b + 7 | App code |
+|---|---|---|---|
+| `/` | 175.6 | 175.8 | 24.7 |
+| `/t/ast` | 182.4 | 182.5 | 34.9 of 35 |
+| `/node/*` | 164.7 | 164.9 | 17.2 |
+
+`MetricsClient.summary()` loads its fetch lazily, and the footer note is dropped from bundles until sending is on. The first version imported `cn` (tailwind-merge) into the landing page and cost 8 KB there even when gated; it was removed. `/t/ast` has 0.1 KB of app-code headroom left.
+
+### Targets
+
+| Target | JS (KB gz) | Budget |
+|---|---|---|
+| `metrics` | 40.8 (37.8 at 6a) | 60 |
+| `art` | 33.7 | 40 |
+
+Conformance: `metrics` 14 passed, `art` 14 passed, `ast` 12 passed (2 warnings, as before), `three` 14 passed.
+
+### Telemetry, end to end (dev server, `TELEMETRY_STORE=memory`)
+
+- A valid batch → 204; a batch with an unknown event → 400 with a reason; `/api/metrics/summary?window=24h` returns the aggregate with `s-maxage=300, stale-while-revalidate=600`; `window=1y` → 400.
+- Real browser (Chromium, `/node/reachble`): the shell's own batch (`ir_ready`, `vital`, …) was accepted (204) on `visibilitychange`, and the summary then showed the session with LCP and CLS samples.
+- Metrics harness (fake summary): all five panels render at 1400 px and 390 px with no console errors.
+
+### art
+
+- 60 fps at 1300 × 850 in headless Chromium (mint and paper themes); reduced motion draws one still frame.
+- In the shell: `/t/ast?focus=reachble` → switcher `art` keeps `focus=reachble`, the accessible list renders beside the canvas, no console errors.
+
+### Parity
+
+- The 12 `/t/ast` snapshots were re-recorded for the switcher (four chips; `--target=` on the active chip only). The diff was the switcher alone. 28 pass.
