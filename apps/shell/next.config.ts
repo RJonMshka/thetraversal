@@ -5,6 +5,9 @@ import { TARGETS } from "./src/platform/registry";
 
 // Where each target is deployed (LLD-04 §4). Set TARGET_<ID>_ORIGIN per
 // environment; local dev and builds default to the target's dev port.
+/** TELEMETRY_STORE values with an adapter in platform/telemetry/server/store.ts. */
+const STORE_ADAPTERS = ["memory"];
+
 const DEV_PORTS: Record<string, number> = { ast: 5101, three: 5102, metrics: 5103, art: 5104, llm: 5105 };
 
 function targetOrigin(id: string): string {
@@ -32,6 +35,9 @@ const nextConfig: NextConfig = {
     TV_SHELL_VERSION: pkg.version,
     TV_CONTENT_HASH: irIndex.contentHash,
     TELEMETRY_SAMPLE: process.env.TELEMETRY_SAMPLE ?? "1",
+    // Clients send to /api/t only when the build has an event store with an
+    // adapter (platform/telemetry/server/store.ts). Unset: nothing is sent.
+    TV_INGEST: STORE_ADAPTERS.includes(process.env.TELEMETRY_STORE ?? "") ? "1" : "",
   },
 
   // Workspace packages ship TypeScript source.

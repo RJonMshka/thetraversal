@@ -96,6 +96,11 @@ function createMetrics(id: string, signal: AbortSignal): MetricsClient {
     get sending() {
       return sending();
     },
+    summary(window, ownSignal) {
+      // Ends with the mount, or earlier if the target aborts.
+      const both = ownSignal && typeof AbortSignal.any === "function" ? AbortSignal.any([signal, ownSignal]) : (ownSignal ?? signal);
+      return import("@/platform/telemetry/summary").then((m) => m.fetchSummary(window, both));
+    },
   };
 }
 

@@ -2,12 +2,12 @@ import type { TelemetrySending } from "@tv/contract";
 
 // ── Whether events leave the browser (LLD-05 §2) ───────────────────────
 // Events are always kept in memory, so the metrics target can show the
-// visitor their own session. Sending needs an ingest endpoint (Phase 6b
-// adds /api/t), no Global Privacy Control or Do Not Track, and a tab
+// visitor their own session. Sending needs an event store behind /api/t,
+// no Global Privacy Control or Do Not Track, and a tab
 // inside the TELEMETRY_SAMPLE share.
 
-/** Phase 6b sets this to "/api/t". */
-export const INGEST_URL: string | null = null;
+/** "/api/t" when the build has an event store (TELEMETRY_STORE, see next.config.ts). */
+export const INGEST_URL: string | null = process.env.TV_INGEST === "1" ? "/api/t" : null;
 
 const SAMPLE = Number(process.env.TELEMETRY_SAMPLE ?? "1");
 
