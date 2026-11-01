@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { TELEMETRY_ON, TelemetryNote } from "@/components/shared/TelemetryNote";
+import { TelemetryNote } from "@/components/shared/TelemetryNote";
 import { useShellStore } from "@/state/shell-store";
 import type { Entity } from "@tv/ir";
 import { KIND_TAG } from "@/lib/kind-label";
@@ -156,7 +156,7 @@ export function NodeShell({ entity, path, childEntities, children }: NodeShellPr
           </div>
         </div>
       )}
-      {TELEMETRY_ON && <TelemetryNote className="mx-auto mt-16 max-w-3xl px-4 pb-8" />}
+      {process.env.TV_INGEST === "1" && <TelemetryNote className="mx-auto mt-16 max-w-3xl px-4 pb-8" />}
     </main>
   );
 }

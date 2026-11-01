@@ -191,9 +191,15 @@ Follow `lld/05-telemetry.md` §7: 6a client pipeline + `live()` + "This session"
 
 6a exit (met; baseline.md "Phase 6a"): after switching from `ast`, the newest row is the dashboard's own `target_load`, with the `ast → metrics` switch under it.
 
-### 6b: store and summary (not started; needs a decision on HLD open question 2)
+### 6b: store and summary (built except the store adapter; needs a decision on HLD open question 2)
 
-- [ ] `/api/t` ingest, store, `GET /api/metrics/summary`, `MetricsClient.summary()`, the remaining panels, footer disclosure.
+- [x] `/api/t` ingest: validation, rate limit, 204/400/413/429/503 (`platform/telemetry/server/ingest.ts`).
+- [x] `EventStore` interface with an in-memory adapter for dev and previews; `TELEMETRY_STORE` selects it (`store.ts`). Sending turns on only in builds with an adapter.
+- [x] `GET /api/metrics/summary` over `summarize()`, cached 5 min; 503 without a store.
+- [x] `MetricsClient.summary()` (optional, contract stays 1), lazy in the shell; fake summary in target-kit.
+- [x] Panels: target load, Core Web Vitals, switch matrix, reliability, over time; window choice; empty states.
+- [x] Footer disclosure on `/` and `/node/*`, rendered only when sending is on.
+- [ ] Store adapter (Supabase Postgres or Upstash Redis, HLD open question 2), its migration/retention, and `TELEMETRY_STORE` on the Vercel shell project.
 
 Exit criteria: dashboard shows the visitor's own load of the dashboard as the latest live event; with the store connected, p75 load per target over 7 days renders from real data.
 

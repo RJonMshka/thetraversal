@@ -60,7 +60,7 @@ table { width: 100%; border-collapse: collapse; font-size: 12px; }
 caption { caption-side: top; text-align: left; padding: 8px 10px; color: var(--text-mute); border-bottom: 1px solid var(--line); }
 th { text-align: left; font-weight: 400; color: var(--text-mute); padding: 6px 10px; border-bottom: 1px solid var(--line); }
 td { padding: 5px 10px; border-bottom: 1px solid var(--line); vertical-align: baseline; }
-tbody tr:last-child td { border-bottom: 0; }
+tbody tr:last-child td, tbody tr:last-child th { border-bottom: 0; }
 .c-t { color: var(--text-mute); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .c-name { white-space: nowrap; color: var(--syntax-type); }
 .c-target { color: var(--text-mute); white-space: nowrap; }

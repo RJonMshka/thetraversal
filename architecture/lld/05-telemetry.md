@@ -41,6 +41,8 @@ shell + targets ─▶ in-memory ring buffer (200 events)
 
 ## 4. Store (assumes Supabase Postgres, see HLD open question 2)
 
+As built in 6b, the routes see only an `EventStore` interface (`insert`, `summary`); the schema below is what a Postgres adapter would use. See §9.
+
 ```sql
 create table tv_events (
   id          bigint generated always as identity primary key,
@@ -70,6 +72,7 @@ The shell talks to Postgres with a server-only key. Row Level Security on, no an
 ```ts
 interface MetricsSummary {
   window: "24h" | "7d" | "30d";
+  generatedAt: number;             // added in 6b: when the aggregate was computed
   sessions: number;
   targets: Array<{
     id: string;
@@ -80,7 +83,7 @@ interface MetricsSummary {
     topErrors: Array<{ code: string; count: number }>;
   }>;
   switches: Array<{ from: string; to: string; count: number; p75: number }>;
-  vitals: Record<"LCP" | "INP" | "CLS", { p75: number; good: number }>; // good = share meeting CWV threshold
+  vitals: Record<"LCP" | "INP" | "CLS", { p75: number | null; good: number; samples: number }>; // good = share meeting CWV threshold; null and samples added in 6b
   series: Array<{ bucket: string; target: string; p75LoadMs: number }>; // for the time chart
 }
 ```
@@ -91,7 +94,7 @@ Percentiles via `percentile_cont` in SQL. Buckets: hourly for 24h, daily otherwi
 
 ```ts
 interface MetricsClient {
-  summary(window: "24h" | "7d" | "30d", signal?: AbortSignal): Promise<MetricsSummary>; // Phase 6b
+  summary?(window: "24h" | "7d" | "30d", signal?: AbortSignal): Promise<MetricsSummary>; // Phase 6b; optional, rejects with Error("no-store" | "unavailable")
   live(fn: (e: TelemetryEvent) => void): () => void;   // this tab's events: buffer replay, then as they happen
   readonly sending: TelemetrySending;                  // { on: true } | { on: false, why: "no-ingest" | "privacy" | "sampled-out" }
 }
@@ -139,3 +142,16 @@ Code: `apps/shell/src/platform/telemetry/` (`index.ts`, `pipeline.ts`, `policy.t
 - **Live subscribers.** Each `live()` subscription is tied to the mount's `ctx.signal`. A subscriber that throws is unsubscribed and reported as `T0007`.
 - **Metrics target.** Preact 10 with Vite's own JSX transform (no plugin), 37.8 KB gz of a 60 KB budget; the federation runtime is half of it. It renders a real `<table>` (newest first, up to 200 rows), filters, a manifest/entry/mount/ready bar per load, and a polite live region for loads, switches and errors. Focus: a target id seen this session highlights its rows; any other entity shows a `focused: <label>` chip that opens `/node/<id>`. `← <previous target>` and Esc switch back, keeping focus. Its header leaves the first row of `--tv-chrome-top` empty for the shell's chrome.
 
+## 9. As built in Phase 6b (store-independent part)
+
+Code: `apps/shell/src/platform/telemetry/server/` (`ingest.ts`, `store.ts`, `summarize.ts`), `apps/shell/src/app/api/t/route.ts`, `apps/shell/src/app/api/metrics/summary/route.ts`, `apps/shell/src/platform/telemetry/summary.ts`, and the panels in `targets/metrics` (`Summary.tsx`, `aggregate.ts`). What is left is one adapter, which waits on HLD open question 2.
+
+- **Store seam.** `EventStore { kind, insert(events), summary(window, now?) }`. `getStore()` reads `TELEMETRY_STORE` at runtime: `memory` is the only adapter (per server instance, lost on restart, capped at 50 000 events: for local development and previews); any other value logs a warning and means no store. A Supabase or Upstash adapter implements the same two methods; `summarize()` is the reference for its numbers (percentiles interpolate like `percentile_cont`).
+- **Sending is a build-time switch.** `next.config.ts` sets `TV_INGEST=1` only when `TELEMETRY_STORE` names an adapter (`STORE_ADAPTERS`), and `policy.ts` turns that into `INGEST_URL = "/api/t"`. Production, with the variable unset, still sends nothing. `TELEMETRY_STORE` is declared in `turbo.json` (strict env mode, LLD-04 §5).
+- **Ingest.** Zod schemas per shell event (strict: unknown props reject the batch), `t.<id>.<name>` only for registered target ids, at most 8 scalar props. Also rejected: `ts` more than 48 h old or 10 min ahead, an unknown `target`, and batches mixing sessions. Rate limit is a fixed 60 s window per `sid`, capped at 10 000 keys. Responses: 204, 400 with a reason, 413, 429, 503 without a store, 502 when the insert fails. The request's IP and user agent are never read: `device` comes from the client.
+- **Summary API.** `GET /api/metrics/summary?window=` (default `7d`; 400 for anything else), `s-maxage=300, stale-while-revalidate=600`; 503 `{ error: "no-store" }` and 502 `{ error: "unavailable" }` are `no-store`. Summary fields added beyond §5: `generatedAt`, and per vital `samples` with a null `p75` when there are none. Error rate counts `target_error` per `target_load` for the same id, capped at 1; top errors are the 3 most frequent codes.
+- **`MetricsClient.summary()`** is optional in the contract (no `CONTRACT_VERSION` bump). The shell loads the fetch lazily on first call (`platform/telemetry/summary.ts`) and ties it to the mount's signal. It rejects with `Error("no-store")` on 503 and `Error("unavailable")` otherwise.
+- **Panels.** Target load (p50/p75/p95 and a p75 phase bar), Core Web Vitals (p75, good share, samples, pass/fail against 2.5 s / 200 ms / 0.1), switch matrix (from × to, p75 and count), reliability (error rate, codes with their LLD-02 §8 meaning), p75 load over time (hand-drawn SVG polylines, one per target; uPlot was not needed). Every chart has a table for screen readers. A 24h / 7d / 30d choice is kept in `tv.t.metrics.window`. A focused target id highlights its rows in both halves. Bundle: 40.8 KB gz of 60.
+- **Empty states.** With GPC/DNT the summary is not requested (§6). Without `summary()` (older shell), with no store, with the store not answering, or with zero sessions, the panel says which in one line and "This session" is unaffected.
+- **Footer disclosure.** `components/shared/TelemetryNote.tsx`, on the landing footer and every `/node/*` page, rendered only when `TV_INGEST` is on (an inline `process.env` check, so it is dropped from bundles until then). Not on `/t/*` pages, which are full-viewport: the `metrics` target is the disclosure there. It links to `/node/thetraversal` and `/t/metrics`.
+- **Harness.** The target-kit fake shell sends `{ on: true }` and serves a scripted 24h/7d/30d summary after 120 ms.

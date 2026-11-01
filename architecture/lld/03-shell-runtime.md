@@ -24,7 +24,8 @@ apps/shell/src/
   app/
     t/[target]/page.tsx        # server: outline + <TargetHost/>
     node/[slug]/page.tsx       # server: entity page from IR
-    api/…
+    api/t/route.ts             # Phase 6b: telemetry ingest
+    api/metrics/summary/route.ts
   platform/
     registry.ts                # static list of target ids + origins
     loader/
@@ -42,6 +43,7 @@ apps/shell/src/
     prefetch.ts
     capabilities.ts            # webgl/webgl2/offscreen probes, memoized
     telemetry/                 # Phase 6a: index.ts (first load), pipeline.ts (lazy), policy.ts
+                               # Phase 6b: summary.ts (lazy client), server/ (ingest, store, summarize)
   chrome/
     TargetSwitcher.tsx         # --target=… flag UI, visual sibling of TraversalModeSelector
     ContextWindow.tsx          # moved from components/chrome, now cross-target

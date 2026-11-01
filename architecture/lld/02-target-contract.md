@@ -104,7 +104,8 @@ export interface TargetContext {
 }
 // `llm` and `data` are added to the package with Phases 8 and 6. Adding an
 // optional context field is not a breaking change. `data.metrics` is in
-// since Phase 6a: `live()` and `sending` (LLD-05 §5); `summary()` joins in 6b.
+// since Phase 6a: `live()` and `sending` (LLD-05 §5). Phase 6b adds an
+// optional `summary()`, so a newer target still mounts in an older shell.
 
 export interface Navigator {
   focus(id: string): void;                       // request focus change; shell updates URL with replace
