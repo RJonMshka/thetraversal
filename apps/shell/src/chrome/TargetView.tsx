@@ -144,7 +144,7 @@ export function TargetView({ targetId, children }: { targetId: TargetId; childre
       {withList && (
         <div className="flex min-h-0 flex-col border-t border-[var(--line-2)] lg:w-72 lg:shrink-0 lg:border-l lg:border-t-0">
           {/* Desktop: the column's own header row holds the switcher and ctx. */}
-          <div className="hidden h-12 shrink-0 items-center justify-end gap-2 px-3.5 lg:flex">{controls(true)}</div>
+          <div className="hidden min-h-12 shrink-0 flex-wrap items-center justify-end gap-1.5 px-3 py-2 lg:flex">{controls(true)}</div>
           {EntityList && <EntityList focus={listFocus} onFocus={focusFromList} className="min-h-0 flex-1" />}
         </div>
       )}

@@ -15,6 +15,8 @@ PHASE: 6a complete; 6b built except the store adapter  (ingest, EventStore seam 
           in-memory adapter, summary API, metrics panels, footer disclosure; see
           architecture/lld/05-telemetry.md §9). Left for 6b: the Supabase or Upstash adapter
           (needs Rajat's decision on HLD open question 2).
+       7  built: `art` target (targets/art, Canvas 2D "dataflow"); left: its Vercel project
+          thetraversal-t-art and TARGET_ART_ORIGIN, and Rajat's review of the design.
 ```
 
 The repo moves toward the end-state layout one phase at a time. **Only the structure for completed phases exists.** Do not create folders for a later phase unless the task is that phase. Phase definitions and exit criteria: `architecture/MIGRATION.md`.

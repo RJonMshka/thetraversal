@@ -209,6 +209,20 @@ Exit criteria: dashboard shows the visitor's own load of the dashboard as the la
 
 Generative piece driven by the IR (for example: entities as particle emitters, `contains` depth as layer, relations as attractors). `motion: "static-fallback"` renders a single still frame under reduced motion. `a11y: "decorative"` with the accessible list.
 
+Design: **dataflow**. Radial: the root at the center, one ring per `contains` depth, each entity in the middle of an angular slice sized by its leaf count. Particles are born at an emitter (any ancestor, or the focus), flow down the tree along polar spirals, and at the deepest entity with `uses`/`implements` relations are pulled across on a chord bowed toward the center. Color is the category (syntax palette, as in `three`). Not reviewed against alternatives the way Phase 5 was: Rajat to confirm or redirect.
+
+Steps
+- [x] Scaffold `targets/art` (vanilla TS, Canvas 2D, no runtime dependencies). Manifest: `capabilities: []`, `a11y: "decorative"`, `motion: "static-fallback"`, `urlParams: []`, budget 40 KB (33.7 at Phase 7; the federation runtime is 25 of it). Port 5104, MF `tv_art`.
+- [x] Model and layout (`src/model.ts`): contains tree, leaf counts, category, `pulls` per entity; deterministic radial layout.
+- [x] Flow (`src/flow.ts`): seeded routes (mulberry32, seed = FNV-1a of the entity ids, so the piece changes with the content), polar segments down the tree, one Bézier pull. While something is focused, 60% of particles start at the focus and draw in the accent; the rest dim.
+- [x] Renderer (`src/render.ts`): the canvas is cleared every frame and each particle draws the stretch of its route just behind it in four opacity steps, batched into one `Path2D` per color and step. Fading the previous frame was tried first and left 8-bit ghost trails on light themes. Additive blending on dark themes, multiply on light ones. 150 to 900 particles by area (350 with Save-Data or a small screen); 60 fps at 1300 × 850 in headless Chromium.
+- [x] Reduced motion: one still frame of 900 full routes; redrawn on focus, hover, theme and resize, never animated.
+- [x] Interaction: click an emitter to focus (`ctx.nav.focus`), click empty space or Esc / Backspace / ↑ to step out, double-click or Enter to open, Home for the root. A DOM label marks the focus and the hovered entity.
+- [x] Registered in `platform/registry.ts`. The switcher now shows `--target=` only on the active chip from 1280 px (the four chips overlapped the AST's mode chips) and wraps in the entity-list column; the 12 `/t/ast` parity snapshots were re-recorded for it, the diff was the switcher alone.
+- [ ] Vercel project `thetraversal-t-art`, root `targets/art` (`targets/art/vercel.json` is ready), and `TARGET_ART_ORIGIN` on the shell project (Production and Preview). Must exist before this merges: the shell fetches every registered manifest when idle.
+
+Exit criteria: conformance passes (14 passed, 0 failed); switching ast → art keeps the focus and shows the accessible list beside it; reduced motion shows a still frame.
+
 ---
 
 ## Phase 8: `llm` target
