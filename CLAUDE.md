@@ -17,7 +17,8 @@ PHASE: 6a complete; 6b built except the store adapter  (ingest, EventStore seam 
           (needs Rajat's decision on HLD open question 2).
        7  built: `build` target (targets/build, the page written under a devtools overlay:
           <body>, box model, flex, grid, measured meta layer), replacing `art`; registered in the
-          shell. Left: Vercel project thetraversal-t-build and TARGET_BUILD_ORIGIN (Rajat).
+          shell. `metrics` is unlisted until deployed. Left: Vercel project thetraversal-t-build
+          and TARGET_BUILD_ORIGIN (Rajat).
 ```
 
 The repo moves toward the end-state layout one phase at a time. **Only the structure for completed phases exists.** Do not create folders for a later phase unless the task is that phase. Phase definitions and exit criteria: `architecture/MIGRATION.md`.

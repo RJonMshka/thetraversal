@@ -19,3 +19,26 @@ body {
 }
 
 /* Essay and node prose styles live in @tv/tokens/prose.css (.tv-prose). */
+
+/* Outline gate (chrome/OutlineGate.tsx): a loading line while a target
+   loads; the outline after 4 s, on error, or without JS. */
+@keyframes tv-gate-show { to { visibility: visible; } }
+@keyframes tv-gate-hide { to { visibility: hidden; } }
+@keyframes tv-gate-fade-in { from { opacity: 0; } to { opacity: 1; } }
+[data-outline-gate] .tv-gate-outline {
+  visibility: hidden;
+  animation: tv-gate-show 0s linear 4s forwards;
+}
+[data-outline-gate] .tv-gate-loading {
+  position: absolute; inset: 0 0 auto 0; top: 45vh; margin: 0; text-align: center;
+  font-family: var(--mono); font-size: 12px;
+  /* Fast loads never show it: it fades in after 150 ms, and hides when the outline appears. */
+  opacity: 0;
+  animation: tv-gate-fade-in 200ms ease 150ms forwards, tv-gate-hide 0s linear 4s forwards;
+}
+[data-target-state="error"] [data-outline-gate] .tv-gate-outline { visibility: visible; animation: none; }
+[data-target-state="error"] [data-outline-gate] .tv-gate-loading { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  [data-outline-gate] .tv-gate-loading { animation: tv-gate-hide 0s linear 4s forwards; opacity: 1; }
+  [data-outline-gate] .tv-caret-thin { animation: none; }
+}

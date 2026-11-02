@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { FOCUS_PARAM, targetHref } from "@/platform/focus";
 import { prefetchTarget } from "@/platform/prefetch";
 import { switchStarted } from "@/platform/telemetry";
-import { TARGETS, type TargetId } from "@/platform/registry";
+import { LISTED_TARGETS, type TargetId } from "@/platform/registry";
 
 // ── Target switcher (LLD-03 §12) ───────────────────────────────────────
 // `--target=<id>` chips, the visual sibling of the AST mode selector.
@@ -16,12 +16,14 @@ import { TARGETS, type TargetId } from "@/platform/registry";
 /** `compact` shows the id alone even on the active chip (the narrow entity-list column). */
 export function TargetSwitcher({ current, compact = false }: { current: TargetId; compact?: boolean }) {
   const search = useSearchParams();
-  if (TARGETS.length < 2) return null;
+  // An unlisted target still shows its own chip while you are on it.
+  const ids = LISTED_TARGETS.includes(current) ? LISTED_TARGETS : [...LISTED_TARGETS, current];
+  if (ids.length < 2) return null;
   const focus = search.get(FOCUS_PARAM);
 
   return (
     <nav aria-label="Rendering target" className="flex flex-wrap items-center justify-end gap-1.5 font-mono max-sm:gap-1">
-      {TARGETS.map(({ id }) => (
+      {ids.map((id) => (
         <Link
           key={id}
           href={targetHref(id, { focus })}

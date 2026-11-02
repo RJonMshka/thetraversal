@@ -187,7 +187,7 @@ Follow `lld/05-telemetry.md` §7: 6a client pipeline + `live()` + "This session"
 - [x] Privacy and sampling (`platform/telemetry/policy.ts`): GPC or DNT keeps events in the tab; `TELEMETRY_SAMPLE` read at build time. Nothing is sent in 6a: `INGEST_URL` is null until `/api/t` exists.
 - [x] `targets/metrics` (Preact 10, MF `tv_metrics`, port 5103): `capabilities: ["metrics-read"]`, `a11y: "full"`, `motion: "safe"`, budget 60 KB (37.8 at 6a). "This session" table, newest first, with filters, a load breakdown bar, focus handling per LLD-05 §6, and `← <previous target>` / Esc back.
 - [x] Registered in `platform/registry.ts`; the switcher shows `metrics`. Fake shell in `@tv/target-kit` gives metrics targets a scripted session so the harness and conformance run them.
-- [ ] Vercel project `thetraversal-t-metrics`, root `targets/metrics`, and `TARGET_METRICS_ORIGIN` on the shell project (Production and Preview). Must exist before this merges: the shell fetches every registered manifest when idle.
+- [ ] Vercel project `thetraversal-t-metrics`, root `targets/metrics`, and `TARGET_METRICS_ORIGIN` on the shell project (Production and Preview). Until then `metrics` is `unlisted` in the registry (Phase 7): out of the switcher and the idle manifest prefetch, `/t/metrics` still reachable directly. Remove `unlisted` once it is deployed.
 
 6a exit (met; baseline.md "Phase 6a"): after switching from `ast`, the newest row is the dashboard's own `target_load`, with the `ast → metrics` switch under it.
 
@@ -212,7 +212,7 @@ The portfolio as a page being written, for a senior frontend reader: scrolling t
 Replaces the `art` target (Canvas 2D "dataflow", built 2026-11-01, removed 2026-11-02 at Rajat's call before it was deployed; it is in git history at `ad3fa1b`).
 
 Steps
-- [x] Scaffold `targets/build` (vanilla TS, plain DOM and CSS, no runtime dependencies). Manifest: `capabilities: []`, `a11y: "partial"`, `motion: "reduced-variant"`, `urlParams: []`, budget 50 KB (41.1 as built; the federation runtime is 25 of it). Port 5106, MF `tv_build`.
+- [x] Scaffold `targets/build` (vanilla TS, plain DOM and CSS, no runtime dependencies). Manifest: `capabilities: []`, `a11y: "full"` (real DOM text, buttons and keyboard steps; overlays and the invisible layout copies are `aria-hidden`; the typed hero has a screen-reader copy; `</body>` links every top-level node; so no shell entity list beside it, as with `metrics`), `motion: "reduced-variant"`, `urlParams: []`, budget 50 KB (41.2 as built; the federation runtime is 25 of it). Port 5106, MF `tv_build`.
 - [x] Model (`src/model.ts`): hero (root label and summary, then the root's optional `headline`, IR 1.1.0, falling back to the current role), top-level sections as links, identity card, `skills-frontend` children as flex items, projects as grid items with `thetraversal` featured.
 - [x] Timeline (`src/timeline.ts`): each chapter is a pure function of its scroll progress; keyboard stops after every beat. Geometry (`src/geometry.ts`): flex lines, free space, gaps, overflow; grid lines and gutters from the computed track lists.
 - [x] Chapters (`src/chapters.ts`): `01 <body>`, `02 box model`, `03 display: flex`, `04 display: grid` (block → grid → `1fr 1fr` → gap → `repeat(3, 1fr)` → `.featured { grid-column: 1 / -1; grid-row: 1 }`), `05 </body>` (switches to `ast`). Sticky frames inside the target's own scroller. Flex and grid apply the real CSS to an invisible list (what the overlay measures) and move visible copies onto it with transform, width and height, as CSS transitions: layout changes then never count as layout shift. Measured with FLIP on the real items first: 0.13 CLS for flex and 0.28 for grid; with the mirror, 0.015 across all chapters (the box model's own padding and margin moves are the rest).
@@ -222,11 +222,12 @@ Steps
 - [x] `art` removed: workspace, registry entry, dev ports; the 12 `/t/ast` parity snapshots re-recorded (the diff was the switcher alone, four chips to three).
 - [x] Meta layer (`src/meter.ts`): under every panel, what the last step cost in this browser (style, layout, overlay) and the frame's element count; at `</body>`, the target's script (compressed bytes from Resource Timing), elements in the shadow root, total layout work, layout shift since mount (`PerformanceObserver`), first frame; then an Elements-style view of the IR (schema, entity and edge counts, the top level with subtree sizes, each line opening its node).
 - [x] Shell chrome: the header is `--tv-chrome-top` tall with its first row left to the shell's "← root", switcher and ctx (as in `metrics`); the chapter rail is the second row.
+- [x] Loading state: the server outline no longer flashes while a target loads (`OutlineGate`, LLD-03 §9).
 - [x] Registered in `platform/registry.ts`. On phones the switcher and ctx chips are tighter (`.tv-chip-tight`, 8 px side padding) so "← root", four ids and ctx stay on one row; the 12 `/t/ast` parity snapshots were re-recorded (the diff was the switcher alone).
 - [x] Rajat's review of the standalone slice (2026-11-02: approved; title line left as is, customizable through the root's `headline`).
 - [ ] Vercel project `thetraversal-t-build` (root `targets/build`, `vercel.json` is ready) and `TARGET_BUILD_ORIGIN` on the shell project (Production and Preview). Must exist before this merges: the shell fetches every registered manifest when idle.
 
-Exit criteria: conformance passes (14 passed, 0 failed); every overlay number matches the browser's devtools for the same element; switching ast → build keeps the focus and shows the accessible list beside it; reduced motion shows every chapter finished; scrolling the whole page stays under 0.1 CLS.
+Exit criteria: conformance passes (14 passed, 0 failed); every overlay number matches the browser's devtools for the same element; switching ast → build keeps the focus; reduced motion shows every chapter finished; scrolling the whole page stays under 0.1 CLS.
 
 ---
 
