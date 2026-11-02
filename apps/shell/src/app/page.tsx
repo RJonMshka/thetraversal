@@ -1,5 +1,6 @@
 "use client";
 
+import { TelemetryNote } from "@/components/shared/TelemetryNote";
 import { Suspense, useState, useCallback } from "react";
 import Link from "next/link";
 import { Cursor } from "@/components/landing/Cursor";
@@ -336,6 +337,7 @@ export default function LandingPage() {
             chicago · shipping
           </div>
         </div>
+        {process.env.TV_INGEST === "1" && <TelemetryNote className="mt-3" />}
       </div>
 
       {/* No-JS fallback */}

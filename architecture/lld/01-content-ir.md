@@ -73,6 +73,7 @@ export const Entity = z.object({
   label: z.string().min(1),
   summary: z.string().default(""),
   excerpt: z.string().optional(),          // short plain prose, paragraphs split by "\n\n"
+  headline: z.string().optional(),         // one display line under a title (1.1.0)
   tags: z.array(z.string()).default([]),
   stack: z.array(z.string()).default([]), // was meta.params
   links: z.array(Link).default([]),
@@ -241,6 +242,7 @@ No stripping: the inline `content.body` is kept as `Entity.excerpt` and projecte
 ## 9. Versioning
 
 - `IR_SCHEMA_VERSION` follows semver. Adding an optional field or a new `Kind` is minor. Removing or renaming is major and requires a new `/ir/v2/` output path served alongside v1 until every target declares `ir: ">=2"`.
+- History: 1.1.0 added the optional `headline` (the root's is the line under the name in the `build` target's hero; unset, it shows the current role).
 - Adding a new `Kind` is minor for the schema but forces every target with an exhaustive map to handle it. That is intended.
 
 ## 10. Content workflow (for Claude Code)

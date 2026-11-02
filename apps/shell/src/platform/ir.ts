@@ -2,6 +2,7 @@ import type { Graph } from "@tv/ir";
 import { createIRClient } from "@tv/ir/client";
 import irGraph from "@tv/ir/dist/graph.json";
 import irIndex from "@tv/ir/dist/index.json";
+import { track } from "@/platform/telemetry";
 
 // ── The shell's IR (LLD-03 §5) ─────────────────────────────────────────
 // One IRClient over the graph inlined at build time, shared by server
@@ -18,6 +19,13 @@ const bodyPaths: Record<string, string | undefined> = irIndex.bodies;
 export const ir = createIRClient(graph, {
   bodyUrl: (id) => `/ir/v1/${bodyPaths[id] ?? `body/${id}.json`}`,
 });
+
+// The graph is inlined in the bundle, so the IR is ready when this module
+// runs. Its size is measured later, when the pipeline takes the event.
+if (typeof window !== "undefined") {
+  const ms = Math.round(performance.now());
+  track("ir_ready", () => ({ ms, bytes: new TextEncoder().encode(JSON.stringify(irGraph)).length }));
+}
 
 /** Every entity with its depth in the contains tree (root is 0), in DFS order. */
 export function entitiesByDepth(): { id: string; depth: number }[] {

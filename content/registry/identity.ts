@@ -10,6 +10,9 @@ export const IDENTITY: SourceEntity[] = [
     label: "Rajat Kumar",
     summary: "I build systems that think — and think about systems that build.",
     excerpt: "The root node. Everything begins here.",
+    // Optional line under the name in the `build` target's hero. Unset, it
+    // shows the current role ("Capital One · Jul 2023 – Present").
+    // headline: "Senior frontend engineer · Chicago",
     children: ["identity", "projects", "research", "skills", "timeline", "philosophy", "connect"],
   },
   {

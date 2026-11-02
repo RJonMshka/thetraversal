@@ -15,8 +15,8 @@ export const TARGET_PORTS: Readonly<Record<string, number>> = {
   ast: 5101,
   three: 5102,
   metrics: 5103,
-  art: 5104,
   llm: 5105,
+  build: 5106,
 };
 
 export const REMOTE_ENTRY = "remoteEntry.js";

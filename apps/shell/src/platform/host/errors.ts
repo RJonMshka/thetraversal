@@ -1,4 +1,5 @@
 import { TARGET_ERRORS, TargetError, isTargetError, type TargetErrorCode } from "@tv/contract";
+import { track } from "@/platform/telemetry";
 
 // ── Diagnostics (LLD-02 §8) ────────────────────────────────────────────
 // Every failure surfaces as a TargetError with a code, shown to the user
@@ -31,7 +32,20 @@ export function diagnose(err: TargetError): Diagnostic {
   return { code: err.code, title: err.message, note: NOTES[err.code] };
 }
 
+/** Lifecycle phase each code belongs to (LLD-02 §6). */
+const PHASE: Record<TargetErrorCode, string> = {
+  T0001: "resolving",
+  T0002: "resolving",
+  T0003: "resolving",
+  T0004: "loading",
+  T0005: "mounting",
+  T0006: "unmounting",
+  T0007: "running",
+  T0008: "running",
+};
+
 export function reportTargetError(err: TargetError): void {
-  // Telemetry ingest arrives in Phase 6; until then the console is the log.
   console.error(err);
+  // The pipeline replaces msg with its hash before the event is stored.
+  track("target_error", { id: err.target, code: err.code, phase: PHASE[err.code], msg: err.message });
 }

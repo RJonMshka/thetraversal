@@ -4,7 +4,7 @@ import { z } from "zod";
 // The domain-typed entity graph every target reads. AST vocabulary does
 // not appear here; the AST is one projection of it (LLD-01 §7).
 
-export const IR_SCHEMA_VERSION = "1.0.0";
+export const IR_SCHEMA_VERSION = "1.1.0";
 
 export const Kind = z.enum([
   "root", // Rajat Kumar
@@ -44,6 +44,7 @@ export const Entity = z.object({
   label: z.string().min(1),
   summary: z.string().default(""),
   excerpt: z.string().optional(), // short plain-text prose, paragraphs split by "\n\n"
+  headline: z.string().optional(), // one display line under a title, where a target has room for it (1.1.0)
   tags: z.array(z.string()).default([]),
   stack: z.array(z.string()).default([]), // was meta.params
   links: z.array(Link).default([]),

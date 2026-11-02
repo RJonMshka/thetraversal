@@ -1,0 +1,9 @@
+{
+  "extends": "@tv/tsconfig/base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "types": ["vite/client"],
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "include": ["src", "*.ts"]
+}

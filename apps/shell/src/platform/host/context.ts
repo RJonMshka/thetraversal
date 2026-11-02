@@ -1,6 +1,7 @@
 import type {
   Bus,
   ChromeInset,
+  MetricsClient,
   Navigator as TargetNavigator,
   ScopedStorage,
   TargetContext,
@@ -10,6 +11,9 @@ import type {
   ThemeSnapshot,
 } from "@tv/contract";
 import type { IRClient } from "@tv/ir";
+import { live, track } from "@/platform/telemetry";
+import { sending } from "@/platform/telemetry/policy";
+import { reportTargetError, toTargetError } from "@/platform/host/errors";
 
 // ── Context construction (LLD-03 §5) ───────────────────────────────────
 // One TargetContext per mount. Everything a target may touch outside its
@@ -56,6 +60,7 @@ export function clearScopedStorage(id: string): void {
 }
 
 function createTelemetry(id: string): TargetTelemetry {
+  const start = performance.now();
   return {
     mark(name) {
       try {
@@ -63,9 +68,39 @@ function createTelemetry(id: string): TargetTelemetry {
       } catch {
         // Marks are best effort.
       }
+      track(`t.${id}.${name}`, { ms: Math.round(performance.now() - start) });
     },
-    // Ingest arrives with /api/t in Phase 6.
-    event() {},
+    // The pipeline drops invalid names and caps props (LLD-05 §1).
+    event(name, props) {
+      track(`t.${id}.${name}`, { ...props });
+    },
+  };
+}
+
+/** Only for targets that declare "metrics-read" (LLD-02 §2). */
+function createMetrics(id: string, signal: AbortSignal): MetricsClient {
+  return {
+    live(fn) {
+      let off = () => {};
+      off = live((e) => {
+        try {
+          fn(e);
+        } catch (err) {
+          off();
+          reportTargetError(toTargetError(err, id, "T0007"));
+        }
+      });
+      signal.addEventListener("abort", off, { once: true });
+      return off;
+    },
+    get sending() {
+      return sending();
+    },
+    summary(window, ownSignal) {
+      // Ends with the mount, or earlier if the target aborts.
+      const both = ownSignal && typeof AbortSignal.any === "function" ? AbortSignal.any([signal, ownSignal]) : (ownSignal ?? signal);
+      return import("@/platform/telemetry/summary").then((m) => m.fetchSummary(window, both));
+    },
   };
 }
 
@@ -112,5 +147,8 @@ export function buildContext(input: ContextInput): TargetContext {
     storage: createScopedStorage(id),
     telemetry: createTelemetry(id),
     ready: input.ready,
+    ...(input.manifest.capabilities.includes("metrics-read") && {
+      data: Object.freeze({ metrics: createMetrics(id, input.signal) }),
+    }),
   });
 }

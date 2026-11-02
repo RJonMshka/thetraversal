@@ -9,7 +9,7 @@ thetraversal/
   targets/
     ast/                      # Vite + @module-federation/vite, React 19
     three/                    # Vite + @module-federation/vite, vanilla three.js
-    metrics/
+    metrics/                  # Vite + @module-federation/vite, Preact 10 (Phase 6a)
     art/
   packages/
     ir/                       # @tv/ir: schema, compiler, IRClient
@@ -110,7 +110,7 @@ export default defineConfig({
 - Vite runs with `--configLoader runner`: the default loader hands workspace packages to Node, which cannot resolve their extensionless TypeScript imports.
 - Each target compiles its own Tailwind (`src/styles.css` imports `tailwindcss` and `@tv/tokens/tailwind.css`, the theme the shell also uses) and adopts the CSS into its shadow root from a string, so nothing is added to the document. Two shadow-DOM details: fonts are `@theme inline` over `--mono`/`--serif` so the host follows `applyTheme()`, and Tailwind's `@property` fallback is applied unconditionally because `@property` does not register from a shadow root.
 
-Dev ports: `ast 5101`, `three 5102`, `metrics 5103`, `art 5104`, `llm 5105`. Shell dev on `3000`.
+Dev ports: `ast 5101`, `three 5102`, `metrics 5103`, `llm 5105`, `build 5106`. Shell dev on `3000`.
 
 ## 4. Shell config
 
@@ -122,7 +122,7 @@ const ORIGINS: Record<string, string | undefined> = {
   ast:     process.env.TARGET_AST_ORIGIN     ?? "http://localhost:5101",
   three:   process.env.TARGET_THREE_ORIGIN   ?? "http://localhost:5102",
   metrics: process.env.TARGET_METRICS_ORIGIN ?? "http://localhost:5103",
-  art:     process.env.TARGET_ART_ORIGIN     ?? "http://localhost:5104",
+  build:   process.env.TARGET_BUILD_ORIGIN   ?? "http://localhost:5106",
 };
 
 const nextConfig: NextConfig = {
@@ -152,6 +152,7 @@ Targets deploy their `dist/` under a `_t/<id>/` prefix (Vercel `outputDirectory`
 | `thetraversal` (existing) | `apps/shell` | Next.js | thetraversal.vercel.app |
 | `thetraversal-t-ast` | `targets/ast` | Vite (static) | thetraversal-t-ast.vercel.app |
 | `thetraversal-t-three` | `targets/three` | Vite (static) | … |
+| `thetraversal-t-metrics` | `targets/metrics` | Vite (static) | … (create before merging Phase 6a; `targets/metrics/vercel.json` holds build, ignore step and headers) |
 | … | | | |
 
 Each project:
@@ -161,7 +162,7 @@ Each project:
   - `/_t/<id>/assets/*`: `Cache-Control: public, max-age=31536000, immutable`
   - `/_t/<id>/(manifest|mf-manifest).json` and `remoteEntry.js`: `Cache-Control: public, max-age=60, stale-while-revalidate=600`
 
-Shell env vars per environment: `TARGET_<ID>_ORIGIN`. They must be declared in `turbo.json` (`build.env: ["TARGET_*_ORIGIN"]`): Turbo 2 runs tasks in strict env mode, so an undeclared variable never reaches `next build` and the rewrite silently falls back to `localhost`, which Vercel refuses to proxy (`DNS_HOSTNAME_RESOLVED_PRIVATE`). Declaring it also puts it in the build's cache key. Preview deployments of the shell point at production targets by default. To test a target preview end to end, set the env var on a shell preview branch.
+Shell env vars per environment: `TARGET_<ID>_ORIGIN`, plus `TELEMETRY_SAMPLE` and `TELEMETRY_STORE` (LLD-05 §4; build time for the client flag, runtime for the route handlers). They must be declared in `turbo.json` (`build.env: ["TARGET_*_ORIGIN", "TELEMETRY_SAMPLE", "TELEMETRY_STORE"]`): Turbo 2 runs tasks in strict env mode, so an undeclared variable never reaches `next build` and the rewrite silently falls back to `localhost`, which Vercel refuses to proxy (`DNS_HOSTNAME_RESOLVED_PRIVATE`). Declaring it also puts it in the build's cache key. Preview deployments of the shell point at production targets by default. To test a target preview end to end, set the env var on a shell preview branch.
 
 Moving the existing project's root directory to `apps/shell` happens at the Phase 1 merge. Do it on a preview first: create a temporary Vercel project pointed at the branch with root `apps/shell`, confirm, then change the real project's setting and merge in the same window.
 

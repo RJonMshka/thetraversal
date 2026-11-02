@@ -62,7 +62,8 @@ export interface TargetHandle {
 
 // ── Context (§4) ───────────────────────────────────────────────────────
 // `llm` and `data.metrics` join the context with their phases (8 and 6),
-// as optional fields, which is not a breaking change.
+// as optional fields, which is not a breaking change. `data.metrics`
+// arrived in Phase 6a.
 
 export interface TargetContext {
   readonly id: string;
@@ -82,6 +83,9 @@ export interface TargetContext {
 
   /** Call once the first meaningful frame is painted. */
   ready(): void;
+
+  /** Only with capability "metrics-read" (LLD-05 §5). */
+  readonly data?: { readonly metrics?: MetricsClient };
 }
 
 export interface Navigator {
@@ -130,6 +134,94 @@ export interface ScopedStorage {
 export interface TargetTelemetry {
   mark(name: string): void; // namespaced as t.<id>.<name>
   event(name: string, props?: Record<string, string | number | boolean>): void;
+}
+
+// ── Telemetry events and the metrics client (LLD-05 §1, §5) ────────────
+
+export type TelemetryProps = Readonly<Record<string, string | number | boolean>>;
+
+/**
+ * One event as the shell records it. Shell events are `ir_ready`,
+ * `target_load`, `target_switch`, `target_error` and `vital`; target
+ * events are `t.<id>.<name>`. No free-text messages: errors carry a code
+ * and a hash of the message.
+ */
+export interface TelemetryEvent {
+  readonly name: string;
+  /** Wall-clock ms (performance.timeOrigin + performance.now()). */
+  readonly ts: number;
+  /** Session hash: per tab, not linkable across days. */
+  readonly sid: string;
+  /** Target active when the event happened, or null (landing, /node pages). */
+  readonly target: string | null;
+  readonly targetVersion: string | null;
+  readonly shellVersion: string;
+  readonly contentHash: string;
+  readonly device: "desktop" | "mobile" | "tablet";
+  /** navigator.connection.effectiveType, or "unknown". */
+  readonly conn: string;
+  readonly props: TelemetryProps;
+}
+
+/** Whether this tab's events leave the browser, and if not, why. */
+export type TelemetrySending =
+  | { readonly on: true }
+  | { readonly on: false; readonly why: "no-ingest" | "privacy" | "sampled-out" };
+
+export type MetricsWindow = "24h" | "7d" | "30d";
+
+export interface Percentiles {
+  readonly p50: number;
+  readonly p75: number;
+  readonly p95: number;
+}
+
+/** Aggregates over every visitor's events (LLD-05 §5). Times in ms. */
+export interface MetricsSummary {
+  readonly window: MetricsWindow;
+  /** When the aggregate was computed (wall-clock ms). */
+  readonly generatedAt: number;
+  readonly sessions: number;
+  readonly targets: ReadonlyArray<{
+    readonly id: string;
+    readonly loads: number;
+    readonly loadMs: Percentiles;
+    readonly loadBreakdownP75: { readonly manifest: number; readonly entry: number; readonly mount: number; readonly ready: number };
+    /** target_error / target_load, 0..1. */
+    readonly errorRate: number;
+    readonly topErrors: ReadonlyArray<{ readonly code: string; readonly count: number }>;
+  }>;
+  readonly switches: ReadonlyArray<{ readonly from: string; readonly to: string; readonly count: number; readonly p75: number }>;
+  /** `good` is the share (0..1) meeting the Core Web Vitals threshold; null p75 when there are no samples. */
+  readonly vitals: Readonly<Record<"LCP" | "INP" | "CLS", { readonly p75: number | null; readonly good: number; readonly samples: number }>>;
+  /** Hourly buckets for 24h, daily otherwise; `bucket` is an ISO timestamp of the bucket start. */
+  readonly series: ReadonlyArray<{ readonly bucket: string; readonly target: string; readonly p75LoadMs: number }>;
+}
+
+/**
+ * Why `summary()` rejected: no event store is connected ("no-store"), or
+ * the request failed ("unavailable"). The error's `message` is the reason.
+ */
+export type MetricsSummaryError = "no-store" | "unavailable";
+
+/**
+ * Given to targets that declare "metrics-read". Phase 6a shipped the live
+ * view of this tab's events; Phase 6b adds `summary()` over the event
+ * store, optional so a target built now still mounts in an older shell.
+ */
+export interface MetricsClient {
+  /**
+   * This tab's events: first every event already recorded (oldest first,
+   * up to the last 200), then each new one as it happens. Returns an
+   * unsubscribe; the shell also unsubscribes on unmount.
+   */
+  live(fn: (e: TelemetryEvent) => void): () => void;
+  readonly sending: TelemetrySending;
+  /**
+   * Every visitor's events, aggregated over a window. Rejects with an
+   * Error whose message is a MetricsSummaryError. Added in Phase 6b.
+   */
+  summary?(window: MetricsWindow, signal?: AbortSignal): Promise<MetricsSummary>;
 }
 
 // ── Bus (§5) ───────────────────────────────────────────────────────────

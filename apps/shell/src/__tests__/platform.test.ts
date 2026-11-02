@@ -39,6 +39,7 @@ function setup(module: TargetModule, manifest: Partial<TargetManifest> = {}, ext
     manifest: async () => ({ ...MANIFEST, ...manifest }),
     load: async () => module,
     prefetch: () => {},
+    isLoaded: () => false,
   };
   const bus = createBus();
   const abort = new AbortController();
@@ -117,6 +118,20 @@ describe("mountTarget", () => {
     await expect(promise).resolves.toBeDefined();
     expect(warn).toHaveBeenCalledWith("t.ast.late_ready");
     warn.mockRestore();
+  });
+
+  it("reports load timings for a success and the error code for a failure", async () => {
+    const onLoad = vi.fn();
+    const ok = setup({ mount: (_r, ctx) => (ctx.ready(), handle()) }, {}, { onLoad });
+    await ok.promise;
+    expect(onLoad).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: "ast", version: "0.0.0", outcome: "ok", cache: "cold", totalMs: expect.any(Number) })
+    );
+
+    const bad = setup({ mount: () => handle() }, { contract: 2 as typeof CONTRACT_VERSION }, { onLoad });
+    await bad.promise.catch(() => {});
+    expect(onLoad).toHaveBeenLastCalledWith(expect.objectContaining({ outcome: "T0001", entryMs: 0, mountMs: 0 }));
+    expect(onLoad).toHaveBeenCalledTimes(2);
   });
 
   it("unmounts a target that finishes mounting after the mount was cancelled", async () => {

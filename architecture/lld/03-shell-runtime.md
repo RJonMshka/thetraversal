@@ -24,7 +24,8 @@ apps/shell/src/
   app/
     t/[target]/page.tsx        # server: outline + <TargetHost/>
     node/[slug]/page.tsx       # server: entity page from IR
-    api/…
+    api/t/route.ts             # Phase 6b: telemetry ingest
+    api/metrics/summary/route.ts
   platform/
     registry.ts                # static list of target ids + origins
     loader/
@@ -41,7 +42,8 @@ apps/shell/src/
     focus.ts                   # URL <-> focus sync, single writer
     prefetch.ts
     capabilities.ts            # webgl/webgl2/offscreen probes, memoized
-    telemetry.ts               # Phase 6
+    telemetry/                 # Phase 6a: index.ts (first load), pipeline.ts (lazy), policy.ts
+                               # Phase 6b: summary.ts (lazy client), server/ (ingest, store, summarize)
   chrome/
     TargetSwitcher.tsx         # --target=… flag UI, visual sibling of TraversalModeSelector
     ContextWindow.tsx          # moved from components/chrome, now cross-target
@@ -77,7 +79,7 @@ export const TARGETS = [
   { id: "ast",     default: true },
   { id: "three" },
   { id: "metrics" },
-  { id: "art" },
+  { id: "build" },
 ] as const satisfies readonly { id: string; default?: true }[];
 
 export type TargetId = (typeof TARGETS)[number]["id"];
@@ -246,7 +248,7 @@ As built in Phase 5 (`platform/prefetch.ts`): steps 1, 3 and 4, and step 2 for t
 | `TokenStream` | `/tree` page | AST target only (it is a lexer view of the career) |
 | `ContextWindow` | `/tree` page | Shell, cross-target, visible on every `/t/*` route |
 | `TraversalModeSelector` | Tree page | AST target |
-| `TargetSwitcher` | (new) | Shell, same visual language as the mode selector: `--target=ast` (the id alone below 640 px) |
+| `TargetSwitcher` | (new) | Shell, same visual language as the mode selector. Since Phase 7 (four targets; on phones the chips are `.tv-chip-tight` so the top row stays one line): `--target=` only on the active chip and only from 1280 px (it sits beside the AST's mode chips), the id alone elsewhere; chips wrap in the 288 px entity-list column |
 | `AccessibleEntityList` | (new, Phase 5) | Shell, beside targets with `a11y` `partial` or `decorative` |
 | `FocusManager`, `EasterEggOverlays`, `ThemeInitializer` | Layout | Shell, unchanged |
 

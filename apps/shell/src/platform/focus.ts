@@ -45,6 +45,8 @@ export interface NavigatorDeps {
   /** Called before the URL changes so the resulting focus change carries the source. */
   onFocusRequest: (id: string, source: FocusSource) => void;
   onOpen: (id: string) => void;
+  /** A target asked to switch (timed as target_switch). */
+  onSwitch?: (to: string) => void;
 }
 
 export function createNavigator(deps: NavigatorDeps): Navigator {
@@ -66,6 +68,7 @@ export function createNavigator(deps: NavigatorDeps): Navigator {
       deps.push(`/node/${id}`);
     },
     switchTarget(target, opts) {
+      deps.onSwitch?.(target);
       deps.push(targetHref(target, { focus: opts?.focus ?? current().focus }));
     },
     setParam(key, value) {
