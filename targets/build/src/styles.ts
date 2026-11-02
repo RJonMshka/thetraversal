@@ -43,6 +43,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .links a { color: var(--accent); text-decoration: none; }
 .links a:hover, .links a.is-focus { text-decoration: underline; text-underline-offset: 3px; }
 [hidden] { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 .caret { display: inline-block; width: 0.5em; height: 1.05em; margin-left: 1px; vertical-align: -0.15em; background: var(--accent); animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }

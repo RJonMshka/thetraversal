@@ -117,10 +117,13 @@ export function docChapter(model: BuildModel, act: Actions, meter: Meter, touch:
   const caret = h("span", "caret");
   caret.setAttribute("aria-hidden", "true");
   body.append(h1, summary, now, nav);
+  // The hero is typed in as you scroll; assistive tech gets it whole, at once.
+  for (const el of [h1, summary, now]) el.setAttribute("aria-hidden", "true");
+  const spoken = h("div", "sr", h("h1", "", model.name), h("p", "", model.summary), model.now ? h("p", "", model.now) : null);
   // Until the first scroll: the page is empty on purpose, so say what moves it.
   const cue = h("p", "cue", h("span", "mouse"), h("span", "kw", touch ? "swipe up" : "scroll"), " to write this page", h("span", "sub", touch ? "it builds itself as you go" : "or press ↓ / space, one step at a time"));
   cue.setAttribute("aria-hidden", "true");
-  f.page.append(body, f.ov, cue);
+  f.page.append(spoken, body, f.ov, cue);
 
   const nodes = { h1, summary, now, nav } as const;
   const text = { h1: model.name, summary: model.summary, now: model.now, nav: "" };

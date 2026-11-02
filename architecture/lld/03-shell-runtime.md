@@ -78,7 +78,7 @@ Phase 5 (second target, `three`):
 export const TARGETS = [
   { id: "ast",     default: true },
   { id: "three" },
-  { id: "metrics" },
+  { id: "metrics", unlisted: true },
   { id: "build" },
 ] as const satisfies readonly { id: string; default?: true }[];
 
@@ -87,7 +87,7 @@ export type TargetId = (typeof TARGETS)[number]["id"];
 
 Origins are not in code. `next.config.ts` maps `/_t/<id>/:path*` to `process.env.TARGET_<ID>_ORIGIN`. In dev, origins default to `http://localhost:51xx`.
 
-Adding a target needs one registry line and one env var (shell deploy). Updating a target needs only the target's deploy, because the shell reads `manifest.json` at runtime.
+Adding a target needs one registry line and one env var (shell deploy). A target that is built but not deployed is `unlisted: true`: `/t/<id>` works when typed or linked, but the switcher does not offer it (except as the current chip while you are on it) and the shell does not prefetch its manifest. Updating a target needs only the target's deploy, because the shell reads `manifest.json` at runtime.
 
 ## 4. Loader
 
@@ -224,7 +224,9 @@ Shell-store entries are `{ id, label, kind, visitedAt }` under `tv.shell.travers
 </section>
 ```
 
-The host removes the outline after the target signals ready. Effects: crawlers and no-JS clients get full structure and links on every target URL; first paint is meaningful text instead of an empty canvas; the outline doubles as the fallback of last resort.
+The host removes the outline after the target signals ready. Effects: crawlers and no-JS clients get full structure and links on every target URL; the outline doubles as the fallback of last resort.
+
+Since Phase 7 the outline sits in `<OutlineGate>` (`chrome/OutlineGate.tsx`): it is always in the HTML but hidden while a target loads, and a quiet `loading --target=<id>` line (fading in after 150 ms, so fast loads show nothing) stands in. Showing it as first paint flashed the whole portfolio as a list on every load and switch. CSS alone decides, so it holds before hydration and under `script-src 'self'`: the outline reveals itself after 4 s if the target is still loading, at once when the host sets `data-target-state="error"`, and at once without JS (a `<noscript>` style).
 
 ## 10. Errors and isolation
 

@@ -14,9 +14,10 @@ export default defineTarget({
   capabilities: [],
   budget: { jsKbGz: 50 },
   urlParams: [],
-  // Real text in the DOM, but only a slice of the entities: the shell
-  // renders AccessibleEntityList beside it.
-  a11y: "partial",
+  // Real DOM text, buttons and keyboard steps; overlays and the invisible
+  // layout copies are aria-hidden, the typed hero has a screen-reader copy,
+  // and </body> links every top-level node. No shell entity list beside it.
+  a11y: "full",
   // Reduced motion: every chapter in its finished state, no scrubbing.
   motion: "reduced-variant",
 });

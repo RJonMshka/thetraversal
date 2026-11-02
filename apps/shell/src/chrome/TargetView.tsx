@@ -11,7 +11,7 @@ import { TargetHost } from "@/platform/host/TargetHost";
 import { FOCUS_PARAM, pickParams, resolveFocus, targetHref } from "@/platform/focus";
 import { loader } from "@/platform/loader";
 import { prefetchManifests } from "@/platform/prefetch";
-import { TARGETS, type TargetId } from "@/platform/registry";
+import { LISTED_TARGETS, type TargetId } from "@/platform/registry";
 import { useShellStore } from "@/state/shell-store";
 import { preloadable, usePreloadWhenIdle } from "@/lib/preloadable";
 import { TargetSwitcher } from "@/chrome/TargetSwitcher";
@@ -50,7 +50,7 @@ export function TargetView({ targetId, children }: { targetId: TargetId; childre
   const [contextSeen, setContextSeen] = useState(false);
   if (contextOpen && !contextSeen) setContextSeen(true);
   usePreloadWhenIdle(ContextWindowLazy.preload, EntityListLazy.preload);
-  useEffect(() => prefetchManifests(TARGETS.map((t) => t.id)), []);
+  useEffect(() => prefetchManifests(LISTED_TARGETS), []);
   // /node pages link back to the target the visitor came from.
   useEffect(() => useShellStore.getState().setLastTarget(targetId), [targetId]);
 
