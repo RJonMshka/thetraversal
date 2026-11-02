@@ -205,23 +205,28 @@ Exit criteria: dashboard shows the visitor's own load of the dashboard as the la
 
 ---
 
-## Phase 7: `art` target
+## Phase 7: `build` target
 
-Generative piece driven by the IR (for example: entities as particle emitters, `contains` depth as layer, relations as attractors). `motion: "static-fallback"` renders a single still frame under reduced motion. `a11y: "decorative"` with the accessible list.
+The portfolio as a page being written, for a senior frontend reader: scrolling types elements into `<body>`, scrubs the box model in, lays the frontend skills out one flex declaration at a time, then the projects on a grid. A devtools-style overlay (element highlight with its real size, box-model rings, flex free space and gaps, overflow, grid lines with positive and negative numbers and gutters) and panel (Elements source, Styles rule with the changing line highlighted, box-model diagram, a one-line note per step) are drawn from live layout measurements. A target rather than a new landing at `/`, so invariant 1 (the terminal void) stays.
 
-Design: **dataflow**. Radial: the root at the center, one ring per `contains` depth, each entity in the middle of an angular slice sized by its leaf count. Particles are born at an emitter (any ancestor, or the focus), flow down the tree along polar spirals, and at the deepest entity with `uses`/`implements` relations are pulled across on a chord bowed toward the center. Color is the category (syntax palette, as in `three`). Not reviewed against alternatives the way Phase 5 was: Rajat to confirm or redirect.
+Replaces the `art` target (Canvas 2D "dataflow", built 2026-11-01, removed 2026-11-02 at Rajat's call before it was deployed; it is in git history at `ad3fa1b`).
 
 Steps
-- [x] Scaffold `targets/art` (vanilla TS, Canvas 2D, no runtime dependencies). Manifest: `capabilities: []`, `a11y: "decorative"`, `motion: "static-fallback"`, `urlParams: []`, budget 40 KB (33.7 at Phase 7; the federation runtime is 25 of it). Port 5104, MF `tv_art`.
-- [x] Model and layout (`src/model.ts`): contains tree, leaf counts, category, `pulls` per entity; deterministic radial layout.
-- [x] Flow (`src/flow.ts`): seeded routes (mulberry32, seed = FNV-1a of the entity ids, so the piece changes with the content), polar segments down the tree, one Bézier pull. While something is focused, 60% of particles start at the focus and draw in the accent; the rest dim.
-- [x] Renderer (`src/render.ts`): the canvas is cleared every frame and each particle draws the stretch of its route just behind it in four opacity steps, batched into one `Path2D` per color and step. Fading the previous frame was tried first and left 8-bit ghost trails on light themes. Additive blending on dark themes, multiply on light ones. 150 to 900 particles by area (350 with Save-Data or a small screen); 60 fps at 1300 × 850 in headless Chromium.
-- [x] Reduced motion: one still frame of 900 full routes; redrawn on focus, hover, theme and resize, never animated.
-- [x] Interaction: click an emitter to focus (`ctx.nav.focus`), click empty space or Esc / Backspace / ↑ to step out, double-click or Enter to open, Home for the root. A DOM label marks the focus and the hovered entity.
-- [x] Registered in `platform/registry.ts`. The switcher now shows `--target=` only on the active chip from 1280 px (the four chips overlapped the AST's mode chips) and wraps in the entity-list column; the 12 `/t/ast` parity snapshots were re-recorded for it, the diff was the switcher alone.
-- [ ] Vercel project `thetraversal-t-art`, root `targets/art` (`targets/art/vercel.json` is ready), and `TARGET_ART_ORIGIN` on the shell project (Production and Preview). Must exist before this merges: the shell fetches every registered manifest when idle.
+- [x] Scaffold `targets/build` (vanilla TS, plain DOM and CSS, no runtime dependencies). Manifest: `capabilities: []`, `a11y: "partial"`, `motion: "reduced-variant"`, `urlParams: []`, budget 50 KB (41.1 as built; the federation runtime is 25 of it). Port 5106, MF `tv_build`.
+- [x] Model (`src/model.ts`): hero (root label and summary, then the root's optional `headline`, IR 1.1.0, falling back to the current role), top-level sections as links, identity card, `skills-frontend` children as flex items, projects as grid items with `thetraversal` featured.
+- [x] Timeline (`src/timeline.ts`): each chapter is a pure function of its scroll progress; keyboard stops after every beat. Geometry (`src/geometry.ts`): flex lines, free space, gaps, overflow; grid lines and gutters from the computed track lists.
+- [x] Chapters (`src/chapters.ts`): `01 <body>`, `02 box model`, `03 display: flex`, `04 display: grid` (block → grid → `1fr 1fr` → gap → `repeat(3, 1fr)` → `.featured { grid-column: 1 / -1; grid-row: 1 }`), `05 </body>` (switches to `ast`). Sticky frames inside the target's own scroller. Flex and grid apply the real CSS to an invisible list (what the overlay measures) and move visible copies onto it with transform, width and height, as CSS transitions: layout changes then never count as layout shift. Measured with FLIP on the real items first: 0.13 CLS for flex and 0.28 for grid; with the mirror, 0.015 across all chapters (the box model's own padding and margin moves are the rest).
+- [x] Scroll affordance: a cue on the empty first page ("scroll to write this page", "swipe up" on touch) until the first scroll, a progress bar under the chapter rail, and the key hints in the caption.
+- [x] Navigation: scroll, or ↓/↑ (j/k, Space, PageUp/PageDown) one beat at a time without focusing anything first, 1–5 for chapters, a clickable chapter rail. Click an item to focus it, double-click or Enter to open, Esc/Backspace steps focus out. Section links open their node.
+- [x] Reduced motion: every chapter rendered finished, sections at natural height, no scrubbing or FLIP. Phones: panel below the page, half the box-model spacing, 8 flex items, two grid tracks.
+- [x] `art` removed: workspace, registry entry, dev ports; the 12 `/t/ast` parity snapshots re-recorded (the diff was the switcher alone, four chips to three).
+- [x] Meta layer (`src/meter.ts`): under every panel, what the last step cost in this browser (style, layout, overlay) and the frame's element count; at `</body>`, the target's script (compressed bytes from Resource Timing), elements in the shadow root, total layout work, layout shift since mount (`PerformanceObserver`), first frame; then an Elements-style view of the IR (schema, entity and edge counts, the top level with subtree sizes, each line opening its node).
+- [x] Shell chrome: the header is `--tv-chrome-top` tall with its first row left to the shell's "← root", switcher and ctx (as in `metrics`); the chapter rail is the second row.
+- [x] Registered in `platform/registry.ts`. On phones the switcher and ctx chips are tighter (`.tv-chip-tight`, 8 px side padding) so "← root", four ids and ctx stay on one row; the 12 `/t/ast` parity snapshots were re-recorded (the diff was the switcher alone).
+- [x] Rajat's review of the standalone slice (2026-11-02: approved; title line left as is, customizable through the root's `headline`).
+- [ ] Vercel project `thetraversal-t-build` (root `targets/build`, `vercel.json` is ready) and `TARGET_BUILD_ORIGIN` on the shell project (Production and Preview). Must exist before this merges: the shell fetches every registered manifest when idle.
 
-Exit criteria: conformance passes (14 passed, 0 failed); switching ast → art keeps the focus and shows the accessible list beside it; reduced motion shows a still frame.
+Exit criteria: conformance passes (14 passed, 0 failed); every overlay number matches the browser's devtools for the same element; switching ast → build keeps the focus and shows the accessible list beside it; reduced motion shows every chapter finished; scrolling the whole page stays under 0.1 CLS.
 
 ---
 

@@ -476,3 +476,12 @@ Conformance: `metrics` 14 passed, `art` 14 passed, `ast` 12 passed (2 warnings, 
 ### Parity
 
 - The 12 `/t/ast` snapshots were re-recorded for the switcher (four chips; `--target=` on the active chip only). The diff was the switcher alone. 28 pass.
+
+## Phase 7, revised: `build` replaces `art` (2026-11-02)
+
+Branch `platform/phase-7`. Local production builds. `art` was removed before it was deployed (the numbers above are its record); `build` is registered in its place.
+
+- `build` as built (four chapters and the meta layer): 41.1 KB gz, budget 50 (raised from 40; the federation runtime is 25 of it). Conformance 14 passed, 2 manual (reduced-motion variant and pointer focus, checked in the harness and with Playwright at 1400 × 860 and 390 × 800, and in the production shell at 1440 × 900 and 390 × 844).
+- Layout shift while scrolling the whole page (headless Chromium, 1400 × 860): 0.015. With FLIP on the real items it was 0.43 (flex 0.13, grid 0.28); the flex and grid chapters now lay out an invisible list and move visible copies with transforms.
+- Shell first-load after registering `build`: `/` 175.8, `/t/ast` 182.6 (app 34.9 of 35), `/node/*` 164.9.
+- Parity: the 12 `/t/ast` snapshots re-recorded for the switcher (`art` out, `build` in, tighter chips on phones so the top row stays one line). The diff was the switcher alone. 28 pass.

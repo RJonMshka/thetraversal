@@ -90,7 +90,7 @@ export function TargetView({ targetId, children }: { targetId: TargetId; childre
       <button
         type="button"
         onClick={toggleContext}
-        className="tv-chip"
+        className="tv-chip tv-chip-tight"
         data-on={contextOpen ? "true" : undefined}
         style={{ cursor: "pointer" }}
         aria-pressed={contextOpen}
@@ -158,7 +158,7 @@ export function TargetView({ targetId, children }: { targetId: TargetId; childre
         >
           ← root
         </Link>
-        <div className={cn("pointer-events-auto flex items-center gap-2", withList && "lg:hidden")}>{controls(false)}</div>
+        <div className={cn("pointer-events-auto flex items-center gap-2 max-sm:gap-1", withList && "lg:hidden")}>{controls(false)}</div>
       </div>
 
       {/* Context window, below the target's header */}

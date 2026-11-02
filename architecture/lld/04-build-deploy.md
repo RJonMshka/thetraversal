@@ -110,7 +110,7 @@ export default defineConfig({
 - Vite runs with `--configLoader runner`: the default loader hands workspace packages to Node, which cannot resolve their extensionless TypeScript imports.
 - Each target compiles its own Tailwind (`src/styles.css` imports `tailwindcss` and `@tv/tokens/tailwind.css`, the theme the shell also uses) and adopts the CSS into its shadow root from a string, so nothing is added to the document. Two shadow-DOM details: fonts are `@theme inline` over `--mono`/`--serif` so the host follows `applyTheme()`, and Tailwind's `@property` fallback is applied unconditionally because `@property` does not register from a shadow root.
 
-Dev ports: `ast 5101`, `three 5102`, `metrics 5103`, `art 5104`, `llm 5105`. Shell dev on `3000`.
+Dev ports: `ast 5101`, `three 5102`, `metrics 5103`, `llm 5105`, `build 5106`. Shell dev on `3000`.
 
 ## 4. Shell config
 
@@ -122,7 +122,7 @@ const ORIGINS: Record<string, string | undefined> = {
   ast:     process.env.TARGET_AST_ORIGIN     ?? "http://localhost:5101",
   three:   process.env.TARGET_THREE_ORIGIN   ?? "http://localhost:5102",
   metrics: process.env.TARGET_METRICS_ORIGIN ?? "http://localhost:5103",
-  art:     process.env.TARGET_ART_ORIGIN     ?? "http://localhost:5104",
+  build:   process.env.TARGET_BUILD_ORIGIN   ?? "http://localhost:5106",
 };
 
 const nextConfig: NextConfig = {

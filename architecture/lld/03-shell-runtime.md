@@ -79,7 +79,7 @@ export const TARGETS = [
   { id: "ast",     default: true },
   { id: "three" },
   { id: "metrics" },
-  { id: "art" },
+  { id: "build" },
 ] as const satisfies readonly { id: string; default?: true }[];
 
 export type TargetId = (typeof TARGETS)[number]["id"];
@@ -248,7 +248,7 @@ As built in Phase 5 (`platform/prefetch.ts`): steps 1, 3 and 4, and step 2 for t
 | `TokenStream` | `/tree` page | AST target only (it is a lexer view of the career) |
 | `ContextWindow` | `/tree` page | Shell, cross-target, visible on every `/t/*` route |
 | `TraversalModeSelector` | Tree page | AST target |
-| `TargetSwitcher` | (new) | Shell, same visual language as the mode selector. Since Phase 7 (four targets): `--target=` only on the active chip and only from 1280 px (it sits beside the AST's mode chips), the id alone elsewhere; chips wrap in the 288 px entity-list column |
+| `TargetSwitcher` | (new) | Shell, same visual language as the mode selector. Since Phase 7 (four targets; on phones the chips are `.tv-chip-tight` so the top row stays one line): `--target=` only on the active chip and only from 1280 px (it sits beside the AST's mode chips), the id alone elsewhere; chips wrap in the 288 px entity-list column |
 | `AccessibleEntityList` | (new, Phase 5) | Shell, beside targets with `a11y` `partial` or `decorative` |
 | `FocusManager`, `EasterEggOverlays`, `ThemeInitializer` | Layout | Shell, unchanged |
 

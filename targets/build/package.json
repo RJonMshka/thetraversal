@@ -1,6 +1,6 @@
 {
-  "name": "@tv/target-art",
-  "version": "1.0.0",
+  "name": "@tv/target-build",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {

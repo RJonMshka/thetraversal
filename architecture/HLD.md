@@ -10,7 +10,7 @@
 
 ## 1. Intent
 
-The Traversal today is one rendering of one tree: portfolio content shaped as an AST and walked in three depths (`lex`, `parse`, `eval`). This document describes how it becomes a platform where the same content is traversed in different domains: the AST, a 3D space, a live metrics dashboard, a generative art piece, and later an LLM conversation. Each domain is an independently built and deployed frontend, loaded on demand, switched without a page reload, and landing on the same focused entity.
+The Traversal today is one rendering of one tree: portfolio content shaped as an AST and walked in three depths (`lex`, `parse`, `eval`). This document describes how it becomes a platform where the same content is traversed in different domains: the AST, a 3D space, a live metrics dashboard, the page assembling itself under a devtools overlay, and later an LLM conversation. Each domain is an independently built and deployed frontend, loaded on demand, switched without a page reload, and landing on the same focused entity.
 
 The name, the landing experience, and the AST flavor stay. The AST stops being the data model and becomes the first of several targets.
 
@@ -23,7 +23,7 @@ The architecture is a compiler, which is the site's own metaphor taken literally
 | Source | Content registries + MDX | `content/` |
 | Lexer + parser | Content compiler (validates, links, hashes) | `packages/ir` |
 | IR | Typed entity graph (`graph.json`) + lazy bodies | build output, served by shell |
-| Codegen targets | Targets: `ast`, `three`, `metrics`, `art`, `llm` | `targets/*` |
+| Codegen targets | Targets: `ast`, `three`, `metrics`, `build`, `llm` | `targets/*` |
 | Runtime | Shell: loads IR, loads targets, owns URL, focus, theme, chrome | `apps/shell` |
 | ABI | Target contract (`mount / setFocus / unmount`) | `packages/contract` |
 
@@ -45,7 +45,7 @@ flowchart LR
     S -->|mount el, ctx| T1[target: ast]
     S -->|mount el, ctx| T2[target: three]
     S -->|mount el, ctx| T3[target: metrics]
-    S -->|mount el, ctx| T4[target: art]
+    S -->|mount el, ctx| T4[target: build]
     S -.later.-> T5[target: llm]
   end
 
@@ -75,7 +75,7 @@ flowchart LR
 | `ast` | React 19, D3 (layout only), Framer Motion | The existing site survives extraction intact | 3 (local), 4 (remote) |
 | `three` | Vanilla three.js, no framework | Contract is framework-agnostic; WebGL lifecycle discipline | 5 |
 | `metrics` | Preact or Svelte, uPlot | The platform observing itself; Datadog-style RUM as a live artifact | 6 |
-| `art` | Canvas 2D or WebGL shaders | Expressive range; reduced-motion handling | 7 |
+| `build` | Vanilla TS, plain DOM and CSS | The craft itself: the page assembles under a devtools overlay drawn from real layout measurements; reduced-motion handling | 7 |
 | `llm` | Any, server route to Claude API | IR as retrieval corpus; a target that drives other targets | 8 |
 
 ## 5. Runtime flows
@@ -155,7 +155,7 @@ Phases are detailed in `MIGRATION.md`. Each phase ships to production on its own
 | 4 | AST extracted to `targets/ast`, federated, deployed independently |
 | 5 | `three` target |
 | 6 | Telemetry + `metrics` target |
-| 7 | `art` target |
+| 7 | `build` target (replaced `art`) |
 | 8 | `llm` target |
 
 ## 10. Open questions
@@ -163,4 +163,4 @@ Phases are detailed in `MIGRATION.md`. Each phase ships to production on its own
 1. Should the landing (`/`) offer target choice, or stay single-cursor and expose targets only from the tree chrome? Current invariant says nothing auto-unfolds, which argues for the latter.
 2. Telemetry store: Supabase Postgres (percentiles in SQL) vs Upstash Redis (cheaper, harder aggregates). LLD-05 assumes Supabase.
 3. Whether `docs/CONTENT-v2.md` (local, gitignored) remains the editorial source, or `content/` becomes the only source.
-4. Target ids are permanent URL segments. Confirm `ast`, `three`, `metrics`, `art`, `llm` before Phase 3.
+4. Target ids are permanent URL segments. Confirm `ast`, `three`, `metrics`, `art`, `llm` before Phase 3. (`art` was replaced by `build` in Phase 7.)

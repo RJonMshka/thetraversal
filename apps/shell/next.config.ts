@@ -8,7 +8,7 @@ import { TARGETS } from "./src/platform/registry";
 /** TELEMETRY_STORE values with an adapter in platform/telemetry/server/store.ts. */
 const STORE_ADAPTERS = ["memory"];
 
-const DEV_PORTS: Record<string, number> = { ast: 5101, three: 5102, metrics: 5103, art: 5104, llm: 5105 };
+const DEV_PORTS: Record<string, number> = { ast: 5101, three: 5102, metrics: 5103, llm: 5105, build: 5106 };
 
 function targetOrigin(id: string): string {
   const fromEnv = process.env[`TARGET_${id.toUpperCase()}_ORIGIN`];

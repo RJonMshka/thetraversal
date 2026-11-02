@@ -20,12 +20,13 @@ export function TargetSwitcher({ current, compact = false }: { current: TargetId
   const focus = search.get(FOCUS_PARAM);
 
   return (
-    <nav aria-label="Rendering target" className="flex flex-wrap items-center justify-end gap-1.5 font-mono">
+    <nav aria-label="Rendering target" className="flex flex-wrap items-center justify-end gap-1.5 font-mono max-sm:gap-1">
       {TARGETS.map(({ id }) => (
         <Link
           key={id}
           href={targetHref(id, { focus })}
-          className="tv-chip"
+          // Phones: tighter chips so ← root, four ids and ctx share one row.
+          className="tv-chip tv-chip-tight"
           data-on={id === current ? "true" : undefined}
           aria-current={id === current ? "page" : undefined}
           onPointerEnter={() => id !== current && prefetchTarget(id)}
