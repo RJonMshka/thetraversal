@@ -82,7 +82,7 @@ export default function LandingPage() {
         <div className="flex items-center justify-between">
           <div style={{ fontSize: 11, color: "var(--text-faint)", letterSpacing: "0.16em" }}>
             TRAVERSAL · v2.0 · BUILD{" "}
-            <span style={{ color: "var(--accent)" }}>2026.08</span>
+            <span style={{ color: "var(--accent)" }}>2026.11</span>
           </div>
 
           <div className="flex items-center gap-3">

@@ -407,8 +407,8 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
             {/* Prompt glyph */}
             <span style={{ color: "var(--accent)", lineHeight: 1, userSelect: "none" }}>›</span>
 
-            {/* Text input area */}
-            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+            {/* Text input area: fixed height so the first character does not grow the row */}
+            <div style={{ position: "relative", display: "flex", alignItems: "center", height: 20, lineHeight: "20px" }}>
               {/* Hidden real input — captures all keystrokes */}
               <input
                 ref={inputRef}
