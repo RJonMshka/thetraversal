@@ -486,3 +486,11 @@ Branch `platform/phase-7`. Local production builds. `art` was removed before it 
 - Shell first-load after registering `build`: `/` 175.8, `/t/ast` 182.6 (app 34.9 of 35), `/node/*` 164.9.
 - Parity: the 12 `/t/ast` snapshots re-recorded for the switcher (`art` out, `build` in, `metrics` unlisted, tighter chips on phones). The diff was the switcher alone. 28 pass.
 - `build` is `a11y: "full"` (conformance 14 passed, 1 manual). Loading state checked in the production shell: a throttled switch shows `loading --target=build` and no outline; `/t/metrics` with no server shows the T0004 diagnostic and the outline at once; with JS off the outline shows immediately.
+
+## Landing: flavors and an IR-aware prompt (2026-11-02)
+
+Branch `platform/phase-7`. Local production build.
+
+- `/` 178.8 KB gz (app 27.6, was 24.7). `/t/ast` 182.6 (app 34.9, unchanged). `/node/*` 164.9.
+- A first version prefetched target code on hover through `import("@/platform/prefetch")`. That moved shared loader code into `/t/ast` (app 35.0, over budget), so it was removed.
+- Parity: the 4 landing snapshots were re-recorded (flavor picker replaces the static tree preview, try chips, section links, linked stream).

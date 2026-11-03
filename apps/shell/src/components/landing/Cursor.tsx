@@ -3,15 +3,19 @@
 import { useState, useEffect, useRef, useCallback, useId } from "react";
 import { useRouter } from "next/navigation";
 import { getEasterEgg, isNavigationCommand, type EasterEggResult } from "@/lib/easter-eggs";
-import {
-  THEMES,
-  FONTS,
-  loadPersistedTheme,
-  applyTheme,
-  parseThemeCmd,
-  type ThemeName,
-  type FontName,
-} from "@tv/tokens";
+import { THEMES, FONTS, parseThemeCmd, type ThemeName, type FontName } from "@tv/tokens";
+import { completeIR, runIRCommand } from "@/lib/prompt-commands";
+import { setTheme, useTheme } from "@/lib/theme-sync";
+
+// Shown under the empty prompt: one click runs each, so a visitor who
+// never types still finds every way in.
+const TRY = ["help", "ls", "cd reachble", "--target=three", "theme amber"];
+
+interface Suggestion {
+  name: string;
+  hint: string;
+  swatch?: { bg: string; accent: string };
+}
 
 interface HistoryEntry {
   input: string;
@@ -68,15 +72,13 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
   const [cursorPos, setCursorPos] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isActive, setIsActive] = useState(true);
-  const [showHint, setShowHint] = useState(false);
-  const [activeTheme, setActiveTheme] = useState<ThemeName>("mint");
-  const [activeFont, setActiveFont] = useState<FontName>("mono");
+  const { theme: activeTheme, font: activeFont } = useTheme();
 
-  // Autocomplete state
+  // Autocomplete state. `acPrefix` is what a chosen name is appended to.
   const [acOpen, setAcOpen] = useState(false);
-  const [acSuggestions, setAcSuggestions] = useState<string[]>([]);
+  const [acSuggestions, setAcSuggestions] = useState<Suggestion[]>([]);
   const [acIndex, setAcIndex] = useState(0);
-  const [acIsTheme, setAcIsTheme] = useState(true);
+  const [acPrefix, setAcPrefix] = useState("");
 
   // Inline echo state
   const [isEchoing, setIsEchoing] = useState(false);
@@ -88,34 +90,17 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
   const echoIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const echoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load persisted theme
-  useEffect(() => {
-    const { theme, font } = loadPersistedTheme();
-    setActiveTheme(theme);
-    setActiveFont(font);
-  }, []);
-
-  // Show non-dev hint after 3 s
-  useEffect(() => {
-    const t = setTimeout(() => setShowHint(true), 3000);
-    return () => clearTimeout(t);
-  }, []);
-
   // Live-apply theme as user types a valid command
   useEffect(() => {
     if (!input.trim()) return;
     const cmd = parseThemeCmd(input);
     if (!cmd.valid) return;
     if (cmd.type === "theme" && cmd.theme && cmd.theme !== activeTheme) {
-      applyTheme(cmd.theme, activeFont);
-      setActiveTheme(cmd.theme);
+      setTheme({ theme: cmd.theme });
     } else if (cmd.type === "font" && cmd.font && cmd.font !== activeFont) {
-      applyTheme(activeTheme, cmd.font);
-      setActiveFont(cmd.font);
+      setTheme({ font: cmd.font });
     } else if (cmd.type === "reset") {
-      applyTheme("mint", "mono");
-      setActiveTheme("mint");
-      setActiveFont("mono");
+      setTheme({ theme: "mint", font: "mono" });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input]);
@@ -123,28 +108,28 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
   // Update autocomplete suggestions when input changes
   useEffect(() => {
     const cmd = parseThemeCmd(input);
-    if (cmd.type === "theme-pending") {
-      setAcSuggestions(Object.keys(THEMES));
-      setAcIsTheme(true);
+    const open = (prefix: string, items: Suggestion[]) => {
+      setAcSuggestions(items);
+      setAcPrefix(prefix);
       setAcOpen(true);
       setAcIndex(0);
-    } else if (cmd.type === "theme-typing" && cmd.suggest?.length) {
-      setAcSuggestions(cmd.suggest);
-      setAcIsTheme(true);
-      setAcOpen(true);
-      setAcIndex(0);
-    } else if (cmd.type === "font-pending") {
-      setAcSuggestions(Object.keys(FONTS));
-      setAcIsTheme(false);
-      setAcOpen(true);
-      setAcIndex(0);
-    } else if (cmd.type === "font-typing" && cmd.suggest?.length) {
-      setAcSuggestions(cmd.suggest);
-      setAcIsTheme(false);
-      setAcOpen(true);
-      setAcIndex(0);
-    } else {
-      setAcOpen(false);
+    };
+    const themes = (names: string[]) =>
+      names.map((n) => {
+        const t = THEMES[n as ThemeName];
+        return { name: n, hint: t.label.split(" · ")[1] ?? t.label, swatch: { bg: t.bg, accent: t.accent } };
+      });
+    const fonts = (names: string[]) =>
+      names.map((n) => ({ name: n, hint: FONTS[n as FontName].label.split(" · ")[1] ?? n }));
+
+    if (cmd.type === "theme-pending") open("theme ", themes(Object.keys(THEMES)));
+    else if (cmd.type === "theme-typing" && cmd.suggest?.length) open("theme ", themes(cmd.suggest));
+    else if (cmd.type === "font-pending") open("font ", fonts(Object.keys(FONTS)));
+    else if (cmd.type === "font-typing" && cmd.suggest?.length) open("font ", fonts(cmd.suggest));
+    else {
+      const ir = completeIR(input);
+      if (ir) open(ir.prefix, ir.items);
+      else setAcOpen(false);
     }
   }, [input]);
 
@@ -153,7 +138,7 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [history, echoText, isEchoing]);
+  }, [history, echoText, isEchoing, acOpen, acSuggestions]);
 
   // Focus input on mount
   useEffect(() => { inputRef.current?.focus(); }, []);
@@ -193,6 +178,7 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
     // theme / font / reset — inline echo animation
     const themeCmd = parseThemeCmd(trimmed);
     if (themeCmd.type === "theme" && themeCmd.theme) {
+      setTheme({ theme: themeCmd.theme });
       const confirmText = `✓ theme set: ${themeCmd.theme} · ${THEMES[themeCmd.theme].label}`;
       startEcho(confirmText, () => {
         setHistory(prev => [...prev, { input: trimmed, output: { type: "text", content: confirmText } }]);
@@ -205,6 +191,7 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
       return;
     }
     if (themeCmd.type === "font" && themeCmd.font) {
+      setTheme({ font: themeCmd.font });
       const confirmText = `✓ font set: ${themeCmd.font} · ${FONTS[themeCmd.font].label}`;
       startEcho(confirmText, () => {
         setHistory(prev => [...prev, { input: trimmed, output: { type: "text", content: confirmText } }]);
@@ -217,6 +204,7 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
       return;
     }
     if (themeCmd.type === "reset") {
+      setTheme({ theme: "mint", font: "mono" });
       const confirmText = "✓ reset to defaults · mint + mono";
       startEcho(confirmText, () => {
         setHistory(prev => [...prev, { input: trimmed, output: { type: "text", content: confirmText } }]);
@@ -230,7 +218,7 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
     }
 
     // easter eggs — immediate output, no typing animation
-    const easterEgg = getEasterEgg(trimmed);
+    const easterEgg = getEasterEgg(trimmed) ?? runIRCommand(trimmed);
     if (easterEgg) {
       setHistory(prev => [...prev, { input: trimmed, output: easterEgg }]);
       setInput("");
@@ -268,25 +256,18 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
   }, [startEcho, router, onNavigate]);
 
   const applyACSuggestion = useCallback((name: string) => {
-    const cmd = parseThemeCmd(input);
-    const newInput = (cmd.type === "theme-pending" || cmd.type === "theme-typing")
-      ? `theme ${name}` : `font ${name}`;
+    const newInput = acPrefix + name;
     setInput(newInput);
     setCursorPos(newInput.length);
     setAcOpen(false);
     // Immediately apply so the live-theme effect doesn't lag
     const applied = parseThemeCmd(newInput);
     if (applied.valid) {
-      if (applied.type === "theme" && applied.theme) {
-        applyTheme(applied.theme, activeFont);
-        setActiveTheme(applied.theme);
-      } else if (applied.type === "font" && applied.font) {
-        applyTheme(activeTheme, applied.font);
-        setActiveFont(applied.font);
-      }
+      if (applied.type === "theme" && applied.theme) setTheme({ theme: applied.theme });
+      else if (applied.type === "font" && applied.font) setTheme({ font: applied.font });
     }
     inputRef.current?.focus();
-  }, [input, activeFont, activeTheme]);
+  }, [acPrefix]);
 
   const handleSubmit = useCallback(() => {
     if (isEchoing) return;
@@ -295,7 +276,7 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
 
     // If autocomplete open → apply selected suggestion
     if (acOpen && acSuggestions.length > 0) {
-      applyACSuggestion(acSuggestions[acIndex]);
+      applyACSuggestion(acSuggestions[acIndex].name);
       return;
     }
 
@@ -304,9 +285,20 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
     executeCommand(trimmed);
   }, [isEchoing, input, acOpen, acSuggestions, acIndex, applyACSuggestion, executeCommand]);
 
+  // Runs a "try" chip as if it had been typed.
+  const runChip = useCallback((cmd: string) => {
+    if (isEchoing) return;
+    setAcOpen(false);
+    setPendingInput(cmd);
+    executeCommand(cmd);
+    inputRef.current?.focus();
+  }, [isEchoing, executeCommand]);
+
   useEffect(() => {
     const handle = (e: KeyboardEvent) => {
       if (!isActive) return;
+      // Keys on the page's links and buttons are theirs, not the prompt's.
+      if (e.target !== inputRef.current && e.target !== document.body) return;
       if (e.key === "Enter") {
         e.preventDefault();
         handleSubmit();
@@ -321,7 +313,7 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
           setAcIndex(i => (i + 1) % acSuggestions.length);
         } else if (e.key === "Tab") {
           e.preventDefault();
-          applyACSuggestion(acSuggestions[acIndex]);
+          applyACSuggestion(acSuggestions[acIndex].name);
         }
       }
     };
@@ -338,13 +330,13 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
   const hintText = isEchoing ? "" :
     (liveCmd.type === "theme-pending" || liveCmd.type === "font-pending")
       ? `${acSuggestions.length} options · ↑↓ ↵`
-    : (liveCmd.type === "theme-typing" || liveCmd.type === "font-typing") && liveCmd.suggest?.length
-      ? `${liveCmd.suggest.length} match · ↑↓ ↵`
+    : acOpen && acSuggestions.length
+      ? `${acSuggestions.length} match · ↑↓ ↵`
     : isValid
       ? "↵ confirm · already applied"
     : isError
       ? "no match"
-    : "type to apply";
+    : input ? "↵ run" : "type a command";
 
   const dropdownOpen = acOpen && acSuggestions.length > 0 && !isEchoing;
 
@@ -480,16 +472,8 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
                 overflow: "hidden",
               }}
             >
-              {acSuggestions.map((name, idx) => {
+              {acSuggestions.map(({ name, hint, swatch }, idx) => {
                 const isSelected = idx === acIndex;
-                const swatch = acIsTheme && name in THEMES
-                  ? { bg: THEMES[name as ThemeName].bg, accent: THEMES[name as ThemeName].accent }
-                  : null;
-                const fullLabel = acIsTheme
-                  ? THEMES[name as ThemeName]?.label ?? name
-                  : FONTS[name as FontName]?.label ?? name;
-                const shortDesc = fullLabel.split(" · ")[1] ?? fullLabel;
-
                 return (
                   <div
                     key={name}
@@ -498,7 +482,7 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
                     onClick={() => applyACSuggestion(name)}
                     style={{
                       display: "grid",
-                      gridTemplateColumns: swatch ? "28px 90px 1fr auto" : "90px 1fr auto",
+                      gridTemplateColumns: swatch ? "28px minmax(90px, auto) 1fr auto" : "minmax(90px, auto) 1fr auto",
                       alignItems: "center",
                       gap: 12,
                       padding: "9px 14px",
@@ -527,8 +511,8 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
                     <span style={{ color: isSelected ? "var(--accent)" : "var(--tv-text)" }}>
                       {name}
                     </span>
-                    <span style={{ color: "var(--text-faint)", fontSize: 11 }}>
-                      · {shortDesc}
+                    <span className="truncate" style={{ color: "var(--text-faint)", fontSize: 11 }}>
+                      · {hint}
                     </span>
                     {isSelected && (
                       <span style={{ fontSize: 10, color: "var(--accent)" }}>↵</span>
@@ -541,21 +525,23 @@ export function Cursor({ onNavigate, embedded = false }: CursorProps) {
         </div>
       )}
 
-      {/* ── Non-dev hint (fades in after 3 s, dismisses on first input) ─ */}
-      {showHint && history.length === 0 && !isEchoing && isActive && (
-        <div style={{ marginTop: 14 }}>
-          <p style={{ fontSize: 11, color: "var(--text-faint)", marginBottom: 4 }}>
-            type anything and press{" "}
-            <span style={{ color: "var(--text-mute)" }}>Enter</span> to begin
-          </p>
-          <p style={{ fontSize: 11, color: "var(--text-faint)" }}>
-            or try:{" "}
-            <span style={{ color: "var(--text-mute)" }}>help</span>
-            {" · "}
-            <span style={{ color: "var(--text-mute)" }}>theme amber</span>
-            {" · "}
-            <span style={{ color: "var(--text-mute)" }}>ls</span>
-          </p>
+      {/* ── Try chips: every command one click away, until the first run ─ */}
+      {history.length === 0 && !isEchoing && isActive && (
+        <div className="mt-3.5 flex flex-wrap items-center gap-1.5 text-[11px] text-ctp-overlay0">
+          <span className="mr-1">try</span>
+          {TRY.map((cmd) => (
+            <button
+              key={cmd}
+              type="button"
+              className="tv-chip tv-chip-tight"
+              onClick={(e) => {
+                e.stopPropagation();
+                runChip(cmd);
+              }}
+            >
+              {cmd}
+            </button>
+          ))}
         </div>
       )}
     </div>

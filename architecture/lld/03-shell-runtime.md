@@ -6,7 +6,7 @@ App: `apps/shell` (Next.js 16 App Router). This is the current app after Phase 1
 
 | Route | Rendering | Purpose | Status |
 |---|---|---|---|
-| `/` | Client, as today | Cursor void, parse animation, mode links | Unchanged. Mode links point at `/t/ast?mode=…` after Phase 3. |
+| `/` | Client | Cursor void, parse animation, mode links, flavor picker | Mode links point at `/t/ast?mode=…` after Phase 3. The prompt reads the IR (`ls`, `tree`, `cd`, `cat`, `--target=<id>`, with completion) and offers one-click "try" chips. A flavor picker shows a still, IR-drawn preview per listed target and a theme swatch row. Nothing moves until the visitor acts. It does not prefetch target code: importing the loader from `/` moves shared code into `/t/ast`'s first load. |
 | `/t/[target]` | Server outline + client target host | Any target. `?focus=<id>` plus target-owned params. | New in Phase 3 |
 | `/tree` | `308` to `/t/ast` preserving `mode` | Backward compatibility for existing links | Redirect in Phase 3 |
 | `/node/[slug]` | SSG from IR | Canonical entity page | Data source switches to IR in Phase 2 |

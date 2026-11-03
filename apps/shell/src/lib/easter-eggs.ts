@@ -40,7 +40,15 @@ const commands: Record<string, () => EasterEggResult> = {
       "Available commands:",
       "",
       "  help                    — you're looking at it",
-      "  ls                      — list the contents",
+      "",
+      "  ls [node]               — list what a node contains",
+      "  tree                    — the top of the tree",
+      "  cd <node>               — open a node (tab-complete with ↑↓)",
+      "  cat <node>              — read a node's summary here",
+      "",
+      "  targets                 — the ways to traverse",
+      "  --target=<id>           — open one of them",
+      "",
       "  cat README              — read the readme",
       "  console.log(rajat)      — inspect the developer",
       "  resume                  — download the resume",
@@ -57,21 +65,6 @@ const commands: Record<string, () => EasterEggResult> = {
     ],
   }),
 
-  ls: () => ({
-    type: "lines",
-    content: [
-      "drwxr-xr-x  projects/",
-      "drwxr-xr-x  research/",
-      "drwxr-xr-x  skills/",
-      "drwxr-xr-x  philosophy/",
-      "drwxr-xr-x  timeline/",
-      "-rw-r--r--  README.md",
-      "-rw-r--r--  rajat.json",
-      "-rw-r--r--  resume.pdf",
-      "-rw-r--r--  resume.docx",
-    ],
-  }),
-
   "cat README": () => ({
     type: "lines",
     content: [
@@ -81,7 +74,7 @@ const commands: Record<string, () => EasterEggResult> = {
       "This isn't a portfolio — it's a program that describes a person.",
       "",
       "Type anything. Press Enter. The parsing begins.",
-      "Type `resume` to download, `cat resume` to view inline.",
+      "Type `ls` to look around, `targets` to pick how you traverse.",
       "",
       "— Rajat",
     ],
