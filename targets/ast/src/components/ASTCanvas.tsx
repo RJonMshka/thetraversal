@@ -432,7 +432,7 @@ export function ASTCanvas({ mode, onNodeSelect }: ASTCanvasProps) {
   return (
     <svg
       ref={svgRef}
-      className="w-full h-full"
+      className="w-full h-full cursor-grab active:cursor-grabbing"
       role="tree"
       aria-label="AST Visualization"
       style={{ touchAction: "none" }}

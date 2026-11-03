@@ -10,6 +10,31 @@
  * Traversal v2 Design System
  * Ink-dark base · mint accent · JetBrains Mono + Source Serif 4
  */
+/*
+ * Pointer on everything clickable. Tailwind v4's preflight leaves buttons on
+ * the default arrow. In the base layer, so cursor-* utilities and inline
+ * styles (grab on pan surfaces, not-allowed on disabled) still win.
+ */
+@layer base {
+  a[href],
+  button:not(:disabled),
+  summary,
+  select,
+  label[for],
+  [role="button"],
+  [role="tab"],
+  [role="option"],
+  [role="menuitem"],
+  [role="link"],
+  [role="treeitem"] {
+    cursor: pointer;
+  }
+  :disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}
+
 @theme {
   /*
    * All ctp-* colors now reference CSS custom properties so they react to
@@ -121,11 +146,14 @@
   border-radius: 999px;
   color: var(--text-mute);
   background: rgba(255, 255, 255, 0.02);
-  cursor: default;
   user-select: none;
   white-space: nowrap;
   transition: color 600ms cubic-bezier(0.4, 0, 0.2, 1),
               border-color 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* A chip is a label unless it is (or sits inside) a link or button. */
+.tv-chip:not(a, button, a *) {
+  cursor: default;
 }
 .tv-chip[data-on="true"] {
   color: var(--accent);
