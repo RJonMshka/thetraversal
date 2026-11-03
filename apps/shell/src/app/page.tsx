@@ -4,10 +4,28 @@ import { TelemetryNote } from "@/components/shared/TelemetryNote";
 import { Suspense, useState, useCallback } from "react";
 import Link from "next/link";
 import { Cursor } from "@/components/landing/Cursor";
+import { FlavorPicker } from "@/components/landing/FlavorPicker";
 import { preloadable, usePreloadWhenIdle } from "@/lib/preloadable";
-import { irStats } from "@/platform/ir";
+import { ir } from "@/platform/ir";
+import type { Entity } from "@tv/ir";
 
-const STATS = irStats();
+const SECTIONS = ir.children(ir.graph.rootId);
+
+/** "University of Illinois at Chicago" → "UIC"; short labels stay. */
+function shortLabel(label: string): string {
+  if (label.length <= 18) return label;
+  return label.split(/\s+/).filter((w) => /^[A-Z]/.test(w)).map((w) => w[0]).join("");
+}
+
+// The career stream in the footer: every leaf under a timeline, in order.
+const STREAM: Entity[] = [];
+function collectLeaves(id: string) {
+  for (const k of ir.children(id)) {
+    if (ir.children(k.id).length === 0) STREAM.push(k);
+    else collectLeaves(k.id);
+  }
+}
+for (const t of ir.byKind("timeline")) if (ir.parent(t.id)?.kind !== "timeline") collectLeaves(t.id);
 
 // Shown only after the visitor runs the prompt; its code (and Framer
 // Motion) loads when the page is idle, so it is not first-load JS.
@@ -18,143 +36,6 @@ const MODES = [
   { label: "— parse", href: "/t/ast?mode=parse" },
   { label: "— eval",  href: "/t/ast?mode=eval"  },
 ];
-
-// ── Mini-tree sneak peek ───────────────────────────────────────────────
-// Pure SVG so it scales naturally to any container width.
-
-// Mini AST preview — 4 level-1 nodes (no overlap), 2 glowing leaves under Timeline.
-// Geometry:
-//   viewBox 400×170 · root centered at x=200
-//   Level 1: centers at 65, 155, 245, 335  (90px gap, box width 70 → 20px gutter)
-//   Level 2: centers at 210, 290 under Timeline  (box width 62 → 18px gutter)
-function TreeSneakPeek() {
-  const ACCENT = "var(--accent)";
-  const ACCENT_FAINT = "var(--accent-faint)";
-  const ACCENT_DIM = "var(--accent-dim)";
-  const DIM_FILL = "rgba(255,255,255,0.02)";
-  const DIM_STROKE = "var(--line)";
-  const DIM_TEXT = "var(--text-mute)";
-  const ROOT_FILL = "var(--ink-2)";
-  const ROOT_STROKE = "var(--line-2)";
-  const font = '"JetBrains Mono", ui-monospace, monospace';
-
-  // Level-1 nodes
-  const L1: { cx: number; label: string; glow?: boolean; dim?: boolean }[] = [
-    { cx: 65,  label: "Identity", dim: true  },
-    { cx: 155, label: "Skills",   dim: true  },
-    { cx: 245, label: "Timeline", glow: true },
-    { cx: 335, label: "Connect",  dim: true  },
-  ];
-
-  // Leaf nodes (under Timeline cx=245)
-  const LEAVES: { cx: number; label: string }[] = [
-    { cx: 210, label: "Journey"     },
-    { cx: 290, label: "Capital One" },
-  ];
-
-  return (
-    <div className="tv-card" style={{ padding: 18, overflow: "hidden" }}>
-      {/* Header */}
-      <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
-        <span className="tv-tag">{"// preview · /tree"}</span>
-        <span
-          style={{
-            fontSize: 10,
-            color: "var(--text-faint)",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            fontFamily: "var(--mono)",
-          }}
-        >
-          <span style={{ width: 5, height: 5, borderRadius: 999, background: ACCENT, display: "inline-block" }} />
-          <span style={{ color: ACCENT }}>{STATS.entities} nodes</span>
-          <span>· depth {STATS.maxDepth}</span>
-        </span>
-      </div>
-
-      {/* SVG tree */}
-      <svg viewBox="0 0 400 170" style={{ width: "100%", height: "auto", display: "block" }} aria-hidden="true">
-        {/* root → level-1 edges */}
-        {L1.map((n) => (
-          <path
-            key={n.label}
-            d={`M200,32 C200,58 ${n.cx},58 ${n.cx},72`}
-            stroke={n.glow ? ACCENT : "rgba(255,255,255,0.10)"}
-            strokeWidth={n.glow ? 1.2 : 0.7}
-            fill="none"
-            opacity={n.glow ? 0.75 : 0.4}
-          />
-        ))}
-
-        {/* timeline → leaf edges */}
-        {LEAVES.map((n) => (
-          <path
-            key={n.label}
-            d={`M245,90 C245,114 ${n.cx},114 ${n.cx},126`}
-            stroke={ACCENT}
-            strokeWidth="0.9"
-            fill="none"
-            opacity="0.55"
-          />
-        ))}
-
-        {/* root node */}
-        <rect x="155" y="10" width="90" height="22" rx="3" fill={ROOT_FILL} stroke={ROOT_STROKE} />
-        <text x="200" y="24" textAnchor="middle" fontFamily={font} fontSize="9" fill="var(--tv-text)">
-          Rajat Kumar
-        </text>
-
-        {/* level-1 nodes */}
-        {L1.map((n) => (
-          <g key={n.label} opacity={n.dim ? 0.5 : 1}>
-            <rect
-              x={n.cx - 35} y="72" width="70" height="18" rx="3"
-              fill={n.glow ? ACCENT_FAINT : DIM_FILL}
-              stroke={n.glow ? ACCENT : DIM_STROKE}
-            />
-            <text x={n.cx} y="84" textAnchor="middle" fontFamily={font} fontSize="8"
-              fill={n.glow ? ACCENT : DIM_TEXT}>
-              {n.label}
-            </text>
-          </g>
-        ))}
-
-        {/* leaf nodes */}
-        {LEAVES.map((n) => (
-          <g key={n.label}>
-            <rect
-              x={n.cx - 31} y="126" width="62" height="16" rx="2"
-              fill={ACCENT_FAINT} stroke={ACCENT_DIM}
-            />
-            <text x={n.cx} y="137" textAnchor="middle" fontFamily={font} fontSize="7" fill={ACCENT}>
-              {n.label}
-            </text>
-          </g>
-        ))}
-      </svg>
-
-      {/* Footer */}
-      <div
-        style={{
-          marginTop: 12,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          borderTop: "1px solid var(--line)",
-          paddingTop: 10,
-        }}
-      >
-        <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text-faint)" }}>
-          press <span style={{ color: ACCENT }}>↵</span> to enter
-        </span>
-        <Link href="/t/ast" style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text-mute)" }}>
-          traverse →
-        </Link>
-      </div>
-    </div>
-  );
-}
 
 // ── Landing Page ───────────────────────────────────────────────────────
 
@@ -291,31 +172,23 @@ export default function LandingPage() {
               <Cursor onNavigate={handleNavigate} embedded />
             </div>
 
-            <p style={{ fontSize: 11, color: "var(--text-faint)", marginTop: 14 }}>
-              type anything and press{" "}
-              <span style={{ color: "var(--accent)" }}>enter</span> · or{" "}
-              <Link
-                href="/t/ast"
-                style={{
-                  color: "var(--text-mute)",
-                  textDecoration: "underline",
-                  textUnderlineOffset: 4,
-                }}
-              >
-                traverse →
-              </Link>
-            </p>
+            {/* Every section, one click from the root */}
+            <nav aria-label="Sections" className="mt-5 flex max-w-[560px] flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px]">
+              <span className="text-ctp-overlay0">root.contains →</span>
+              {SECTIONS.map((s) => (
+                <Link
+                  key={s.id}
+                  href={`/node/${s.id}`}
+                  className="text-ctp-subtext0 underline decoration-[var(--line-2)] underline-offset-4 hover:text-ctp-green hover:decoration-current"
+                >
+                  {s.id}
+                </Link>
+              ))}
+            </nav>
           </div>
 
-          {/* Right column: tree sneak peek — desktop only */}
-          <div className="hidden lg:block">
-            <TreeSneakPeek />
-          </div>
-        </div>
-
-        {/* ── Mobile: tree sneak peek below hero ───────────────────────── */}
-        <div className="lg:hidden mt-8">
-          <TreeSneakPeek />
+          {/* Right column on desktop, below the prompt on phones */}
+          <FlavorPicker />
         </div>
 
         {/* ── Footer ───────────────────────────────────────────────────── */}
@@ -323,16 +196,21 @@ export default function LandingPage() {
           className="flex items-end justify-between flex-wrap gap-2"
           style={{ marginTop: 48, paddingTop: 24 }}
         >
-          <div style={{ fontSize: 10, color: "var(--text-faint)", letterSpacing: "0.14em", lineHeight: 1.9 }}>
-            STREAM →{" "}
-            <span style={{ color: "var(--text-mute)" }}>&quot;Publicis Sapient&quot;</span>
-            {" → "}
-            <span style={{ color: "var(--text-mute)" }}>&quot;UIC&quot;</span>
-            {" → "}
-            <span style={{ color: "var(--text-mute)" }}>&quot;Airblox&quot;</span>
-            {" → "}
-            <span style={{ color: "var(--accent)" }}>&quot;Capital One&quot;</span>
-          </div>
+          <nav aria-label="Career stream" style={{ fontSize: 10, color: "var(--text-faint)", letterSpacing: "0.14em", lineHeight: 1.9 }}>
+            STREAM
+            {STREAM.map((e, i) => (
+              <span key={e.id}>
+                {" → "}
+                <Link
+                  href={`/node/${e.id}`}
+                  title={e.label}
+                  className={`hover:underline underline-offset-4 ${i === STREAM.length - 1 ? "text-ctp-green" : "text-ctp-subtext0"}`}
+                >
+                  &quot;{shortLabel(e.label)}&quot;
+                </Link>
+              </span>
+            ))}
+          </nav>
           <div style={{ fontSize: 10, color: "var(--text-faint)" }}>
             chicago · shipping
           </div>
